@@ -240,14 +240,14 @@ const LogInForm = ({ children }) => {
         const messages = resultAction.payload?.messages || [];
         messages.forEach((message) => toast.success(message));
       } else {
-        console.error("🚨 Login failed:", resultAction);
+        console.error("Login failed:", resultAction);
 
         const messages = resultAction.payload?.messages ||
           resultAction.error?.messages || ["An unexpected error occurred"];
         messages.forEach((message) => toast.error(message));
       }
     } catch (error) {
-      console.error("❌ Unexpected error:", error);
+      console.error(" Unexpected error:", error);
       toast.error("An unexpected error occurred");
     }
 

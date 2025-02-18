@@ -91,15 +91,14 @@ export const loginUser = async (credentials) => {
   try {
     const url = `http://myres.me/thmdev/api/callcenter/login?email=${credentials.login}&password=${credentials.password}`;
     const response = await axios.post(url);
+    if (process.env.NODE_ENV === "development") {
+      console.log("API Content:", response);
+    }
 
-    console.log("API Content:", response.data.data);
-    console.log("API Content:", response);
-
-    const { user } = response.data.data;
     const { messages } = response;
 
-    if (response.data.data.token) {
-      Cookies.set("token", response.data.data.token);
+    if (response?.data?.data?.token) {
+      Cookies.set("token", response?.data?.data?.token);
       Cookies.remove("domain");
       Cookies.remove("user");
       Cookies.remove("access_token");
@@ -108,6 +107,11 @@ export const loginUser = async (credentials) => {
         user: response.data.data.user,
         token: response.data.data.token,
         messages: messages || [],
+      };
+    }else {
+      return {
+        error: true,
+        messages: response.data.messages || "An unexpected error occurred",
       };
     }
   } catch (error) {

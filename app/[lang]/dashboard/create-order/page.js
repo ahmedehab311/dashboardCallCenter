@@ -46,12 +46,15 @@ import { useQuery } from "@tanstack/react-query";
 import {
   fetchRestaurantsList,
   fetchUserByPhone,
+  fetchBranches,
 } from "./apICallCenter/ApisCallCenter";
 function CreateOrder() {
   const { theme } = useTheme();
   const [color, setColor] = useState("");
   const [phone, setPhone] = useState("");
-  // const [selectedAddress, setSelectedAddress] = useState(null);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
+  // apis
+  // api restaurants select
   const {
     data: dataRestaurants,
     isLoading,
@@ -60,7 +63,15 @@ function CreateOrder() {
     queryKey: ["RestaurantsList"],
     queryFn: fetchRestaurantsList,
   });
-
+  const {
+    data: branches,
+    isLoadingBranchs,
+    errorBranchs,
+  } = useQuery({
+    queryKey: ["BranchesList"],
+    queryFn: () => fetchBranches(selectedRestaurantId),
+  });
+  // api User Data For serach
   const {
     data: selectedUser,
     isLoadingUserDataForSerach,
@@ -81,9 +92,12 @@ function CreateOrder() {
       console.error("Error fetching user:", error);
     },
   });
+  // api branches
+
   if (process.env.NODE_ENV === "development") {
     console.log("selectedUser", selectedUser);
   }
+
   // const {
   //   data: dataUserOFsearch,
   //   isLoadingUserDataForSerach,
@@ -229,25 +243,25 @@ function CreateOrder() {
   const [allUserData, setAllUserData] = useState(null);
   const [selectedAddress, setSelectedAddress] = useState([]);
   const [errorSearchUser, setErrorSearchUser] = useState(null);
-  useEffect(() => {
-    const handleBeforeUnload = (event) => {
-      if (search) {
-        // إذا كان هناك شيء مكتوب في حقل البحث
-        const message =
-          "Are you sure you want to leave? Your search data will be lost.";
-        event.returnValue = message; // هذا سيعرض رسالة التحذير في بعض المتصفحات
-        return message; // بعض المتصفحات الأخرى تتطلب هذه السطر لعرض الرسالة
-      }
-    };
+  // useEffect(() => {
+  //   const handleBeforeUnload = (event) => {
+  //     if (search) {
+  //       // إذا كان هناك شيء مكتوب في حقل البحث
+  //       const message =
+  //         "Are you sure you want to leave? Your search data will be lost.";
+  //       event.returnValue = message; // هذا سيعرض رسالة التحذير في بعض المتصفحات
+  //       return message; // بعض المتصفحات الأخرى تتطلب هذه السطر لعرض الرسالة
+  //     }
+  //   };
 
-    // إضافة مستمع لحدث beforeunload
-    window.addEventListener("beforeunload", handleBeforeUnload);
+  //   // إضافة مستمع لحدث beforeunload
+  //   window.addEventListener("beforeunload", handleBeforeUnload);
 
-    // تنظيف المستمع عند الخروج من الصفحة أو عند تغيير الكومبوننت
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [search]);
+  //   // تنظيف المستمع عند الخروج من الصفحة أو عند تغيير الكومبوننت
+  //   return () => {
+  //     window.removeEventListener("beforeunload", handleBeforeUnload);
+  //   };
+  // }, [search]);
   const handleSearch = () => {
     if (search) {
       setPhone(search);
@@ -276,15 +290,14 @@ function CreateOrder() {
       setColor("#000");
     }
   }, [theme]);
+
+  const [deliveryMethod, setDeliveryMethod] = useState("delivery");
   useEffect(() => {
-    if (dataRestaurants) {
-      const formattedRestaurants = dataRestaurants.map((restaurant) => ({
-        value: restaurant.id,
-        label: restaurant.res_name_en,
-      }));
-      setRestaurantsSelect(formattedRestaurants);
+    // تعيين العنوان الأول في القائمة كعنوان محدد
+    if (selectedUser?.address?.length > 0) {
+      setSelectedAddress(selectedUser.address[0].address1);
     }
-  }, [dataRestaurants]);
+  }, [selectedUser]);
 
   const columns = [
     { key: "Items", label: "Items" },
@@ -381,6 +394,37 @@ function CreateOrder() {
     setOpenDialog(false);
   };
 
+  useEffect(() => {
+    if (dataRestaurants) {
+      const formattedRestaurants = dataRestaurants.map((restaurant) => ({
+        value: restaurant.id,
+        label: restaurant.res_name_en,
+      }));
+      setRestaurantsSelect(formattedRestaurants);
+
+      // تعيين الـ id للمطعم الأول بشكل افتراضي
+      if (formattedRestaurants.length > 0) {
+        setSelectedRestaurantId(formattedRestaurants[0].value);
+      }
+    }
+  }, [dataRestaurants]);
+  const handleRestaurantChange = (selectedOption) => {
+    setSelectedRestaurantId(selectedOption.value);
+  };
+  const handleSelectChange = (selectedOption) => {
+    setSelectedBranchId(selectedOption?.value);
+  };
+  // console.log("selectedRestaurantId", selectedRestaurantId);
+
+  // تحويل البيانات المستلمة إلى تنسيق يمكن استخدامه مع react-select
+  // const branchOptions = branches?.map((branch) => ({
+  //   value: branch.id,
+  //   label: branch.branch_name,
+  // }));
+
+  if (isLoadingBranchs) return <p>Loading branches...</p>;
+  if (errorBranchs) return <p>Error loading branches: {error.message}</p>;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col lg:flex-row lg:items-center gap-2">
@@ -390,7 +434,10 @@ function CreateOrder() {
           className="react-select w-[30%]"
           classNamePrefix="select"
           options={restaurantsSelect}
-          value={restaurantsSelect[0]}
+          value={restaurantsSelect.find(
+            (option) => option.value === selectedRestaurantId
+          )}
+          onChange={handleRestaurantChange}
           styles={selectStyles(theme, color)}
         />
       </div>
@@ -614,33 +661,67 @@ function CreateOrder() {
               <p>Orders Count: {selectedUser.orders_count}</p>
               <p>Points: {selectedUser.user.points}</p>
               <Button className="my-3">Edit user data</Button>
-              <div className="mt-3">
-                <h4 className="font-medium">Select Address:</h4>
-                {selectedUser?.address?.map((address, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id={address.id}
-                      checked={selectedAddress === address?.address1}
-                      onChange={() => setSelectedAddress(address?.address1)}
-                    />
-                    <label htmlFor={address.address_name}>
-                      {address.address_name}
-                    </label>
-                  </div>
-                ))}
-              </div>
 
-              {selectedAddress && (
+              <div className="flex item-center gap-4 mb-4 justify-center">
+                <div className="flex item-center gap-1">
+                  <input
+                    type="checkbox"
+                    id="delivery"
+                    checked={deliveryMethod === "delivery"}
+                    onChange={() => setDeliveryMethod("delivery")}
+                  />
+                  <label htmlFor="delivery">Delivery</label>
+                </div>
+                <div className="flex item-center gap-1 ">
+                  <input
+                    type="checkbox"
+                    id="pickup"
+                    checked={deliveryMethod === "pickup"}
+                    onChange={() => setDeliveryMethod("pickup")}
+                  />
+                  <label htmlFor="pickup">Pickup</label>
+                </div>
+              </div>
+              {deliveryMethod === "delivery" && (
+                <div className="mt-3">
+                  <h4 className="font-medium">Address:</h4>
+                  {selectedUser?.address?.map((address, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id={address.id}
+                        checked={selectedAddress === address?.address1}
+                        onChange={() => setSelectedAddress(address?.address1)}
+                      />
+                      <label htmlFor={address.address_name}>
+                        {address.address_name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {deliveryMethod === "delivery" && selectedAddress && (
                 <div className="mt-3 p-3 ">
                   <p className="text-sm"> {selectedAddress}</p>
+                </div>
+              )}
+              {deliveryMethod === "pickup" && (
+                <div className="flex flex-col lg:flex-row lg:items-center gap-2">
+                  <Label className="lg:min-w-[160px]">Branches:</Label>
+                  <Select
+                    className="react-select w-full"
+                    classNamePrefix="select"
+                    // options={branchOptions}
+                    onChange={handleSelectChange}
+                    placeholder="Branches"
+                    styles={selectStyles(theme, color)}
+                  />
                 </div>
               )}
             </div>
           )}
 
           <Card title="Bordered Tables">
-            <h3 className="text-2xl my-5">Products</h3>
             {/* <Table className="border border-default-300">
               <TableHeader>
                 <TableRow>
@@ -709,45 +790,52 @@ function CreateOrder() {
               </TableBody>
             </Table> */}
             {cartItems.length > 0 && (
-              <Table className="border border-default-300">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Item</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Unit Price</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {cartItems.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>
-                        <div className="flex">
-                          <Button onClick={() => handleDecreaseTable(item.id)}>
-                            -
-                          </Button>
-                          <span className="mx-4">{item.quantity}</span>
-                          <Button onClick={() => handleIncreaseTable(item.id)}>
-                            +
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell>${item.price.toFixed(2)}</TableCell>
-                      <TableCell>${item.total.toFixed(2)}</TableCell>
-                      <TableCell>
-                        <Button
-                          onClick={() => handleRemoveItem(item.id)}
-                          color="destructive"
-                        >
-                          Remove
-                        </Button>
-                      </TableCell>
+              <>
+                <h3 className="text-2xl my-5">Products</h3>
+                <Table className="border border-default-300">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Item</TableHead>
+                      <TableHead>Quantity</TableHead>
+                      <TableHead>Unit Price</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {cartItems.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell>{item.name}</TableCell>
+                        <TableCell>
+                          <div className="flex">
+                            <Button
+                              onClick={() => handleDecreaseTable(item.id)}
+                            >
+                              -
+                            </Button>
+                            <span className="mx-4">{item.quantity}</span>
+                            <Button
+                              onClick={() => handleIncreaseTable(item.id)}
+                            >
+                              +
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>${item.price.toFixed(2)}</TableCell>
+                        <TableCell>${item.total.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Button
+                            onClick={() => handleRemoveItem(item.id)}
+                            color="destructive"
+                          >
+                            Remove
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </>
             )}
           </Card>
           {/* <Card title="Bordered Tables">

@@ -126,12 +126,12 @@ function LayoutContentComponent({ lang, children }) {
     //   router.push(`/${savedLanguage}/login`);
     // }
 
-    if (
-      accessToken ||
-      (token && router.pathname === `/${savedLanguage}/login`)
-    ) {
-      router.push(`/${savedLanguage}/dashboard`);
-    }
+    // if (
+    //   accessToken ||
+    //   (token && router.pathname === `/${savedLanguage}/login`)
+    // ) {
+    //   router.push(`/${savedLanguage}/dashboard`);
+    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang, dispatch]);
 

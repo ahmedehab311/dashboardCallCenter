@@ -27,6 +27,18 @@ export const fetchUserByPhone = async (phone) => {
     return response.data.users;
   } catch (error) {
     console.error("Error fetching user:", error);
-    throw error; // إذا حدث خطأ
+    throw error;
+  }
+};
+export const fetchBranches = async (restaurantId) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/callcenter/get/branches?api_token==${token}&restaurantId=${restaurantId}`
+    );
+    console.log("API Response branches:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    throw error;
   }
 };
