@@ -812,7 +812,7 @@ function CreateOrder() {
                       )}
 
                       <div className="mt-3">
-                        <DialogFooter className="mt-3">
+                        <DialogFooter className="flex justify-between items-center mt-4">
                           <DialogClose asChild>
                             <Button
                               variant="outline"
