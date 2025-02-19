@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useTheme } from "next-themes";
 import Select from "react-select";
 import { Label } from "@radix-ui/react-label";
@@ -25,34 +25,54 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Search } from "lucide-react";
-import img1 from "./img/macr1.png";
-import img2 from "./img/marc2.png";
-import img3 from "./img/marc3.png";
-import img4 from "./img/marc4.png";
-import img5 from "./img/marc5.png";
-import img6 from "./img/marc7.png";
-import img7 from "./img/marc8.png";
-import img8 from "./img/marc9.png";
-import img9 from "./img/marc11.png";
-import imgV from "./img/vcola.png";
-import imgV7 from "./img/v7.png";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
 import { selectStyles } from "@/lib/utils";
 import Test from "./test";
 import BorderedTables from "./bordered-tables";
 import { Icon } from "@iconify/react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchRestaurantsList,
   fetchUserByPhone,
   fetchBranches,
+  fetchMenu,
 } from "./apICallCenter/ApisCallCenter";
+import { BASE_URL_iamge } from "@/api/BaseUrl";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+// import { useQueryClient } from "react-query";
+const userSchemaEdit = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters long"),
+  phone: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
+  phone2: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
+  // address: z.string().min(1, "Address is required"),
+});
+// const userSchemaEdit = z.object({
+//   username: z.string().min(3, "Username must be at least 3 characters long"),
+//   phone: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
+//   address: z.string().min(1, "Address is required"),
+//   street: z.string().min(1, "Street name is required"),
+//   building: z.string().min(1, "Building number is required"),
+//   floor: z.string().optional(),
+//   apt: z.string().optional(),
+//   name: z.string().min(1, "Name is required"),
+//   additionalInfo: z.string().optional(),
+// });
 function CreateOrder() {
+  const {
+    register: registerEdit,
+    handleSubmit: handleSubmitEdit,
+    setValue: setValueEdit,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(userSchemaEdit), mode: "onSubmit" });
   const { theme } = useTheme();
+  const queryClient = useQueryClient();
   const [color, setColor] = useState("");
   const [phone, setPhone] = useState("");
-  const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState(1);
+  const [SelectedBranchId, setSelectedBranchId] = useState(null);
+  const [SelectedBranchPriceist, setSelectedBranchPriceList] = useState(1);
   // apis
   // api restaurants select
   const {
@@ -67,11 +87,52 @@ function CreateOrder() {
     data: branches,
     isLoadingBranchs,
     errorBranchs,
+    refetch: refetchBranches,
   } = useQuery({
-    queryKey: ["BranchesList"],
+    queryKey: ["BranchesList", selectedRestaurantId],
     queryFn: () => fetchBranches(selectedRestaurantId),
+    enabled: !!selectedRestaurantId,
   });
+
+  const {
+    data: menu,
+    isLoading: isLoadingMenu,
+    error: errorMenu,
+    refetch: refetchMenu,
+  } = useQuery({
+    queryKey: ["menuList", selectedRestaurantId, SelectedBranchPriceist],
+    queryFn: () => fetchMenu(selectedRestaurantId, SelectedBranchPriceist),
+    enabled: !!selectedRestaurantId && !!SelectedBranchPriceist,
+    staleTime: 1000 * 60 * 5,
+    cacheTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+    keepPreviousData: true,
+  });
+
+  // console.log("menu from basic", menu);
+  const sections = menu?.sections
+    ? [{ id: "all", name_en: "All", name_ar: "الكل" }, ...menu.sections]
+    : [{ id: "all", name_en: "All", name_ar: "الكل" }];
+
+  const items =
+    menu?.sections?.flatMap((section) =>
+      section.items_and_offer.map((item) => ({
+        id: item.id,
+        name: item.name_en, // يمكنك استبدالها بـ item.name_ar إذا كنت تريد العربية
+        price: item.sizes?.[0]?.prices?.[0]?.price,
+        // image: item.image, // تأكد أن الصورة تأتي من API
+        section: section.id, // كل عنصر مرتبط بالقسم الخاص به
+        image: item.image?.startsWith("http")
+          ? item.image
+          : `${BASE_URL_iamge}/${item.image}`,
+      }))
+    ) || [];
+  // console.log("imageUrl", items.imageUrl);
+  // console.log("First item imageUrl:", items[0]?.image);
+  // console.log("First item price:", items[0]?.price);
+
   // api User Data For serach
+
   const {
     data: selectedUser,
     isLoadingUserDataForSerach,
@@ -94,24 +155,15 @@ function CreateOrder() {
   });
   // api branches
 
-  if (process.env.NODE_ENV === "development") {
-    console.log("selectedUser", selectedUser);
-  }
-
-  // const {
-  //   data: dataUserOFsearch,
-  //   isLoadingUserDataForSerach,
-  //   errorUserDataForSearch,
-  // } = useQuery({
-  //   queryKey: ["userList"],
-  //   queryFn: fetchUserByPhone,
-  // });
-
-  // console.log("fetchRestaurantsList", dataRestaurants);
+  // if (process.env.NODE_ENV === "development") {
+  //   console.log("selectedUser", selectedUser);
+  // }
 
   const [activeSection, setActiveSection] = useState("all");
   const [counter, setCounter] = useState(1);
   const [openDialog, setOpenDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [openEditAddressDialog, setOpenEditAddressDialog] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [restaurantsSelect, setRestaurantsSelect] = useState([]);
 
@@ -124,101 +176,14 @@ function CreateOrder() {
   };
   const handleNewUserClick = () => {
     setSelectedItem(null);
-    setIsNewUserDialog(true); // ✅ هذا ديالوج New User
+    setIsNewUserDialog(true);
     setOpenDialog(true);
   };
   const handleIncrease = () => setCounter((prev) => prev + 1);
   const handleDecrease = () => setCounter((prev) => (prev > 1 ? prev - 1 : 1));
 
-  const sections = [
-    { id: "all", name: "All" },
-    { id: "offers", name: "Offers" },
-    { id: "pasta", name: "Pasta" },
-    { id: "drinks", name: "Drinks" },
-    { id: "sandwiches", name: "Sandwiches" },
-    { id: "Dessert Pizza", name: "Dessert Pizza" },
-    { id: "Large Shakes Flavor", name: "Large Shakes Flavor" },
-    { id: "Ice Cream Add on", name: "Ice Cream Add on" },
-    { id: "Water", name: "Water" },
-    { id: "Soft Drink", name: "Drinks" },
-  ];
-
-  const items = [
-    {
-      id: 1,
-      name: "Spaghetti",
-      price: 10.99,
-      image: img1,
-      section: "pasta",
-    },
-
-    {
-      id: 2,
-      name: "Lasagna",
-      price: 12.99,
-      image: img2,
-      section: "pasta",
-    },
-    {
-      id: 3,
-      name: "Coca-Cola",
-      price: 2.99,
-      image: img3,
-      section: "drinks",
-    },
-    {
-      id: 4,
-      name: "Pepsi",
-      price: 2.99,
-      image: imgV,
-      section: "drinks",
-    },
-    {
-      id: 5,
-      name: "Burger Meal1",
-      price: 8.99,
-      image: img5,
-      section: "offers",
-    },
-    {
-      id: 6,
-      name: "Burger Meal2",
-      price: 8.99,
-      image: img6,
-      section: "Water",
-    },
-    {
-      id: 7,
-      name: "Burger Meal3",
-      price: 8.99,
-      image: img4,
-      section: "Large Shakes Flavor",
-    },
-    {
-      id: 8,
-      name: "Burger Meal4",
-      price: 8.99,
-      image: img7,
-      section: "Soft Drink",
-    },
-    {
-      id: 9,
-      name: "مكرونة جمبري",
-      price: 10.99,
-      image: img1,
-      section: "pasta",
-    },
-    {
-      id: 10,
-      name: "مكرونة جبن",
-      price: 10.99,
-      image: img1,
-      section: "pasta",
-    },
-  ];
   const [searchQuery, setSearchQuery] = useState("");
 
-  // فلترة العناصر بناءً على البحث
   const filteredItems = searchQuery
     ? items.filter((item) =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -226,18 +191,36 @@ function CreateOrder() {
     : items;
 
   // استخراج الأقسام التي تحتوي فقط على العناصر المفلترة
-  const filteredSections = [
-    { id: "all", name: "All" }, // تأكد أن "All" دائمًا موجود
-    ...sections.filter((section) =>
-      filteredItems.some((item) => item.section === section.id)
-    ),
-  ];
+  const filteredSections = sections.filter(
+    (section) =>
+      section.id === "all" || items.some((item) => item.section === section.id)
+  );
 
   // تطبيق فلترة القسم إذا لم يكن "All"
-  const displayedItems =
-    activeSection === "all"
-      ? filteredItems
-      : filteredItems.filter((item) => item.section === activeSection);
+  // const displayedItems =
+  //   activeSection === "all"
+  //     ? filteredItems
+  //     : filteredItems.filter((item) => item.section === activeSection);
+
+  // const displayedItems =
+  //   activeSection === "all"
+  //     ? items
+  //     : items.filter((item) => item.section === activeSection);
+  // const displayedItems = useMemo(() => {
+  //   if (activeSection === "all") return items;
+  //   return items.filter((item) => item.section === activeSection);
+  // }, [activeSection, items]);
+
+  const displayedItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = item.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesSection =
+        activeSection === "all" || item.section === activeSection;
+      return matchesSearch && matchesSection;
+    });
+  }, [items, searchQuery, activeSection]);
 
   const [search, setSearch] = useState("");
   const [allUserData, setAllUserData] = useState(null);
@@ -290,6 +273,13 @@ function CreateOrder() {
       setColor("#000");
     }
   }, [theme]);
+  useEffect(() => {
+    if (selectedUser) {
+      setValueEdit("username", selectedUser.user_name);
+      setValueEdit("phone", selectedUser.phone);
+      setValueEdit("phone2", selectedUser.phone2);
+    }
+  }, [selectedUser, selectedAddress, setValueEdit]);
 
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
   useEffect(() => {
@@ -408,27 +398,66 @@ function CreateOrder() {
       }
     }
   }, [dataRestaurants]);
+  useEffect(() => {
+    if (selectedRestaurantId && SelectedBranchPriceist) {
+      queryClient.prefetchQuery(
+        ["menuList", selectedRestaurantId, SelectedBranchPriceist],
+        () => fetchMenu(selectedRestaurantId, SelectedBranchPriceist)
+      );
+    }
+  }, [selectedRestaurantId, SelectedBranchPriceist]);
+  const [menuData, setMenuData] = useState({});
+
+  // useEffect(() => {
+  //   if (menu) {
+  //     setMenuData((prev) => ({
+  //       ...prev,
+  //       [selectedTab]: menu[selectedTab] || [],
+  //     }));
+  //   }
+  // }, [menu, selectedTab]);
+  const [visibleItems, setVisibleItems] = useState(20);
+
+  const loadMore = () => {
+    setVisibleItems((prev) => prev + 20); // عرض 20 عنصر إضافي
+  };
   const handleRestaurantChange = (selectedOption) => {
     setSelectedRestaurantId(selectedOption.value);
+    refetchBranches();
   };
-  const handleSelectChange = (selectedOption) => {
-    setSelectedBranchId(selectedOption?.value);
-  };
-  // console.log("selectedRestaurantId", selectedRestaurantId);
 
-  // تحويل البيانات المستلمة إلى تنسيق يمكن استخدامه مع react-select
-  // const branchOptions = branches?.map((branch) => ({
-  //   value: branch.id,
-  //   label: branch.branch_name,
-  // }));
+  const handleSelectChangeBranches = (selectedOption) => {
+    setSelectedBranchId(selectedOption?.value);
+    setSelectedBranchPriceList(selectedOption?.priceList);
+    // refetchMenu();
+  };
+
+  // if (process.env.NODE_ENV === "development") {
+  //   console.log("SelectedBranchId", SelectedBranchId);
+  //   console.log("SelectedBranchPriceist", SelectedBranchPriceist);
+  // }
+  const branchOptions = branches?.map((branch) => ({
+    value: branch.id,
+    label: branch.name_en,
+    priceList: branch.price_list,
+  }));
 
   if (isLoadingBranchs) return <p>Loading branches...</p>;
   if (errorBranchs) return <p>Error loading branches: {error.message}</p>;
+  const onSubmit = (data) => {
+    const formattedData = {
+      address: data.phone2,
+      username: data.username,
+      phone: data.phone,
+    };
 
+    console.log("Formatted Data to Send:", formattedData);
+    console.log("form data:", data);
+  };
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col lg:flex-row lg:items-center gap-2">
-        <Label className="lg:min-w-[160px]">Restaurants:</Label>
+      <div className="flex flex-col lg:flex-row lg:items-center gap-2 ml-4">
+        <Label className="lg:min-w-[160px]">Restaurant:</Label>
         <Select
           placeholder="Select Restaurant"
           className="react-select w-[30%]"
@@ -455,15 +484,13 @@ function CreateOrder() {
                 <span className="absolute top-1/2 -translate-y-1/2 left-2">
                   <Search className="w-4 h-4 text-gray-500" />
                 </span>
+
                 <Input
                   type="text"
                   placeholder="Search"
                   className="pl-7 w-full"
                   value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setActiveSection("all");
-                  }}
+                  onChange={(e) => setSearchQuery(e.target.value)} // لا تغير القسم عند البحث
                 />
               </div>
 
@@ -473,21 +500,21 @@ function CreateOrder() {
                   <button
                     key={section.id}
                     className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-300
-          ${
-            activeSection === section.id
-              ? "bg-black text-white"
-              : "bg-gray-200 text-gray-600"
-          }
-          `}
+        ${
+          activeSection === section.id
+            ? "bg-black text-white"
+            : "bg-gray-200 text-gray-600"
+        }
+      `}
                     onClick={() => setActiveSection(section.id)}
                   >
-                    {section.name}
+                    {section.name_en}
                   </button>
                 ))}
               </div>
 
               {/*  عرض العناصر مع التعديلات */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
                 {displayedItems.map((item) => (
                   <Card
                     onClick={() => handleItemClick(item)}
@@ -495,24 +522,25 @@ function CreateOrder() {
                     className="p-0 shadow-md rounded-lg overflow-hidden mt-7 text-white cursor-pointer"
                   >
                     <div className="w-full h-40">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
+                      <img
+                        src={item?.image}
+                        alt={item?.name_en}
                         width={150}
                         height={150}
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <div className="flex justify-between items-center p-3">
+                    <div className="flex justify-between items-center gap-3 p-3">
                       <h3 className="text-sm text-muted-foreground mt-2">
                         {item.name}
                       </h3>
                       <p className="text-gray-300 text-sm">
-                        ${item.price.toFixed(2)}
+                        {item?.price?.toFixed(2)} EGP
                       </p>
                     </div>
                   </Card>
                 ))}
+
                 {/* الديالوج المشترك لكلا الحالتين */}
                 {openDialog && (
                   <Dialog open={openDialog} onOpenChange={setOpenDialog}>
@@ -584,13 +612,14 @@ function CreateOrder() {
                           />
                         </div>
                       ) : (
+                        // محتوى ديالوج add new item
                         <div className="text-sm flex justify-between items-center text-default-500 space-y-4">
                           <div className="items-center">
                             <h3 className="font-medium">{selectedItem.name}</h3>
                           </div>
                           <div className="flex justify-between items-center mt-4">
                             <p className="text-sm mr-5">
-                              ${(selectedItem.price * counter).toFixed(2)}
+                              {(selectedItem.price * counter).toFixed(2)} Egp
                             </p>
                             <Button
                               onClick={handleDecrease}
@@ -630,39 +659,227 @@ function CreateOrder() {
           </div>
         </div>
 
-        <Card className="p-4  shadow-md rounded-lg">
+        <Card className="p-4 shadow-md rounded-lg">
           <div className="flex gap-1 items-center justify-between mb-3">
             <div className="relative flex-grow">
-              <span className="absolute top-1/2 -translate-y-1/2 left-2">
+              <span className="absolute top-1/2 left-2 -translate-y-1/2">
                 <Search className="w-4 h-4 text-gray-500" />
               </span>
+
               <Input
                 type="text"
                 placeholder="Enter phone number"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyPress}
-                className="pl-7 w-full"
+                className="pl-7 pr-8 w-full"
               />
+
+              <button
+                onClick={handleClear}
+                className="absolute top-1/2 right-2 -translate-y-1/2 text-red-500 text-xs font-bold"
+              >
+                ✕
+              </button>
             </div>
+
             <div className="flex gap-2">
               <Button onClick={handleSearch}>Search</Button>
-              <Button onClick={handleClear}>Clear</Button>
+              <Button onClick={handleNewUserClick}>New user</Button>
             </div>
           </div>
 
-          <Button onClick={handleNewUserClick}>New user</Button>
           {selectedUser && (
             <div className="mt-4 p-4 border rounded-md">
-              <h3 className="text-lg font-semibold">
-                {selectedUser.user_name}
-              </h3>
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">
+                  {selectedUser.user_name}
+                </h3>
+                <Button className="my3" onClick={() => setOpenEditDialog(true)}>
+                  Edit user data
+                </Button>
+              </div>
               <p>Phone: {selectedUser.phone}</p>
               <p>Orders Count: {selectedUser.orders_count}</p>
               <p>Points: {selectedUser.user.points}</p>
-              <Button className="my-3">Edit user data</Button>
 
-              <div className="flex item-center gap-4 mb-4 justify-center">
+              {/*  */}
+              {/* {openEditDialog && selectedUser && (
+                <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
+                  <DialogContent size="3xl">
+                    <DialogHeader>
+                      <DialogTitle>Edit User</DialogTitle>
+                    </DialogHeader>
+
+                    <form onSubmit={handleSubmitEdit(onSubmit)}>
+                      <Input
+                        type="text"
+                        placeholder="Username"
+                        {...registerEdit("username")}
+                      />
+                      {errors.username && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.username.message}
+                        </p>
+                      )}
+
+                      <Input
+                        type="number"
+                        placeholder="Phone"
+                        {...registerEdit("phone")}
+                      />
+                      {errors.phone && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.phone.message}
+                        </p>
+                      )}
+
+                      <Input
+                        type="text"
+                        placeholder="Address"
+                        {...registerEdit("address")}
+                      />
+                      {errors.address && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.address.message}
+                        </p>
+                      )}
+
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button
+                            variant="outline"
+                            onClick={() => setOpenEditDialog(false)}
+                          >
+                            Close
+                          </Button>
+                        </DialogClose>
+                        <Button
+                          type="submit"
+                          onClick={() => console.log("here")}
+                        >
+                          Save Changes
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              )} */}
+
+              {openEditDialog && selectedUser && (
+                <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
+                  <DialogContent size="3xl">
+                    <DialogHeader>
+                      <DialogTitle>Edit User</DialogTitle>
+                    </DialogHeader>
+                    <form
+                      onSubmit={handleSubmitEdit(onSubmit)}
+                      className="space-y-1"
+                    >
+                      <Input
+                        type="text"
+                        placeholder="Username"
+                        {...registerEdit("username")}
+                        className="mb-4"
+                      />
+                      {errors.username && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.username.message}
+                        </p>
+                      )}
+
+                      <Input
+                        type="number"
+                        placeholder="Phone"
+                        {...registerEdit("phone")}
+                        className="mb-4"
+                      />
+                      {errors.phone && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.phone.message}
+                        </p>
+                      )}
+
+                      <Input
+                        type="number"
+                        placeholder="Phone 2"
+                        {...registerEdit("phone2")}
+                      />
+                      {errors.phone2 && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.phone2.message}
+                        </p>
+                      )}
+
+                      <div className="mt-3">
+                        <DialogFooter className="mt-3">
+                          <DialogClose asChild>
+                            <Button
+                              variant="outline"
+                              onClick={() => setOpenEditDialog(false)}
+                            >
+                              Close
+                            </Button>
+                          </DialogClose>
+                          <Button
+                            type="submit"
+                            onClick={() => console.log("here")}
+                          >
+                            Save Changes
+                          </Button>
+                        </DialogFooter>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              )}
+
+              {openEditAddressDialog && selectedUser && (
+                <Dialog
+                  open={openEditAddressDialog}
+                  onOpenChange={setOpenEditAddressDialog}
+                >
+                  <DialogContent size="3xl">
+                    <DialogHeader>
+                      <DialogTitle>Edit User asddress</DialogTitle>
+                    </DialogHeader>
+
+                    <Input
+                      type="text"
+                      placeholder="Username"
+                      defaultValue={selectedUser.user_name}
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Phone"
+                      defaultValue={selectedUser.phone}
+                      readOnly
+                    />
+                    <Input
+                      type="text"
+                      placeholder="Address"
+                      defaultValue={selectedAddress}
+                    />
+
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button
+                          variant="outline"
+                          onClick={() => setOpenEditDialog(false)}
+                        >
+                          Close
+                        </Button>
+                      </DialogClose>
+                      <Button type="submit">Save Changes</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
+          )}
+          {selectedUser && (
+            <div className="mt-4 p-4 border rounded-md">
+              <div className="flex item-center gap-4 mb-4 ">
                 <div className="flex item-center gap-1">
                   <input
                     type="checkbox"
@@ -701,18 +918,25 @@ function CreateOrder() {
                 </div>
               )}
               {deliveryMethod === "delivery" && selectedAddress && (
-                <div className="mt-3 p-3 ">
-                  <p className="text-sm"> {selectedAddress}</p>
-                </div>
+                <>
+                  <div className="mt-3 p-3 ">
+                    <p className="text-sm"> {selectedAddress}</p>
+                  </div>
+                  <Button
+                    className="my-3"
+                    onClick={() => setOpenEditDialog(true)}
+                  >
+                    Edit user data
+                  </Button>
+                </>
               )}
               {deliveryMethod === "pickup" && (
                 <div className="flex flex-col lg:flex-row lg:items-center gap-2">
-                  <Label className="lg:min-w-[160px]">Branches:</Label>
                   <Select
                     className="react-select w-full"
                     classNamePrefix="select"
-                    // options={branchOptions}
-                    onChange={handleSelectChange}
+                    options={branchOptions}
+                    onChange={handleSelectChangeBranches}
                     placeholder="Branches"
                     styles={selectStyles(theme, color)}
                   />
@@ -720,7 +944,6 @@ function CreateOrder() {
               )}
             </div>
           )}
-
           <Card title="Bordered Tables">
             {/* <Table className="border border-default-300">
               <TableHeader>

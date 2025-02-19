@@ -7,7 +7,7 @@ export const BASE_URL =
     ? process.env.NEXT_PUBLIC_BASE_URL_PRODUCTION
     : process.env.NEXT_PUBLIC_BASE_URL_DEVELOPMENT;
 
-
+export const BASE_URL_iamge = "http://myres.me/thmdev";
 // import Cookies from "js-cookie";
 // const domain = Cookies.get("domain");
 
