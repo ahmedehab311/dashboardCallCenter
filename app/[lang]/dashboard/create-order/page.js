@@ -24,6 +24,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Plus, Search } from "lucide-react";
 import Image from "next/image";
 import { selectStyles } from "@/lib/utils";
@@ -43,11 +54,14 @@ import {
   fetchAreas,
   createUser,
   createAddress,
+  updateUserAddress,
+  deleteAddress,
 } from "./apICallCenter/apisUser";
 import { BASE_URL_iamge } from "@/api/BaseUrl";
 import { z } from "zod";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, set } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { FiEdit, FiTrash2 } from "react-icons/fi";
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   phone: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
@@ -80,6 +94,31 @@ const addUserSchema = z.object({
   apt: z.string().optional(),
   additionalInfo: z.string().optional(),
 });
+const addAddressSchema = z.object({
+  area: z.object(
+    { value: z.number(), label: z.string() },
+    { required_error: "Area is required" }
+  ),
+  street: z.string().min(1, "Street name is required"),
+  name: z.string().min(1, " name is required"),
+
+  building: z.string().min(1, "Building number is required").or(z.literal("")),
+  floor: z.string().optional(),
+  apt: z.string().optional(),
+  additionalInfo: z.string().optional(),
+});
+const editUserAddressSchema = z.object({
+  area: z.object(
+    { value: z.number(), label: z.string() },
+    { required_error: "Area is required" }
+  ),
+  street: z.string().min(1, "Street name is required"),
+  name: z.string().min(1, " name is required"),
+  building: z.string().min(1, "Building number is required").or(z.literal("")),
+  floor: z.string().optional(),
+  apt: z.string().optional(),
+  additionalInfo: z.string().optional(),
+});
 // const userSchemaEdit = z.object({
 //   username: z.string().min(3, "Username must be at least 3 characters long"),
 //   phone: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
@@ -104,8 +143,26 @@ function CreateOrder() {
     register: registerAddNewUser,
     handleSubmit: handleSubmitAddNewUser,
     setValue: setValueAddNewUser,
+    trigger,
     formState: { errors: errorsAddNewUser },
   } = useForm({ resolver: zodResolver(addUserSchema), mode: "onSubmit" });
+  const {
+    control: controlAddress,
+    register: registerAddNewAddress,
+    handleSubmit: handleSubmitAddNewAddress,
+    setValue: setValueAddNewAddress,
+    formState: { errors: errorsAddNewAddress },
+  } = useForm({ resolver: zodResolver(addAddressSchema), mode: "onSubmit" });
+  const {
+    control: controlEditAddress,
+    register: registerEditAddressUser,
+    handleSubmit: handleEditAddressUser,
+    setValue: setValueEditAddressUser,
+    formState: { errors: errorsEditAddressUser },
+  } = useForm({
+    resolver: zodResolver(editUserAddressSchema),
+    mode: "onSubmit",
+  });
 
   const { theme } = useTheme();
   const queryClient = useQueryClient();
@@ -218,6 +275,7 @@ function CreateOrder() {
   const [restaurantsSelect, setRestaurantsSelect] = useState([]);
 
   const [isNewUserDialogOpen, setIsNewUserDialogOpen] = useState(false);
+  const [isNewAddressDialogOpen, setIsNewAddressDialogOpen] = useState(false);
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
 
   const handleItemClick = (item) => {
@@ -260,7 +318,7 @@ function CreateOrder() {
 
   const [search, setSearch] = useState("");
   const [allUserData, setAllUserData] = useState(null);
-  const [selectedAddress, setSelectedAddress] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
   const [errorSearchUser, setErrorSearchUser] = useState(null);
   // useEffect(() => {
   //   const handleBeforeUnload = (event) => {
@@ -311,12 +369,23 @@ function CreateOrder() {
   }, [theme]);
 
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
+  const [selectedAddressArray, setSelectedAddressArray] = useState([]);
+  const [selectedEditAddress, setSelectedEditAddress] = useState(null);
+
   useEffect(() => {
     if (selectedUser?.address?.length > 0) {
-      setSelectedAddress(selectedUser.address[0].address1);
+      setSelectedAddress(selectedUser.address[0]);
+    }
+  }, [selectedUser]);
+  useEffect(() => {
+    if (selectedUser?.address?.length > 0) {
+      setSelectedAddressArray(selectedUser.address);
     }
   }, [selectedUser]);
 
+  // console.log("SelectedAddressArray", selectedAddressArray);
+  // console.log("SelectedAddress", selectedAddress);
+  console.log("selectedEditAddress", selectedEditAddress);
   const columns = [
     { key: "Items", label: "Items" },
     { key: "Edit", label: "Edit" },
@@ -463,9 +532,27 @@ function CreateOrder() {
       setValueEdit("phone", selectedUser.phone);
       setValueEdit("phone2", selectedUser.phone2 || "");
       setValueEdit("email", selectedUser.email || "");
-      // setValueEdit("userId", selectedUser.id);
     }
   }, [selectedUser, selectedAddress, setValueEdit]);
+  useEffect(() => {
+    if (selectedEditAddress) {
+      const selectedAreaOption = areasOptions?.find(
+        (option) => option.value === selectedEditAddress.area
+      );
+
+      setValueEditAddressUser("area", selectedAreaOption);
+      setValueEditAddressUser("name", selectedEditAddress.address_name);
+      setValueEditAddressUser("street", selectedEditAddress.street);
+      setValueEditAddressUser("building", selectedEditAddress.building || "");
+      setValueEditAddressUser("floor", selectedEditAddress.floor || "");
+      setValueEditAddressUser("apt", selectedEditAddress.apt || "");
+      setValueEditAddressUser(
+        "additionalInfo",
+        selectedEditAddress.additionalInfo || ""
+      );
+    }
+  }, [selectedEditAddress, setValueEditAddressUser]);
+
   const [lodaingEditUserData, setLodaingEditUserData] = useState(false);
   const onSubmitEditUserData = async (data) => {
     const formattedData = Object.entries({
@@ -486,6 +573,16 @@ function CreateOrder() {
       // console.log("response onsubmit", response);
       if (response?.response) {
         toast.success(response.message);
+        queryClient.setQueryData(["userSearch", phone], (oldData) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            user_name: data.username || oldData.user_name,
+            email: data.email || oldData.email,
+            phone: data.phone || oldData.phone,
+            phone2: data.phone2 || oldData.phone2,
+          };
+        });
         setOpenEditDialog(false);
       } else {
         toast.error("something error");
@@ -494,29 +591,52 @@ function CreateOrder() {
       console.error("Error updating user data:", error);
     }
   };
-  // const onSubmitAddUserData = async (data) => {
-  //   const formattedData = Object.entries({
-  //     username: data.username,
-  //     email: data.email,
-  //     phone: data.phone,
-  //     phone2: data.phone2,
-  //     userId: selectedUser?.id,
-  //   }).reduce((acc, [key, value]) => {
-  //     if (value) acc[key] = value;
-  //     return acc;
-  //   }, {});
 
-  //   console.log("Formatted Data to Send:", formattedData);
-
-  // };
   const [loading, setLoading] = useState(false);
+  const [selectedAddressType, setSelectedAddressType] = useState("home");
 
+  const handleAddressTypeChange = (type) => {
+    setSelectedAddressType(type);
+    if (type !== "other") {
+      setValueAddNewUser("name", type); // تعيين القيمة تلقائيًا
+      trigger("name");
+    } else {
+      setValueAddNewUser("name", ""); // إعادة تعيين إذا كان "Other"
+    }
+  };
   const onSubmitAddUserData = async (data) => {
     console.log("data", data);
     setLoading(true);
-    try {
-      const userId = await createUser(data.username, data.phone);
+    // try {
+    //   const userId = await createUser(data.username, data.phone);
 
+    //   // if (!userId) throw new Error("User ID not received");
+    //   console.log("userId from onSubmitAddUserData ", userId);
+    //   await createAddress(
+    //     userId,
+    //     data.area.value,
+    //     data.street,
+    //     data.building,
+    //     data.floor,
+    //     data.apt,
+    //     data.additionalInfo,
+    //     data.name
+    //   );
+
+    //   toast.success("user added");
+    // } catch (error) {
+    //   const errorMessage = error.message || "Unexpected error";
+    //   console.error(error);
+    //   // toast.error(errorMessage);
+    // } finally {
+    //   setLoading(false);
+    // }
+  };
+  const onSubmitAddAddress = async (data) => {
+    console.log("data", data);
+    setLoading(true);
+    const userId = selectedUser?.id;
+    try {
       // if (!userId) throw new Error("User ID not received");
       console.log("userId from onSubmitAddUserData ", userId);
       await createAddress(
@@ -530,7 +650,8 @@ function CreateOrder() {
         data.name
       );
 
-      toast.success("user added");
+      toast.success("address added successfully");
+      setIsNewAddressDialogOpen(false);
     } catch (error) {
       const errorMessage = error.message || "Unexpected error";
       console.error(error);
@@ -540,9 +661,120 @@ function CreateOrder() {
     }
   };
 
+  // const onSubmitEditUserAddress = async (data) => {
+  //   const AaddressID = selectedEditAddress.id;
+  //   console.log(
+  //     "Formatted Data to Send:",
+  //     AaddressID,
+  //     data.area.value,
+  //     data.street,
+  //     data.building,
+  //     data.floor,
+  //     data.apt,
+  //     data.additionalInfo,
+  //     data.name
+  //   );
+  //   const formattedData = Object.entries({
+  //     area: data.area.value,
+  //     street: data.street,
+  //     building: data.building,
+  //     floor: data.floor,
+  //     apt: data.apt,
+  //     additionalInfo: data.additionalInfo,
+  //     name: data.name,
+  //     userId: AaddressID,
+  //   }).reduce((acc, [key, value]) => {
+  //     if (value) acc[key] = value;
+  //     return acc;
+  //   }, {});
+  //   console.log("Formatted Data toformattedData :", formattedData);
+  //   try {
+  //     const response = await updateUserAddress(formattedData);
+
+  //     toast.success("Address update is successfully");
+
+  //     console.log("response onsubmit", response);
+  //     // if (response) {
+  //     //   toast.success("response.message");
+  //     //   // setOpenEditDialog(false);
+  //     // } else {
+  //     //   toast.error("something error");
+  //     // }
+  //   } catch (error) {
+  //     console.error("Error updating user data:", error);
+  //     toast.error("Failed to update address. Please try again.");
+  //   }
+  // };
+  const onSubmitEditUserAddress = async (data) => {
+    if (!selectedEditAddress?.id) {
+      toast.error("No address selected for editing.");
+      return;
+    }
+
+    if (!data?.area?.value) {
+      toast.error("Area is required.");
+      return;
+    }
+
+    const formattedData = {
+      id: selectedEditAddress.id, // تأكيد إرسال ID صحيح
+      area: data.area.value,
+      street: data.street || "", // تأكيد إرسال قيمة فارغة بدل `undefined`
+      building: data.building || "",
+      floor: data.floor || "",
+      apt: data.apt || "",
+      additional_info: data.additionalInfo || "",
+      address_name: data.name || "",
+    };
+
+    console.log("Formatted Data to Send:", formattedData); // تحقق من البيانات
+
+    try {
+      const response = await updateUserAddress(formattedData);
+
+      if (response) {
+        toast.success("Address updated successfully");
+        setOpenEditDialog(false);
+      } else {
+        toast.error("Something went wrong");
+      }
+
+      console.log("Response onSubmit:", response);
+    } catch (error) {
+      console.error("Error updating user address:", error);
+      toast.error("Failed to update address. Please try again.");
+    }
+  };
+
+  const handleEditAddress = (address) => {
+    setSelectedEditAddress(address);
+    setOpenEditAddressDialog(true);
+  };
+
+  const handleDeleteAddress = async (id) => {
+    // console.log("id remove", id);
+    try {
+      const response = await deleteAddress(id);
+
+      console.log("Response onSubmit delete:", response);
+    } catch (error) {
+      console.error("Error updating user address:", error);
+      toast.error("Failed to update address. Please try again.");
+    }
+    const updatedAddresses = selectedAddressArray.filter(
+      (addr) => addr.id !== id
+    );
+    setSelectedAddressArray(updatedAddresses);
+
+    if (selectedAddress?.id === id) {
+      setSelectedAddress(
+        updatedAddresses.length > 0 ? updatedAddresses[0] : null
+      );
+    }
+  };
+
   if (isLoadingBranchs) return <p>Loading branches...</p>;
   if (errorBranchs) return <p>Error loading branches: {error.message}</p>;
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col lg:flex-row lg:items-center gap-2 ml-4">
@@ -793,32 +1025,37 @@ function CreateOrder() {
                               onSubmitAddUserData
                             )}
                           >
-                            <Input
-                              type="text"
-                              placeholder="Username"
-                              className={`${
-                                errorsAddNewUser.phone ? "mb-1" : "mb-4"
-                              }`}
-                              {...registerAddNewUser("username")}
-                            />
-                            {errorsAddNewUser.username && (
-                              <p className="text-red-500 text-sm">
-                                {errorsAddNewUser.username.message}
-                              </p>
-                            )}
-                            <Input
-                              type="number"
-                              placeholder="Phone"
-                              className={`${
-                                errorsAddNewUser.phone ? "mb-1" : "mb-4"
-                              }`}
-                              {...registerAddNewUser("phone")}
-                            />
-                            {errorsAddNewUser.phone && (
-                              <p className="text-red-500 text-sm">
-                                {errorsAddNewUser.phone.message}
-                              </p>
-                            )}
+                            <div className="flex gap-2 items-start">
+                              {/* Username Input */}
+                              <div className="flex-1 flex flex-col">
+                                <Input
+                                  type="text"
+                                  placeholder="Username"
+                                  {...registerAddNewUser("username")}
+                                  className="w-full"
+                                />
+                                {errorsAddNewUser.username && (
+                                  <p className="text-red-500 text-sm h-[20px] mt-2">
+                                    {errorsAddNewUser.username.message}
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Phone Input */}
+                              <div className="flex-1 flex flex-col">
+                                <Input
+                                  type="number"
+                                  placeholder="Phone"
+                                  {...registerAddNewUser("phone")}
+                                  className="w-full"
+                                />
+                                {errorsAddNewUser.phone && (
+                                  <p className="text-red-500 text-sm h-[20px] mt-2">
+                                    {errorsAddNewUser.phone.message}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
 
                             <Controller
                               name="area"
@@ -845,28 +1082,40 @@ function CreateOrder() {
                                 {errorsAddNewUser.area.message}
                               </p>
                             )}
-                            <div className="flex gap-2 items- my-3">
-                              <Input
-                                type="text"
-                                placeholder="Street"
-                                {...registerAddNewUser("street")}
-                                className={`${
-                                  errorsAddNewUser.street ? "mb-1" : "mb-4"
-                                }`}
-                                {...registerAddNewUser("street")}
-                              />
-                              {errorsAddNewUser.street && (
-                                <p className="text-red-500 text-sm">
-                                  {errorsAddNewUser.street.message}
+                            <div className="flex gap-2 items-center my-3">
+                              {/* Street Input */}
+                              <div className="flex-1">
+                                <Input
+                                  type="text"
+                                  placeholder="Street"
+                                  {...registerAddNewUser("street")}
+                                  className="w-full"
+                                />
+                                <p
+                                  className={`text-red-500 text-sm mt-1 transition-all duration-200 ${
+                                    errorsAddNewUser.street
+                                      ? "h-auto opacity-100"
+                                      : "h-0 opacity-0"
+                                  }`}
+                                >
+                                  {errorsAddNewUser.street?.message}
                                 </p>
-                              )}
+                              </div>
 
-                              <Input
-                                type="text"
-                                placeholder="Building"
-                                {...registerAddNewUser("building")}
-                              />
+                              {/* Building Input */}
+                              <div className="flex-1">
+                                <Input
+                                  type="text"
+                                  placeholder="Building"
+                                  {...registerAddNewUser("building")}
+                                  className="w-full"
+                                />
+                                {errorsAddNewUser.street && (
+                                  <div className="h-[20px]"></div>
+                                )}
+                              </div>
                             </div>
+
                             <div className="flex gap-2 items- my-3">
                               <Input
                                 type="text"
@@ -882,7 +1131,7 @@ function CreateOrder() {
                                 type="text"
                                 placeholder="Apt"
                                 {...registerAddNewUser("apt")}
-                                className="mb-4"
+                                className="mb-1"
                               />
                             </div>
                             <Input
@@ -891,7 +1140,7 @@ function CreateOrder() {
                               {...registerAddNewUser("additionalInfo")}
                               className="mb-4"
                             />
-                            <Input
+                            {/* <Input
                               type="text"
                               placeholder="Address name"
                               {...registerAddNewUser("name")}
@@ -904,7 +1153,48 @@ function CreateOrder() {
                               <p className="text-red-500 text-sm">
                                 {errorsAddNewUser.name.message}
                               </p>
-                            )}
+                            )} */}
+                            <div className="space-y-1">
+                              {/* Checkboxes */}
+                              <div className="flex gap-4">
+                                {["home", "work", "other"].map((type) => (
+                                  <label
+                                    key={type}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Input
+                                      type="checkbox"
+                                      name="addressType"
+                                      value={type}
+                                      checked={selectedAddressType === type}
+                                      onChange={() =>
+                                        handleAddressTypeChange(type)
+                                      }
+                                    />
+                                    {type.charAt(0).toUpperCase() +
+                                      type.slice(1)}{" "}
+                                    {/* Capitalize */}
+                                  </label>
+                                ))}
+                              </div>
+
+                              {selectedAddressType === "other" && (
+                                <Input
+                                  type="text"
+                                  placeholder="Enter address name"
+                                  {...registerAddNewUser("name")}
+                                  className={`${
+                                    errorsAddNewUser.name ? "mb-1" : "mb-2"
+                                  }`}
+                                />
+                              )}
+
+                              {errorsAddNewUser.name && (
+                                <p className="text-red-500 text-sm">
+                                  {errorsAddNewUser.name.message}
+                                </p>
+                              )}
+                            </div>
                             <DialogFooter className="mt-8">
                               <DialogClose asChild>
                                 <Button
@@ -915,6 +1205,127 @@ function CreateOrder() {
                                 </Button>
                               </DialogClose>
                               <Button type="submit">Create User</Button>
+                            </DialogFooter>
+                          </form>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                  {isNewAddressDialogOpen && (
+                    <Dialog
+                      open={isNewAddressDialogOpen}
+                      onOpenChange={setIsNewAddressDialogOpen}
+                    >
+                      <DialogContent size="3xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-base font-medium text-default-700">
+                            Create New Address
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="text-sm text-default-500 space-y-4">
+                          <form
+                            onSubmit={handleSubmitAddNewAddress(
+                              onSubmitAddAddress
+                            )}
+                          >
+                            <Controller
+                              name="area"
+                              control={controlAddress}
+                              rules={{ required: "Area is required" }}
+                              render={({ field }) => (
+                                <Select
+                                  {...field}
+                                  options={areasOptions || []}
+                                  placeholder="Area"
+                                  className="react-select w-full my-3"
+                                  classNamePrefix="select"
+                                  // onChange={handleChangeArea}
+                                  onChange={(selectedOption) => {
+                                    field.onChange(selectedOption);
+                                    handleChangeArea(selectedOption); // تشغيل دالة التحديث الخاصة بك
+                                  }}
+                                  styles={selectStyles(theme, color)}
+                                />
+                              )}
+                            />
+                            {errorsAddNewAddress.area && (
+                              <p className="text-red-500 text-sm">
+                                {errorsAddNewAddress.area.message}
+                              </p>
+                            )}
+                            <div className="flex gap-2 items- my-3">
+                              <div>
+                                <Input
+                                  type="text"
+                                  placeholder="Street"
+                                  {...registerAddNewAddress("street")}
+                                  className={`${
+                                    registerAddNewAddress.street
+                                      ? "mb-1"
+                                      : "mb-4"
+                                  }`}
+                                />
+                                {errorsAddNewAddress.street && (
+                                  <p className="text-red-500 text-sm">
+                                    {errorsAddNewAddress.street.message}
+                                  </p>
+                                )}
+                              </div>
+
+                              <Input
+                                type="text"
+                                placeholder="Building"
+                                {...registerAddNewAddress("building")}
+                              />
+                            </div>
+                            <div className="flex gap-2 items- my-3">
+                              <Input
+                                type="text"
+                                placeholder="Floor"
+                                {...registerAddNewAddress("floor")}
+                                // className="mb-4"
+                                // className={`${
+                                //   registerAddNewAddress.floor ? "mb-1" : "mb-4"
+                                // }`}
+                              />
+
+                              <Input
+                                type="text"
+                                placeholder="Apt"
+                                {...registerAddNewAddress("apt")}
+                                className="mb-4"
+                              />
+                            </div>
+                            <Input
+                              type="text"
+                              placeholder="Additional Info"
+                              {...registerAddNewAddress("additionalInfo")}
+                              className="mb-4"
+                            />
+                            <Input
+                              type="text"
+                              placeholder="Address name"
+                              {...registerAddNewAddress("name")}
+                              // className="mb-4"
+                              className={`${
+                                errorsAddNewAddress.name ? "mb-1" : "mb-4"
+                              }`}
+                            />
+                            {errorsAddNewAddress.name && (
+                              <p className="text-red-500 text-sm">
+                                {errorsAddNewAddress.name.message}
+                              </p>
+                            )}
+                            <DialogFooter className="mt-8">
+                              <DialogClose asChild>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setIsNewUserDialogOpen(false)}
+                                >
+                                  Close
+                                </Button>
+                              </DialogClose>
+                              <Button type="submit">Add address</Button>
                             </DialogFooter>
                           </form>
                         </div>
@@ -1037,7 +1448,6 @@ function CreateOrder() {
                         type="text"
                         placeholder="Username"
                         {...registerEdit("username")}
-                        // className="mb-4"
                         className={` ${errorsEdit.username ? "mb-1" : "mb-4"}`}
                       />
                       {errorsEdit.username && (
@@ -1097,34 +1507,199 @@ function CreateOrder() {
                   </DialogContent>
                 </Dialog>
               )}
-
-              {openEditAddressDialog && selectedUser && (
+              {openEditAddressDialog && selectedEditAddress && (
                 <Dialog
                   open={openEditAddressDialog}
                   onOpenChange={setOpenEditAddressDialog}
                 >
                   <DialogContent size="3xl">
                     <DialogHeader>
-                      <DialogTitle>Edit User asddress</DialogTitle>
+                      <DialogTitle>Edit user address</DialogTitle>
                     </DialogHeader>
 
-                    <Input
-                      type="text"
-                      placeholder="Address"
-                      defaultValue={selectedAddress}
-                    />
+                    {/* <form
+                      onSubmit={handleEditAddressUser(onSubmitEditUserAddress)}
+                    >
+                      <Controller
+                        name="area"
+                        control={controlEditAddress}
+                        rules={{ required: "Area is required" }}
+                        render={({ field }) => (
+                          <Select
+                            {...field}
+                            options={areasOptions || []}
+                            placeholder="Area"
+                            className="react-select w-full my-3"
+                            classNamePrefix="select"
+                            value={
+                              areasOptions?.find(
+                                (option) => option.value === field.value?.value
+                              ) || null
+                            } // 👈 هنا الحل!
+                            onChange={(selectedOption) => {
+                              field.onChange(selectedOption);
+                              handleChangeArea(selectedOption);
+                            }}
+                            styles={selectStyles(theme, color)}
+                          />
+                        )}
+                      />
 
-                    <DialogFooter>
-                      <DialogClose asChild>
-                        <Button
-                          variant="outline"
-                          onClick={() => setOpenEditDialog(false)}
-                        >
-                          Close
-                        </Button>
-                      </DialogClose>
-                      <Button type="submit">Save Changes</Button>
-                    </DialogFooter>
+                      {errorsEditAddressUser.area && (
+                        <p className="text-red-500 text-sm">
+                          {errorsEditAddressUser.area.message}
+                        </p>
+                      )}
+
+                      <Input
+                        type="text"
+                        {...registerEditAddressUser("street")}
+                        placeholder="Street"
+                      />
+
+                      <Input
+                        type="text"
+                        {...registerEditAddressUser("building")}
+                        placeholder="Building"
+                      />
+                       
+                      <Input
+                        type="text"
+                        {...registerEditAddressUser("floor")}
+                        placeholder="Floor"
+                      />
+                      <Input
+                        type="text"
+                        {...registerEditAddressUser("apt")}
+                        placeholder="Apt"
+                      />
+                      <Input
+                        type="text"
+                        {...registerEditAddressUser("additionalInfo")}
+                        placeholder="Additional Info"
+                      />
+                      <Input
+                        type="text"
+                        {...registerEditAddressUser("name")}
+                        placeholder="Address Name"
+                      />
+                      {errorsEditAddressUser.name && (
+                        <p className="text-red-500 text-sm">
+                          {errorsEditAddressUser.name.message}
+                        </p>
+                      )}
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button
+                            variant="outline"
+                            onClick={() => setOpenEditAddressDialog(false)}
+                          >
+                            Close
+                          </Button>
+                        </DialogClose>
+                        <Button type="submit">Save Changes</Button>
+                      </DialogFooter>
+                    </form> */}
+                    <form
+                      onSubmit={handleEditAddressUser(onSubmitEditUserAddress)}
+                      className="space-y-4" // يضيف مسافات بين العناصر
+                    >
+                      {/* Select Field */}
+                      <Controller
+                        name="area"
+                        control={controlEditAddress}
+                        rules={{ required: "Area is required" }}
+                        render={({ field }) => (
+                          <Select
+                            {...field}
+                            options={areasOptions || []}
+                            placeholder="Area"
+                            className="react-select w-full"
+                            classNamePrefix="select"
+                            value={
+                              areasOptions?.find(
+                                (option) => option.value === field.value?.value
+                              ) || null
+                            }
+                            onChange={(selectedOption) => {
+                              field.onChange(selectedOption);
+                              handleChangeArea(selectedOption);
+                            }}
+                            styles={selectStyles(theme, color)}
+                          />
+                        )}
+                      />
+                      {errorsEditAddressUser.area && (
+                        <p className="text-red-500 text-sm">
+                          {errorsEditAddressUser.area.message}
+                        </p>
+                      )}
+
+                      {/* Input Fields */}
+
+                      <div className="flex gap-2 items-center my-3">
+                        <Input
+                          type="text"
+                          {...registerEditAddressUser("street")}
+                          placeholder="Street"
+                          className="w-full"
+                        />
+
+                        <Input
+                          type="text"
+                          {...registerEditAddressUser("building")}
+                          placeholder="Building"
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="flex gap-2 items-center my-3">
+                        <Input
+                          type="text"
+                          {...registerEditAddressUser("floor")}
+                          placeholder="Floor"
+                          className="w-full"
+                        />
+
+                        <Input
+                          type="text"
+                          {...registerEditAddressUser("apt")}
+                          placeholder="Apt"
+                          className="w-full"
+                        />
+                      </div>
+
+                      <Input
+                        type="text"
+                        {...registerEditAddressUser("additionalInfo")}
+                        placeholder="Additional Info"
+                        className="w-full"
+                      />
+
+                      <Input
+                        type="text"
+                        {...registerEditAddressUser("name")}
+                        placeholder="Address Name"
+                        className="w-full"
+                      />
+                      {errorsEditAddressUser.name && (
+                        <p className="text-red-500 text-sm">
+                          {errorsEditAddressUser.name.message}
+                        </p>
+                      )}
+
+                      {/* Buttons */}
+                      <DialogFooter className="flex justify-end gap-4">
+                        <DialogClose asChild>
+                          <Button
+                            variant="outline"
+                            onClick={() => setOpenEditAddressDialog(false)}
+                          >
+                            Close
+                          </Button>
+                        </DialogClose>
+                        <Button type="submit">Save Changes</Button>
+                      </DialogFooter>
+                    </form>
                   </DialogContent>
                 </Dialog>
               )}
@@ -1132,27 +1707,36 @@ function CreateOrder() {
           )}
           {selectedUser && (
             <div className="mt-4 p-4 border rounded-md">
-              <div className="flex item-center gap-4 mb-4 ">
-                <div className="flex item-center gap-1">
-                  <input
-                    type="checkbox"
-                    id="delivery"
-                    checked={deliveryMethod === "delivery"}
-                    onChange={() => setDeliveryMethod("delivery")}
-                  />
-                  <label htmlFor="delivery">Delivery</label>
+              <div className="flex item-center justify-between gap-4 mb-4 ">
+                <div className="flex items-center gap-2">
+                  <div className="flex item-center gap-1">
+                    <input
+                      type="checkbox"
+                      id="delivery"
+                      checked={deliveryMethod === "delivery"}
+                      onChange={() => setDeliveryMethod("delivery")}
+                    />
+                    <label htmlFor="delivery">Delivery</label>
+                  </div>
+                  <div className="flex item-center gap-1 ">
+                    <input
+                      type="checkbox"
+                      id="pickup"
+                      checked={deliveryMethod === "pickup"}
+                      onChange={() => setDeliveryMethod("pickup")}
+                    />
+                    <label htmlFor="pickup">Pickup</label>
+                  </div>
                 </div>
-                <div className="flex item-center gap-1 ">
-                  <input
-                    type="checkbox"
-                    id="pickup"
-                    checked={deliveryMethod === "pickup"}
-                    onChange={() => setDeliveryMethod("pickup")}
-                  />
-                  <label htmlFor="pickup">Pickup</label>
-                </div>
+
+                <Button
+                  className="my3"
+                  onClick={() => setIsNewAddressDialogOpen(true)}
+                >
+                  Add address
+                </Button>
               </div>
-              {deliveryMethod === "delivery" && (
+              {/* {deliveryMethod === "delivery" && (
                 <div className="mt-3">
                   <h4 className="font-medium">Address:</h4>
                   {selectedUser?.address?.map((address, index) => (
@@ -1169,20 +1753,86 @@ function CreateOrder() {
                     </div>
                   ))}
                 </div>
+              )} */}
+              {deliveryMethod === "delivery" && (
+                <div className="my-3 ">
+                  <h4 className="font-medium my-3 ">Address:</h4>
+                  {selectedAddressArray.map((address) => (
+                    <div
+                      key={address.id}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      {/* ✅ Checkbox واسم العنوان على الشمال */}
+                      <div className="flex items-center gap-2 mb-3">
+                        <input
+                          type="checkbox"
+                          id={address.id}
+                          checked={selectedAddress?.id === address.id}
+                          onChange={() => setSelectedAddress(address)}
+                        />
+                        <label htmlFor={address.id}>
+                          {address.address_name}
+                        </label>
+                      </div>
+
+                      {/* ✅ أيقونات التعديل والحذف على اليمين */}
+                      <div className="flex gap-3 ml-auto mb-3">
+                        <button
+                          size="icon"
+                          onClick={() => handleEditAddress(address)}
+                        >
+                          <FiEdit className="mr-1 text-xs" />
+                        </button>
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <button className="flex items-center text-red-500 gap-[2px]">
+                              <FiTrash2 className="text-xs" />
+                            </button>
+                          </AlertDialogTrigger>
+
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Are you absolutely sure?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will
+                                permanently delete this address from your saved
+                                addresses.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel
+                                type="button"
+                                variant="outline"
+                                color="info"
+                              >
+                                Cancel
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-destructive hover:bg-destructive/80"
+                                onClick={() => handleDeleteAddress(address.id)}
+                              >
+                                Ok
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
+
               {deliveryMethod === "delivery" && selectedAddress && (
                 <>
                   <div className="mt-3 p-3 ">
-                    <p className="text-sm"> {selectedAddress}</p>
+                    <p className="text-sm"> {selectedAddress?.address1}</p>
                   </div>
-                  <Button
-                    className="my-3"
-                    onClick={() => setOpenEditDialog(true)}
-                  >
-                    Edit user data
-                  </Button>
                 </>
               )}
+
               {deliveryMethod === "pickup" && (
                 <div className="flex flex-col lg:flex-row lg:items-center gap-2">
                   <Select

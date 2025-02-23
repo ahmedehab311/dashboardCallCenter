@@ -2,13 +2,12 @@ import axios from "axios";
 import Cookies from "js-cookie"; // إذا كنت تستخدم التوكين من الكوكيز
 
 const apiInstance = axios.create({
-  baseURL: "https://myres.me/thmdev/api", // ضبط الـ API الرئيسي
+  baseURL: "https://myres.me/thmdev/api",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// ✅ إضافة `Interceptor` تلقائي لإضافة `token` في كل الطلبات
 apiInstance.interceptors.request.use(
   (config) => {
     const token = Cookies.get("token"); // جلب التوكين من الكوكيز

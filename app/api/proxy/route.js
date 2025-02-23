@@ -10,7 +10,7 @@ export async function POST(req) {
     });
   }
 
-  const apiUrl = `http://myres.me/thmdev/api/${path}&api_token=${apiToken}&${searchParams.toString()}`;
+  const apiUrl = `https://myres.me/thmdev/api/${path}&api_token=${apiToken}&${searchParams.toString()}`;
 
   try {
     const response = await fetch(apiUrl, {

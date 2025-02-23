@@ -19,11 +19,20 @@ const nextConfig = {
     ];
   },
 
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: "/api/:path*",
+  //       destination: "https://myres.me/thmdev/api/:path*",
+  //     },
+  //   ];
+  // },
   async rewrites() {
+
     return [
       {
         source: "/api/:path*",
-        destination: "http://myres.me/thmdev/api/:path*",
+        destination: "https://myres.me/thmdev/api/:path*",
       },
     ];
   },

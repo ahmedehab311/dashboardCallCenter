@@ -11,7 +11,7 @@ export const fetchUserByPhone = async (phone) => {
     const response = await axios.get(
       `${BASE_URL}/callcenter/user/search?api_token=${token}&phone=${phone}`
     );
-
+    // console.log("serach user ", response.data.users);
     return response.data.users;
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -83,6 +83,131 @@ export const createAddress = async (
     throw error;
   }
 };
+// export const updateUserAddress = async (
+//   AaddressID,
+//   area,
+//   street,
+//   building,
+//   floor,
+//   apt,
+//   additionalInfo,
+//   name
+// ) => {
+//   try {
+//     const response = await axios.put(
+//       `/callcenter/user/address/update?api_token=${token}`,
+//       null,
+//       {
+//         params: {
+//           id: AaddressID,
+//           area,
+//           street,
+//           address_name: name,
+//           country: 1,
+//           city: 1,
+//           ...(building && { building }),
+//           ...(floor && { floor }),
+//           ...(apt && { apt }),
+//           ...(additionalInfo && { additional_info: additionalInfo }),
+//         },
+//       }
+//     );
+
+//     console.log("Address update successfully:", response);
+//     return response;
+//     // return response?.data?.messages[0];
+//   } catch (error) {
+//     console.error("Error updated address:", error);
+//     throw error;
+//   }
+// };
+
+// export const updateUserAddress = async (
+//   id,
+//   area,
+//   street,
+//   building,
+//   floor,
+//   apt,
+//   additionalInfo,
+//   name
+// ) => {
+//   const params = new URLSearchParams();
+
+//   params.append("id", id);
+//   params.append("area", area);
+//   params.append("street", street);
+//   params.append("address_name", name);
+//   params.append("country", 1);
+//   params.append("city", 1);
+
+//   if (building) params.append("building", building);
+//   if (floor) params.append("floor", floor);
+//   if (apt) params.append("apt", apt);
+//   if (additionalInfo) params.append("additional_info", additionalInfo);
+
+//   const url = `/callcenter/user/address/update?api_token=${token}&${params.toString()}`;
+
+//   try {
+//     const response = await apiInstance.put(url);
+//     console.log("Address updated successfully:", response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error updating address:", error);
+//     throw error;
+//   }
+// };
+// export const updateUserAddress = async (data) => {
+//   const params = new URLSearchParams();
+
+//   params.append("id", data.id);
+//   params.append("area", data.area);
+//   params.append("street", data.street);
+//   params.append("address_name", data.address_name);
+//   params.append("country", 1);
+//   params.append("city", 1);
+//   if (data.building) params.append("building", data.building);
+//   if (data.floor) params.append("floor", data.floor);
+//   if (data.apt) params.append("apt", data.apt);
+//   if (data.additional_info)
+//     params.append("additional_info", data.additional_info);
+//   console.log("params", params);
+//   const url = `/callcenter/user/address/update?api_token=${token}&${params.toString()}`;
+
+//   try {
+//     const response = await axios.put(url);
+//     console.log("Address updated successfully:", response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error updating address:", error);
+//     throw error;
+//   }
+// };
+export const updateUserAddress = async (data) => {
+  const params = new URLSearchParams({
+    id: data.id,
+    area: data.area,
+    street: data.street,
+    address_name: data.address_name,
+    country: 1,
+    city: 1,
+    ...(data.building && { building: data.building }),
+    ...(data.floor && { floor: data.floor }),
+    ...(data.apt && { apt: data.apt }),
+    ...(data.additional_info && { additional_info: data.additional_info }),
+  });
+
+  const url = `/callcenter/user/address/update?api_token=${token}&${params.toString()}`;
+
+  try {
+    const response = await apiInstance.put(url);
+    console.log("Address updated successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating address:", error);
+    throw error;
+  }
+};
 
 export const updateUserData = async (userData) => {
   const params = new URLSearchParams();
@@ -113,6 +238,25 @@ export const fetchAreas = async () => {
   } catch (error) {
     console.error("Error fetching areas:", error);
 
+    throw error;
+  }
+};
+
+export const deleteAddress = async (id) => {
+  try {
+    const response = await apiInstance.delete(
+      `/callcenter/user/address/delete?api_token=${token}&id=${id}`
+    );
+    const messages = response.data.messages || response.data.data;
+
+    //   if (messages.length > 0) {
+    //     toast.success(messages[0]);
+    //   }
+    console.log(response.data);
+
+    return response.data;
+  } catch (error) {
+    toast.error(`Failed to delete : ${error}`);
     throw error;
   }
 };
