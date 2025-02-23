@@ -238,13 +238,13 @@ const LogInForm = ({ children }) => {
         router.push(`/${language}/dashboard`);
 
         const messages = resultAction.payload?.messages || [];
-        messages.forEach((message) => toast.success(message));
+        // messages.forEach((message) => toast.success(message));
       } else {
         console.error("Login failed:", resultAction);
 
         const messages = resultAction.payload?.messages ||
           resultAction.error?.messages || ["An unexpected error occurred"];
-        messages.forEach((message) => toast.error(message));
+          // .forEach((message) => toast.error(message));
       }
     } catch (error) {
       console.error(" Unexpected error:", error);

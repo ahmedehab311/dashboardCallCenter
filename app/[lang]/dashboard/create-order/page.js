@@ -33,20 +33,52 @@ import { Icon } from "@iconify/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchRestaurantsList,
-  fetchUserByPhone,
   fetchBranches,
   fetchMenu,
 } from "./apICallCenter/ApisCallCenter";
+import { toast } from "react-hot-toast";
+import {
+  fetchUserByPhone,
+  updateUserData,
+  fetchAreas,
+  createUser,
+  createAddress,
+} from "./apICallCenter/apisUser";
 import { BASE_URL_iamge } from "@/api/BaseUrl";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import { useQueryClient } from "react-query";
-const userSchemaEdit = z.object({
+const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   phone: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
-  phone2: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
-  // address: z.string().min(1, "Address is required"),
+  phone2: z
+    .string()
+    .optional()
+    .refine((val) => val === "" || /^\d{10,15}$/.test(val), {
+      message: "Invalid phone number",
+    }),
+
+  email: z
+    .string()
+    .optional()
+    .refine((val) => val === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+      message: "Invalid email address",
+    }),
+});
+const addUserSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters long"),
+  phone: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
+  area: z.object(
+    { value: z.number(), label: z.string() },
+    { required_error: "Area is required" }
+  ),
+  street: z.string().min(1, "Street name is required"),
+  name: z.string().min(1, " name is required"),
+
+  building: z.string().min(1, "Building number is required").or(z.literal("")),
+  floor: z.string().optional(),
+  apt: z.string().optional(),
+  additionalInfo: z.string().optional(),
 });
 // const userSchemaEdit = z.object({
 //   username: z.string().min(3, "Username must be at least 3 characters long"),
@@ -64,8 +96,17 @@ function CreateOrder() {
     register: registerEdit,
     handleSubmit: handleSubmitEdit,
     setValue: setValueEdit,
-    formState: { errors },
-  } = useForm({ resolver: zodResolver(userSchemaEdit), mode: "onSubmit" });
+    formState: { errors: errorsEdit },
+  } = useForm({ resolver: zodResolver(editUserDataSchema), mode: "onSubmit" });
+
+  const {
+    control,
+    register: registerAddNewUser,
+    handleSubmit: handleSubmitAddNewUser,
+    setValue: setValueAddNewUser,
+    formState: { errors: errorsAddNewUser },
+  } = useForm({ resolver: zodResolver(addUserSchema), mode: "onSubmit" });
+
   const { theme } = useTheme();
   const queryClient = useQueryClient();
   const [color, setColor] = useState("");
@@ -93,6 +134,15 @@ function CreateOrder() {
     queryFn: () => fetchBranches(selectedRestaurantId),
     enabled: !!selectedRestaurantId,
   });
+  const {
+    data: areas,
+    isLoadingAreas,
+    errorAreas,
+  } = useQuery({
+    queryKey: ["AreasList"],
+    queryFn: fetchAreas,
+  });
+  // console.log("areas in basic", areas) ;
 
   const {
     data: menu,
@@ -167,16 +217,17 @@ function CreateOrder() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [restaurantsSelect, setRestaurantsSelect] = useState([]);
 
-  const [isNewUserDialog, setIsNewUserDialog] = useState(false);
+  const [isNewUserDialogOpen, setIsNewUserDialogOpen] = useState(false);
+  const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
 
   const handleItemClick = (item) => {
     setSelectedItem(item);
-    setIsNewUserDialog(false);
+    setIsNewUserDialogOpen(false);
     setOpenDialog(true);
   };
   const handleNewUserClick = () => {
     setSelectedItem(null);
-    setIsNewUserDialog(true);
+    setIsNewUserDialogOpen(true);
     setOpenDialog(true);
   };
   const handleIncrease = () => setCounter((prev) => prev + 1);
@@ -195,21 +246,6 @@ function CreateOrder() {
     (section) =>
       section.id === "all" || items.some((item) => item.section === section.id)
   );
-
-  // تطبيق فلترة القسم إذا لم يكن "All"
-  // const displayedItems =
-  //   activeSection === "all"
-  //     ? filteredItems
-  //     : filteredItems.filter((item) => item.section === activeSection);
-
-  // const displayedItems =
-  //   activeSection === "all"
-  //     ? items
-  //     : items.filter((item) => item.section === activeSection);
-  // const displayedItems = useMemo(() => {
-  //   if (activeSection === "all") return items;
-  //   return items.filter((item) => item.section === activeSection);
-  // }, [activeSection, items]);
 
   const displayedItems = useMemo(() => {
     return items.filter((item) => {
@@ -273,17 +309,9 @@ function CreateOrder() {
       setColor("#000");
     }
   }, [theme]);
-  useEffect(() => {
-    if (selectedUser) {
-      setValueEdit("username", selectedUser.user_name);
-      setValueEdit("phone", selectedUser.phone);
-      setValueEdit("phone2", selectedUser.phone2);
-    }
-  }, [selectedUser, selectedAddress, setValueEdit]);
 
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
   useEffect(() => {
-    // تعيين العنوان الأول في القائمة كعنوان محدد
     if (selectedUser?.address?.length > 0) {
       setSelectedAddress(selectedUser.address[0].address1);
     }
@@ -312,14 +340,6 @@ function CreateOrder() {
   const [countersTable, setCountersTable] = useState(
     usersTable.reduce((acc, item) => ({ ...acc, [item.id]: 1 }), {})
   );
-
-  // const handleIncreaseTable = (id) => {
-  //   setCountersTable((prev) => ({ ...prev, [id]: prev[id] + 1 }));
-  // };
-
-  // const handleDecreaseTable = (id) => {
-  //   setCountersTable((prev) => ({ ...prev, [id]: Math.max(1, prev[id] - 1) }));
-  // };
 
   const handleIncreaseTable = (id) => {
     setCartItems((prevItems) =>
@@ -377,7 +397,7 @@ function CreateOrder() {
         {
           ...selectedItem,
           quantity: counter,
-          total: counter * selectedItem.price,
+          total: counter * selectedItem?.price,
         },
       ];
     });
@@ -406,21 +426,7 @@ function CreateOrder() {
       );
     }
   }, [selectedRestaurantId, SelectedBranchPriceist]);
-  const [menuData, setMenuData] = useState({});
 
-  // useEffect(() => {
-  //   if (menu) {
-  //     setMenuData((prev) => ({
-  //       ...prev,
-  //       [selectedTab]: menu[selectedTab] || [],
-  //     }));
-  //   }
-  // }, [menu, selectedTab]);
-  const [visibleItems, setVisibleItems] = useState(20);
-
-  const loadMore = () => {
-    setVisibleItems((prev) => prev + 20); // عرض 20 عنصر إضافي
-  };
   const handleRestaurantChange = (selectedOption) => {
     setSelectedRestaurantId(selectedOption.value);
     refetchBranches();
@@ -441,19 +447,102 @@ function CreateOrder() {
     label: branch.name_en,
     priceList: branch.price_list,
   }));
+  const [areaIdSelect, setAreaIdSelect] = useState(null);
+  const areasOptions = areas?.map((area) => ({
+    value: area?.id,
+    label: area?.area_name_en,
+  }));
+  // console.log("areaIdSelect", areaIdSelect);
+  const handleChangeArea = (selectValue) => {
+    setAreaIdSelect(selectValue.value);
+    // console.log("selected area", selectedArea);
+  };
+  useEffect(() => {
+    if (selectedUser) {
+      setValueEdit("username", selectedUser.user_name);
+      setValueEdit("phone", selectedUser.phone);
+      setValueEdit("phone2", selectedUser.phone2 || "");
+      setValueEdit("email", selectedUser.email || "");
+      // setValueEdit("userId", selectedUser.id);
+    }
+  }, [selectedUser, selectedAddress, setValueEdit]);
+  const [lodaingEditUserData, setLodaingEditUserData] = useState(false);
+  const onSubmitEditUserData = async (data) => {
+    const formattedData = Object.entries({
+      username: data.username,
+      email: data.email,
+      phone: data.phone,
+      phone2: data.phone2,
+      userId: selectedUser?.id,
+    }).reduce((acc, [key, value]) => {
+      if (value) acc[key] = value;
+      return acc;
+    }, {});
+
+    // console.log("Formatted Data to Send:", formattedData);
+
+    try {
+      const response = await updateUserData(formattedData);
+      // console.log("response onsubmit", response);
+      if (response?.response) {
+        toast.success(response.message);
+        setOpenEditDialog(false);
+      } else {
+        toast.error("something error");
+      }
+    } catch {
+      console.error("Error updating user data:", error);
+    }
+  };
+  // const onSubmitAddUserData = async (data) => {
+  //   const formattedData = Object.entries({
+  //     username: data.username,
+  //     email: data.email,
+  //     phone: data.phone,
+  //     phone2: data.phone2,
+  //     userId: selectedUser?.id,
+  //   }).reduce((acc, [key, value]) => {
+  //     if (value) acc[key] = value;
+  //     return acc;
+  //   }, {});
+
+  //   console.log("Formatted Data to Send:", formattedData);
+
+  // };
+  const [loading, setLoading] = useState(false);
+
+  const onSubmitAddUserData = async (data) => {
+    console.log("data", data);
+    setLoading(true);
+    try {
+      const userId = await createUser(data.username, data.phone);
+
+      // if (!userId) throw new Error("User ID not received");
+      console.log("userId from onSubmitAddUserData ", userId);
+      await createAddress(
+        userId,
+        data.area.value,
+        data.street,
+        data.building,
+        data.floor,
+        data.apt,
+        data.additionalInfo,
+        data.name
+      );
+
+      toast.success("user added");
+    } catch (error) {
+      const errorMessage = error.message || "Unexpected error";
+      console.error(error);
+      // toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (isLoadingBranchs) return <p>Loading branches...</p>;
   if (errorBranchs) return <p>Error loading branches: {error.message}</p>;
-  const onSubmit = (data) => {
-    const formattedData = {
-      address: data.phone2,
-      username: data.username,
-      phone: data.phone,
-    };
 
-    console.log("Formatted Data to Send:", formattedData);
-    console.log("form data:", data);
-  };
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col lg:flex-row lg:items-center gap-2 ml-4">
@@ -542,7 +631,7 @@ function CreateOrder() {
                 ))}
 
                 {/* الديالوج المشترك لكلا الحالتين */}
-                {openDialog && (
+                {/* {openDialog && (
                   <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                     <DialogContent size="3xl">
                       <DialogHeader>
@@ -554,62 +643,84 @@ function CreateOrder() {
                       </DialogHeader>
 
                       {isNewUserDialog ? (
-                        // محتوى ديالوج New User
                         <div className="text-sm text-default-500 space-y-4">
-                          <Input
-                            type="text"
-                            placeholder="Username"
-                            className="w-full p-2 border rounded-md"
-                          />
-                          <Input
-                            type="number"
-                            placeholder="Phone"
-                            className="w-full p-2 border rounded-md"
-                          />
-                          <Select
-                            placeholder="Address"
-                            className="react-select w-full"
-                            classNamePrefix="select"
-                            options={[
-                              { value: "roxy", label: "roxy" },
-                              { value: "giza", label: "giza" },
-                            ]}
-                            styles={selectStyles(theme, color)}
-                          />
-                          <div className="flex items-center gap-2 ">
+                          <form
+                            onSubmit={handleSubmitAddNewUser(
+                              onSubmitAddUserData
+                            )}
+                          >
                             <Input
                               type="text"
-                              placeholder="Street"
+                              placeholder="Username"
+                              // className="w-full p-2 border rounded-md"
+                              className={`${
+                                errorsAddNewUser.phone ? "mb-1" : "mb-4"
+                              }`}
+                            />
+                            {errorsAddNewUser.phone && (
+                              <p className="text-red-500 text-sm  ">
+                                {errorsAddNewUser.phone.message}
+                              </p>
+                            )}
+                            <Input
+                              type="number"
+                              placeholder="Phone"
+                              // className="w-full p-2 border rounded-md"
+                              className={`${
+                                errorsAddNewUser.phone ? "mb-1" : "mb-4"
+                              }`}
+                            />
+                            {errorsAddNewUser.phone && (
+                              <p className="text-red-500 text-sm  ">
+                                {errorsAddNewUser.phone.message}
+                              </p>
+                            )}
+                            <h3>Address:</h3>
+                            <Select
+                              placeholder="Area"
+                              className="react-select w-full"
+                              classNamePrefix="select"
+                              options={[
+                                { value: "roxy", label: "roxy" },
+                                { value: "giza", label: "giza" },
+                              ]}
+                              styles={selectStyles(theme, color)}
+                            />
+                            <div className="flex items-center gap-2 ">
+                              <Input
+                                type="text"
+                                placeholder="Street"
+                                className="w-full p-2 border rounded-md"
+                              />
+                              <Input
+                                type="text"
+                                placeholder="Building"
+                                className="w-full p-2 border rounded-md"
+                              />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="text"
+                                placeholder="Floor"
+                                className="w-full p-2 border rounded-md"
+                              />
+                              <Input
+                                type="text"
+                                placeholder="Apt"
+                                className="w-full p-2 border rounded-md"
+                              />
+                            </div>
+                            <Input
+                              type="text"
+                              placeholder="Name"
                               className="w-full p-2 border rounded-md"
                             />
                             <Input
                               type="text"
-                              placeholder="Building"
+                              placeholder="Additional Info"
                               className="w-full p-2 border rounded-md"
                             />
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="text"
-                              placeholder="Floor"
-                              className="w-full p-2 border rounded-md"
-                            />
-                            <Input
-                              type="text"
-                              placeholder="Apt"
-                              className="w-full p-2 border rounded-md"
-                            />
-                          </div>
-                          <Input
-                            type="text"
-                            placeholder="Name"
-                            className="w-full p-2 border rounded-md"
-                          />
-                          <Input
-                            type="text"
-                            placeholder="Additional Info"
-                            className="w-full p-2 border rounded-md"
-                          />
+                          </form>
                         </div>
                       ) : (
                         // محتوى ديالوج add new item
@@ -653,7 +764,215 @@ function CreateOrder() {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
-                )}
+                )} */}
+
+                <>
+                  {/* <Button onClick={() => setIsNewUserDialogOpen(true)}>
+                    Create New User
+                  </Button>
+
+                  <Button onClick={() => setIsItemDialogOpen(true)}>
+                    Add Item
+                  </Button> */}
+
+                  {/* ديالوج إنشاء مستخدم جديد */}
+                  {isNewUserDialogOpen && (
+                    <Dialog
+                      open={isNewUserDialogOpen}
+                      onOpenChange={setIsNewUserDialogOpen}
+                    >
+                      <DialogContent size="3xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-base font-medium text-default-700">
+                            Create New User
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="text-sm text-default-500 space-y-4">
+                          <form
+                            onSubmit={handleSubmitAddNewUser(
+                              onSubmitAddUserData
+                            )}
+                          >
+                            <Input
+                              type="text"
+                              placeholder="Username"
+                              className={`${
+                                errorsAddNewUser.phone ? "mb-1" : "mb-4"
+                              }`}
+                              {...registerAddNewUser("username")}
+                            />
+                            {errorsAddNewUser.username && (
+                              <p className="text-red-500 text-sm">
+                                {errorsAddNewUser.username.message}
+                              </p>
+                            )}
+                            <Input
+                              type="number"
+                              placeholder="Phone"
+                              className={`${
+                                errorsAddNewUser.phone ? "mb-1" : "mb-4"
+                              }`}
+                              {...registerAddNewUser("phone")}
+                            />
+                            {errorsAddNewUser.phone && (
+                              <p className="text-red-500 text-sm">
+                                {errorsAddNewUser.phone.message}
+                              </p>
+                            )}
+
+                            <Controller
+                              name="area"
+                              control={control}
+                              rules={{ required: "Area is required" }}
+                              render={({ field }) => (
+                                <Select
+                                  {...field} // ⬅️ ربط `react-select` بـ `react-hook-form`
+                                  options={areasOptions || []}
+                                  placeholder="Area"
+                                  className="react-select w-full my-3"
+                                  classNamePrefix="select"
+                                  // onChange={handleChangeArea}
+                                  onChange={(selectedOption) => {
+                                    field.onChange(selectedOption); // تحديث قيمة الحقل داخل react-hook-form
+                                    handleChangeArea(selectedOption); // تشغيل دالة التحديث الخاصة بك
+                                  }}
+                                  styles={selectStyles(theme, color)}
+                                />
+                              )}
+                            />
+                            {errorsAddNewUser.area && (
+                              <p className="text-red-500 text-sm">
+                                {errorsAddNewUser.area.message}
+                              </p>
+                            )}
+                            <div className="flex gap-2 items- my-3">
+                              <Input
+                                type="text"
+                                placeholder="Street"
+                                {...registerAddNewUser("street")}
+                                className={`${
+                                  errorsAddNewUser.street ? "mb-1" : "mb-4"
+                                }`}
+                                {...registerAddNewUser("street")}
+                              />
+                              {errorsAddNewUser.street && (
+                                <p className="text-red-500 text-sm">
+                                  {errorsAddNewUser.street.message}
+                                </p>
+                              )}
+
+                              <Input
+                                type="text"
+                                placeholder="Building"
+                                {...registerAddNewUser("building")}
+                              />
+                            </div>
+                            <div className="flex gap-2 items- my-3">
+                              <Input
+                                type="text"
+                                placeholder="Floor"
+                                {...registerAddNewUser("floor")}
+                                // className="mb-4"
+                                // className={`${
+                                //   errorsAddNewUser.floor ? "mb-1" : "mb-4"
+                                // }`}
+                              />
+
+                              <Input
+                                type="text"
+                                placeholder="Apt"
+                                {...registerAddNewUser("apt")}
+                                className="mb-4"
+                              />
+                            </div>
+                            <Input
+                              type="text"
+                              placeholder="Additional Info"
+                              {...registerAddNewUser("additionalInfo")}
+                              className="mb-4"
+                            />
+                            <Input
+                              type="text"
+                              placeholder="Address name"
+                              {...registerAddNewUser("name")}
+                              // className="mb-4"
+                              className={`${
+                                errorsAddNewUser.name ? "mb-1" : "mb-4"
+                              }`}
+                            />
+                            {errorsAddNewUser.name && (
+                              <p className="text-red-500 text-sm">
+                                {errorsAddNewUser.name.message}
+                              </p>
+                            )}
+                            <DialogFooter className="mt-8">
+                              <DialogClose asChild>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setIsNewUserDialogOpen(false)}
+                                >
+                                  Close
+                                </Button>
+                              </DialogClose>
+                              <Button type="submit">Create User</Button>
+                            </DialogFooter>
+                          </form>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+
+                  {isItemDialogOpen && (
+                    <Dialog
+                      open={isItemDialogOpen}
+                      onOpenChange={setIsItemDialogOpen}
+                    >
+                      <DialogContent size="3xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-base font-medium text-default-700">
+                            Add Item Choices
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="text-sm flex justify-between items-center text-default-500 space-y-4">
+                          <div className="items-center">
+                            <h3 className="font-medium">{selectedItem.name}</h3>
+                          </div>
+                          <div className="flex justify-between items-center mt-4">
+                            <p className="text-sm mr-5">
+                              {(selectedItem.price * counter).toFixed(2)} Egp
+                            </p>
+                            <Button
+                              onClick={handleDecrease}
+                              className="text-lg"
+                            >
+                              -
+                            </Button>
+                            <span className="text-xl mx-4">{counter}</span>
+                            <Button
+                              onClick={handleIncrease}
+                              className="text-lg"
+                            >
+                              +
+                            </Button>
+                          </div>
+                        </div>
+                        <DialogFooter className="mt-8">
+                          <DialogClose asChild>
+                            <Button
+                              variant="outline"
+                              onClick={() => setIsItemDialogOpen(false)}
+                            >
+                              Close
+                            </Button>
+                          </DialogClose>
+                          <Button type="submit" onClick={handleAddToCart}>
+                            Add to Cart
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </>
               </div>
             </Card>
           </div>
@@ -674,13 +993,14 @@ function CreateOrder() {
                 onKeyDown={handleKeyPress}
                 className="pl-7 pr-8 w-full"
               />
-
-              <button
-                onClick={handleClear}
-                className="absolute top-1/2 right-2 -translate-y-1/2 text-red-500 text-xs font-bold"
-              >
-                ✕
-              </button>
+              {search && (
+                <button
+                  onClick={handleClear}
+                  className="absolute top-1/2 right-2 -translate-y-1/2 text-red-500 text-xs font-bold"
+                >
+                  ✕
+                </button>
+              )}
             </div>
 
             <div className="flex gap-2">
@@ -703,69 +1023,6 @@ function CreateOrder() {
               <p>Orders Count: {selectedUser.orders_count}</p>
               <p>Points: {selectedUser.user.points}</p>
 
-              {/*  */}
-              {/* {openEditDialog && selectedUser && (
-                <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
-                  <DialogContent size="3xl">
-                    <DialogHeader>
-                      <DialogTitle>Edit User</DialogTitle>
-                    </DialogHeader>
-
-                    <form onSubmit={handleSubmitEdit(onSubmit)}>
-                      <Input
-                        type="text"
-                        placeholder="Username"
-                        {...registerEdit("username")}
-                      />
-                      {errors.username && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.username.message}
-                        </p>
-                      )}
-
-                      <Input
-                        type="number"
-                        placeholder="Phone"
-                        {...registerEdit("phone")}
-                      />
-                      {errors.phone && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.phone.message}
-                        </p>
-                      )}
-
-                      <Input
-                        type="text"
-                        placeholder="Address"
-                        {...registerEdit("address")}
-                      />
-                      {errors.address && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.address.message}
-                        </p>
-                      )}
-
-                      <DialogFooter>
-                        <DialogClose asChild>
-                          <Button
-                            variant="outline"
-                            onClick={() => setOpenEditDialog(false)}
-                          >
-                            Close
-                          </Button>
-                        </DialogClose>
-                        <Button
-                          type="submit"
-                          onClick={() => console.log("here")}
-                        >
-                          Save Changes
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              )} */}
-
               {openEditDialog && selectedUser && (
                 <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
                   <DialogContent size="3xl">
@@ -773,18 +1030,19 @@ function CreateOrder() {
                       <DialogTitle>Edit User</DialogTitle>
                     </DialogHeader>
                     <form
-                      onSubmit={handleSubmitEdit(onSubmit)}
+                      onSubmit={handleSubmitEdit(onSubmitEditUserData)}
                       className="space-y-1"
                     >
                       <Input
                         type="text"
                         placeholder="Username"
                         {...registerEdit("username")}
-                        className="mb-4"
+                        // className="mb-4"
+                        className={` ${errorsEdit.username ? "mb-1" : "mb-4"}`}
                       />
-                      {errors.username && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.username.message}
+                      {errorsEdit.username && (
+                        <p className="text-red-500 text-sm my-1">
+                          {errorsEdit.username.message}
                         </p>
                       )}
 
@@ -792,25 +1050,36 @@ function CreateOrder() {
                         type="number"
                         placeholder="Phone"
                         {...registerEdit("phone")}
-                        className="mb-4"
+                        className={`${errorsEdit.phone ? "mb-1" : "mb-4"}`}
                       />
-                      {errors.phone && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.phone.message}
+                      {errorsEdit.phone && (
+                        <p className="text-red-500 text-sm  ">
+                          {errorsEdit.phone.message}
                         </p>
                       )}
 
                       <Input
                         type="number"
                         placeholder="Phone 2"
-                        {...registerEdit("phone2")}
+                        {...registerEdit("phone2", { required: false })}
+                        className={` ${errorsEdit.phone2 ? "mb-1" : "mb-4"}`}
                       />
-                      {errors.phone2 && (
+                      {errorsEdit.phone2 && (
                         <p className="text-red-500 text-sm mt-1">
-                          {errors.phone2.message}
+                          {errorsEdit.phone2.message}
                         </p>
                       )}
-
+                      <Input
+                        type="text"
+                        placeholder="Email"
+                        {...registerEdit("email", { required: false })}
+                        className={` ${errorsEdit.email ? "mb-1" : "mb-4"}`}
+                      />
+                      {errorsEdit.email && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errorsEdit.email.message}
+                        </p>
+                      )}
                       <div className="mt-3">
                         <DialogFooter className="flex justify-between items-center mt-4">
                           <DialogClose asChild>
@@ -821,12 +1090,7 @@ function CreateOrder() {
                               Close
                             </Button>
                           </DialogClose>
-                          <Button
-                            type="submit"
-                            onClick={() => console.log("here")}
-                          >
-                            Save Changes
-                          </Button>
+                          <Button type="submit">Save Changes</Button>
                         </DialogFooter>
                       </div>
                     </form>
@@ -844,17 +1108,6 @@ function CreateOrder() {
                       <DialogTitle>Edit User asddress</DialogTitle>
                     </DialogHeader>
 
-                    <Input
-                      type="text"
-                      placeholder="Username"
-                      defaultValue={selectedUser.user_name}
-                    />
-                    <Input
-                      type="number"
-                      placeholder="Phone"
-                      defaultValue={selectedUser.phone}
-                      readOnly
-                    />
                     <Input
                       type="text"
                       placeholder="Address"

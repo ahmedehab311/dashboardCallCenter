@@ -1,26 +1,36 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // async rewrites() {
-  //   const isDevelopment = process.env.NODE_ENV === "development";
+  async headers() {
+    return [
+      {
+        source: "/api/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET, POST, PUT, DELETE, OPTIONS",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "Content-Type, Authorization",
+          },
+        ],
+      },
+    ];
+  },
 
-  //   return [
-  //     {
-  //       source: "/api/base/:path*",
-  //       destination: isDevelopment
-  //         ? `${process.env.NEXT_PUBLIC_BASE_URL_DEVELOPMENT}/:path*`
-  //         : `${process.env.NEXT_PUBLIC_BASE_URL_PRODUCTION}/:path*`,
-  //     },
-  //     {
-  //       source: "/api/secret/:path*",
-  //       destination: isDevelopment
-  //         ? `${process.env.NEXT_PUBLIC_SECRET_API_URL_DEVELOPMENT}/:path*`
-  //         : `${process.env.NEXT_PUBLIC_SECRET_API_URL_PRODUCTION}/:path*`,
-  //     },
-  //   ];
-  // },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "http://myres.me/thmdev/api/:path*",
+      },
+    ];
+  },
 
   reactStrictMode: true,
   swcMinify: true,
+
   // reactStrictMode: true,
   webpack(config) {
     // Grab the existing rule that handles SVG imports
@@ -50,7 +60,7 @@ const nextConfig = {
     return config;
   },
   images: {
-    domains: ["ordrz.me"], 
+    domains: ["ordrz.me"],
   },
 };
 

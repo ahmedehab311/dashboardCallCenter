@@ -18,18 +18,18 @@ export const fetchRestaurantsList = async () => {
   }
 };
 
-export const fetchUserByPhone = async (phone) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/callcenter/user/search?api_token=${token}&phone=${phone}`
-    );
+// export const fetchUserByPhone = async (phone) => {
+//   try {
+//     const response = await axios.get(
+//       `${BASE_URL}/callcenter/user/search?api_token=${token}&phone=${phone}`
+//     );
 
-    return response.data.users;
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    throw error;
-  }
-};
+//     return response.data.users;
+//   } catch (error) {
+//     console.error("Error fetching user:", error);
+//     throw error;
+//   }
+// };
 // http://myres.me/thmdev/api/callcenter/get/branches?api_token=5x3oazMQdR6Eo7JeIBb7OGtCGNrP8lUBLgKExJLnFHKqIHlLL8M8LjPTNdZE1bCW&restaurantId=1
 export const fetchBranches = async (restaurantId) => {
   try {
@@ -79,3 +79,5 @@ export const fetchMenu = async (restaurantId, priceList) => {
     throw error;
   }
 };
+
+
