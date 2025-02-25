@@ -641,7 +641,7 @@ function CreateOrder() {
         },
       ];
     });
-    setOpenDialog(false);
+    setIsItemDialogOpen (false);
   };
 
   useEffect(() => {
