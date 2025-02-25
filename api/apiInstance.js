@@ -1,11 +1,12 @@
 import axios from "axios";
-import Cookies from "js-cookie"; // إذا كنت تستخدم التوكين من الكوكيز
+import Cookies from "js-cookie";
 
 const apiInstance = axios.create({
+  // baseURL: "https://myres.me/thmdev/api",
   baseURL: "https://myres.me/thmdev/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // headers: {
+  //   "Content-Type": "application/json",
+  // },
 });
 
 apiInstance.interceptors.request.use(
