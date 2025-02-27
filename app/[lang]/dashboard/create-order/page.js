@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useTheme } from "next-themes";
 import Select from "react-select";
@@ -47,6 +48,8 @@ import {
   fetchBranches,
   fetchMenu,
   fetchViewItem,
+  fetchTax,
+  fetchOrderType,
 } from "./apICallCenter/ApisCallCenter";
 import { toast } from "react-hot-toast";
 import {
@@ -63,6 +66,8 @@ import { z } from "zod";
 import { useForm, Controller, set } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { FaMinus, FaPlus } from "react-icons/fa";
+
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   phone: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
@@ -120,17 +125,7 @@ const editUserAddressSchema = z.object({
   apt: z.string().optional(),
   additionalInfo: z.string().optional(),
 });
-// const userSchemaEdit = z.object({
-//   username: z.string().min(3, "Username must be at least 3 characters long"),
-//   phone: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
-//   address: z.string().min(1, "Address is required"),
-//   street: z.string().min(1, "Street name is required"),
-//   building: z.string().min(1, "Building number is required"),
-//   floor: z.string().optional(),
-//   apt: z.string().optional(),
-//   name: z.string().min(1, "Name is required"),
-//   additionalInfo: z.string().optional(),
-// });
+
 function CreateOrder() {
   const {
     register: registerEdit,
@@ -170,7 +165,7 @@ function CreateOrder() {
   const [color, setColor] = useState("");
   const [phone, setPhone] = useState("");
   const [selectedRestaurantId, setSelectedRestaurantId] = useState(1);
-  const [SelectedBranchId, setSelectedBranchId] = useState(null);
+  const [selectedBranchId, setSelectedBranchId] = useState(null);
   const [SelectedBranchPriceist, setSelectedBranchPriceList] = useState(1);
   // apis
   // api restaurants select
@@ -192,6 +187,7 @@ function CreateOrder() {
     queryFn: () => fetchBranches(selectedRestaurantId),
     enabled: !!selectedRestaurantId,
   });
+
   const {
     data: areas,
     isLoadingAreas,
@@ -200,7 +196,27 @@ function CreateOrder() {
     queryKey: ["AreasList"],
     queryFn: fetchAreas,
   });
-  // console.log("areas in basic", areas) ;
+
+  const {
+    data: orderType,
+    isLoadingOrderType,
+    errorOrderType,
+    // refetch: refetchBranches,
+  } = useQuery({
+    queryKey: ["OrderTypeList", selectedRestaurantId],
+    queryFn: () => fetchOrderType(selectedRestaurantId),
+    // enabled: !!selectedRestaurantId,
+  });
+  const {
+    data: Tax,
+    isLoadingTax,
+    errosTax,
+  } = useQuery({
+    queryKey: ["TaxList"],
+    queryFn: fetchTax,
+  });
+  // console.log("Tax in basic", Tax);
+  console.log("orderType in basic", orderType);
 
   const {
     data: menu,
@@ -277,6 +293,7 @@ function CreateOrder() {
 
   const [isNewUserDialogOpen, setIsNewUserDialogOpen] = useState(false);
   const [isNewAddressDialogOpen, setIsNewAddressDialogOpen] = useState(false);
+  const [cancelOrderDialogOpen, setCancelOrderDialogOpen] = useState(false);
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
   const [isOpenMainExtra, setIsOpenMainExtra] = useState(true);
@@ -316,11 +333,50 @@ function CreateOrder() {
   //     console.error("Error fetching item details:", error);
   //   }
   // };
+  // const handleItemClick = async (item) => {
+  //   setSelectedItem(item);
+  //   setIsItemDialogOpen(true);
+  //   setIsOpen(!isOpen);
+
+  //   try {
+  //     const response = await fetchViewItem(
+  //       selectedRestaurantId,
+  //       selectedAddress?.id,
+  //       item.id
+  //     );
+
+  //     if (response) {
+  //       const firstInfo = response?.info?.[0] || null;
+
+  //       setSelectedItem({
+  //         id: response.id,
+  //         name: response.name_en,
+  //         description: response.description_en,
+  //         image: response.image,
+  //         availability: firstInfo?.availability?.availability,
+  //         info: response?.info || [],
+  //         selectedInfo: firstInfo?.size_en || "",
+  //         selectedMainExtras: [],
+  //         selectedMainExtrasIds: [],
+  //         mainExtras: response?.item_extras?.[0]?.data || [],
+  //         itemExtras: firstInfo?.item_extras || [],
+  //         extrasData: firstInfo?.item_extras[0]?.data || [],
+  //         selectedExtras: [],
+  //         selectedExtrasIds: [],
+  //         price: firstInfo?.price?.price,
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching item details:", error);
+  //   }
+  // };
   const handleItemClick = async (item) => {
     setSelectedItem(item);
     setIsItemDialogOpen(true);
     setIsOpen(!isOpen);
-
+    setNote("");
+    setCounter(1);
+    setTotalExtrasPrice(0);
     try {
       const response = await fetchViewItem(
         selectedRestaurantId,
@@ -353,57 +409,27 @@ function CreateOrder() {
       console.error("Error fetching item details:", error);
     }
   };
-  console.log("mainExtras", selectedItem?.mainExtras);
-  console.log("itemExtras", selectedItem?.itemExtras);
-  console.log("info", selectedItem?.info);
-  console.log("extrasData", selectedItem?.extrasData);
+  console.log("selectedItem", selectedItem);
+  // console.log("selectedInfo", selectedItem?.selectedInfo);
+  // console.log("mainExtras", selectedItem?.mainExtras);
+  // console.log("itemExtras", selectedItem?.itemExtras);
+  // console.log("info", selectedItem?.info);
+  // console.log("extrasData", selectedItem?.extrasData);
   console.log("selectedExtras", selectedItem?.selectedExtras);
-  console.log("selectedExtrasIds", selectedItem?.selectedExtrasIds);
+  // console.log("selectedExtrasIds", selectedItem?.selectedExtrasIds);
   console.log("selectedMainExtras", selectedItem?.selectedMainExtras);
-  console.log("selectedMainExtrasIds", selectedItem?.selectedMainExtrasIds);
+  // console.log("selectedMainExtrasIds", selectedItem?.selectedMainExtrasIds);
 
-  // useEffect(() => {
-  //   if (
-  //     selectedItem?.selectedExtras?.length ===
-  //       selectedItem?.extrasData?.length ||
-  //     selectedItem?.selectedExtras?.length === 0
-  //   ) {
-  //     setIsOpen(false);
-  //   }
-  // }, [selectedItem?.selectedExtras, selectedItem?.extrasData]);
+  const handleEditItem = (item) => {
+    setSelectedItem({
+      ...item,
+      selectedMainExtras: [...item.selectedMainExtras],
+    });
+    setNote(item.note || ""); // ✅ جلب الملاحظة المخزنة عند فتح التعديل
+    setCounter(item.quantity);
+    setIsItemDialogOpen(true);
+  };
 
-  // const toggleExtras = () => {
-  //   setIsOpen(!isOpen); // تبديل حالة الفتح/الإغلاق
-  // };
-  // useEffect(() => {
-  //   if (
-  //     selectedItem?.selectedMainExtras?.length ===
-  //       selectedItem?.mainExtras?.length ||
-  //     selectedItem?.selectedMainExtras?.length === 0
-  //   ) {
-  //     setIsOpen(false);
-  //   }
-  // }, [selectedItem?.selectedMainExtras, selectedItem?.mainExtras]);
-  // إغلاق القائمة فقط عند تحميل الصفحة إذا كانت فارغة
-  // useEffect(() => {
-  //   if (!selectedItem) return;
-
-  //   if (selectedItem?.extrasData?.length === 0) {
-  //     setIsOpen(false);
-  //   } else {
-  //     setIsOpen(true);
-  //   }
-  // }, [selectedItem]);
-
-  // useEffect(() => {
-  //   if (!selectedItem) return;
-
-  //   if (
-  //     selectedItem?.selectedExtras?.length === selectedItem?.extrasData?.length
-  //   ) {
-  //     setIsOpen(false);
-  //   }
-  // }, [selectedItem?.selectedExtras]);
   useEffect(() => {
     if (!selectedItem) return;
 
@@ -463,12 +489,6 @@ function CreateOrder() {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredItems = searchQuery
-    ? items.filter((item) =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : items;
-
   // استخراج الأقسام التي تحتوي فقط على العناصر المفلترة
   const filteredSections = sections.filter(
     (section) =>
@@ -490,6 +510,8 @@ function CreateOrder() {
   const [allUserData, setAllUserData] = useState(null);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [errorSearchUser, setErrorSearchUser] = useState(null);
+  console.log("selectedAddress", selectedAddress);
+
   // useEffect(() => {
   //   const handleBeforeUnload = (event) => {
   //     if (search) {
@@ -543,7 +565,7 @@ function CreateOrder() {
   const [selectedEditAddress, setSelectedEditAddress] = useState(null);
 
   useEffect(() => {
-    if (selectedUser?.address?.length > 0) {
+    if (selectedUser?.address?.length > 0 && !selectedAddress) {
       setSelectedAddress(selectedUser.address[0]);
     }
   }, [selectedUser]);
@@ -557,14 +579,6 @@ function CreateOrder() {
   // console.log("SelectedAddress", selectedAddress);
   // console.log("selectedEditAddress", selectedEditAddress);
   // console.log("selectedAddress", selectedAddress?.id);
-  const columns = [
-    { key: "Items", label: "Items" },
-    { key: "Edit", label: "Edit" },
-    { key: "Delete", label: "Delete" },
-    { key: "quantity", label: "quantity" },
-    { key: "Unit Price", label: "Unit Price" },
-    { key: "Total Price", label: "Total Price" },
-  ];
 
   const usersTable = [
     {
@@ -614,6 +628,69 @@ function CreateOrder() {
   };
 
   const [cartItems, setCartItems] = useState([]);
+  // const handleAddToCart = () => {
+  //   setCartItems((prevItems) => {
+  //     const existingItem = prevItems.find(
+  //       (item) => item.id === selectedItem.id
+  //     );
+
+  //     if (existingItem) {
+  //       return prevItems.map((item) =>
+  //         item.id === selectedItem.id
+  //           ? {
+  //               ...item,
+  //               quantity: item.quantity + counter,
+  //               total: (item.quantity + counter) * item.price,
+  //             }
+  //           : item
+  //       );
+  //     }
+
+  //     return [
+  //       ...prevItems,
+  //       {
+  //         ...selectedItem,
+  //         quantity: counter,
+  //         total: counter * selectedItem?.price,
+  //         mainExtras: selectedItem?.selectedMainExtras,
+  //       },
+  //     ];
+  //   });
+  //   setIsItemDialogOpen(false);
+  // };
+  // const handleAddToCart = () => {
+  //   setCartItems((prevItems) => {
+  //     const existingItem = prevItems.find((item) => item.id === selectedItem.id);
+
+  //     if (existingItem) {
+  //       // إذا كان العنصر موجودًا، نحدثه
+  //       return prevItems.map((item) =>
+  //         item.id === selectedItem.id
+  //           ? {
+  //               ...item,
+  //               quantity: counter, // نستخدم الكمية الجديدة من الكونتر
+  //               total: counter * item.price, // نحسب المجموع الجديد
+  //               mainExtras: selectedItem.mainExtras, // نستخدم الإضافات المحددة
+  //             }
+  //           : item
+  //       );
+  //     }
+
+  //     // إذا كان العنصر غير موجود، نضيفه جديدًا
+  //     return [
+  //       ...prevItems,
+  //       {
+  //         ...selectedItem,
+  //         quantity: counter,
+  //         total: counter * selectedItem?.price,
+  //         mainExtras: selectedItem?.mainExtras,
+  //       },
+  //     ];
+  //   });
+
+  //   setIsItemDialogOpen(false); // نغلق الديالوج بعد التحديث
+  // };
+  const [note, setNote] = useState("");
   const handleAddToCart = () => {
     setCartItems((prevItems) => {
       const existingItem = prevItems.find(
@@ -621,27 +698,42 @@ function CreateOrder() {
       );
 
       if (existingItem) {
+        // تحديث العنصر عند وجوده بالفعل
         return prevItems.map((item) =>
           item.id === selectedItem.id
             ? {
                 ...item,
-                quantity: item.quantity + counter,
-                total: (item.quantity + counter) * item.price,
+                quantity: counter, // تحديث الكمية
+                total: counter * item.price, // تحديث المجموع
+
+                mainExtras: [...selectedItem.mainExtras], // ✅ تحديث الإضافات
+                selectedMainExtras: [...selectedItem.selectedMainExtras],
+                selectedExtras: [...selectedItem.selectedExtras],
+                selectedInfo: selectedItem.selectedInfo,
+                note: note,
               }
             : item
         );
       }
 
+      // إضافة عنصر جديد إذا لم يكن موجودًا
       return [
         ...prevItems,
         {
           ...selectedItem,
           quantity: counter,
-          total: counter * selectedItem?.price,
+          total: counter * selectedItem.price,
+
+          mainExtras: [...selectedItem.mainExtras], // ✅ تحديث الإضافات
+          selectedMainExtras: [...selectedItem.selectedMainExtras],
+          selectedExtras: [...selectedItem.selectedExtras],
+          selectedInfo: selectedItem.selectedInfo,
+          note: note,
         },
       ];
     });
-    setIsItemDialogOpen (false);
+    setNote("");
+    setIsItemDialogOpen(false); // إغلاق الديالوج بعد الإضافة
   };
 
   useEffect(() => {
@@ -669,30 +761,43 @@ function CreateOrder() {
 
   const handleRestaurantChange = (selectedOption) => {
     setSelectedRestaurantId(selectedOption.value);
+    setSelectedBranchId(null);
+    // setSelectedBranchPriceList(null);
     refetchBranches();
+    setCartItems([]);
   };
 
   const handleSelectChangeBranches = (selectedOption) => {
     setSelectedBranchId(selectedOption?.value);
     setSelectedBranchPriceList(selectedOption?.priceList);
-    // refetchMenu();
+    refetchMenu();
   };
 
-  // if (process.env.NODE_ENV === "development") {
-  //   console.log("SelectedBranchId", SelectedBranchId);
-  //   console.log("SelectedBranchPriceist", SelectedBranchPriceist);
-  // }
   const branchOptions = branches?.map((branch) => ({
     value: branch.id,
     label: branch.name_en,
     priceList: branch.price_list,
   }));
+  const orderTypeOptions = orderType?.map((val) => ({
+    value: val.id,
+    label: val.source_name,
+  }));
+  console.log("orderTypeOptions", orderTypeOptions);
+
+  const [selecteOrderTypeId,setOrderTypeId] = useState(null)
+  const handleChangeOrderType = (selectValue) => {
+    setOrderTypeId(selectValue.value);
+    // console.log("selected area", selectedArea);
+  };
+
+
   const [areaIdSelect, setAreaIdSelect] = useState(null);
   const areasOptions = areas?.map((area) => ({
     value: area?.id,
     label: area?.area_name_en,
   }));
   // console.log("areaIdSelect", areaIdSelect);
+ 
   const handleChangeArea = (selectValue) => {
     setAreaIdSelect(selectValue.value);
     // console.log("selected area", selectedArea);
@@ -723,7 +828,8 @@ function CreateOrder() {
       );
     }
   }, [selectedEditAddress, setValueEditAddressUser]);
-
+  const [totalExtrasPrice, setTotalExtrasPrice] = useState(0);
+  console.log("totalExtrasPrice", totalExtrasPrice);
   const [lodaingEditUserData, setLodaingEditUserData] = useState(false);
   const onSubmitEditUserData = async (data) => {
     const formattedData = Object.entries({
@@ -754,6 +860,11 @@ function CreateOrder() {
             phone2: data.phone2 || oldData.phone2,
           };
         });
+        setSelectedAddress((prevSelectedAddress) => ({
+          ...prevSelectedAddress,
+          address_name: data.address_name || prevSelectedAddress.address_name,
+          // أي حقل آخر تحتاج تحديثه
+        }));
         setOpenEditDialog(false);
       } else {
         toast.error("something error");
@@ -762,7 +873,7 @@ function CreateOrder() {
       console.error("Error updating user data:", error);
     }
   };
-
+  // console.log("set slected ", selectedAddress);
   const [loading, setLoading] = useState(false);
   const [selectedAddressType, setSelectedAddressType] = useState("home");
 
@@ -776,32 +887,32 @@ function CreateOrder() {
     }
   };
   const onSubmitAddUserData = async (data) => {
-    console.log("data", data);
+    // console.log("data", data);
     setLoading(true);
-    // try {
-    //   const userId = await createUser(data.username, data.phone);
+    try {
+      const userId = await createUser(data.username, data.phone);
 
-    //   // if (!userId) throw new Error("User ID not received");
-    //   console.log("userId from onSubmitAddUserData ", userId);
-    //   await createAddress(
-    //     userId,
-    //     data.area.value,
-    //     data.street,
-    //     data.building,
-    //     data.floor,
-    //     data.apt,
-    //     data.additionalInfo,
-    //     data.name
-    //   );
+      // if (!userId) throw new Error("User ID not received");
+      // console.log("userId from onSubmitAddUserData ", userId);
+      await createAddress(
+        userId,
+        data.area.value,
+        data.street,
+        data.building,
+        data.floor,
+        data.apt,
+        data.additionalInfo,
+        data.name
+      );
 
-    //   toast.success("user added");
-    // } catch (error) {
-    //   const errorMessage = error.message || "Unexpected error";
-    //   console.error(error);
-    //   // toast.error(errorMessage);
-    // } finally {
-    //   setLoading(false);
-    // }
+      toast.success("user added");
+    } catch (error) {
+      const errorMessage = error.message || "Unexpected error";
+      console.error(error);
+      // toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
   const onSubmitAddAddress = async (data) => {
     console.log("data", data);
@@ -822,6 +933,7 @@ function CreateOrder() {
       );
 
       toast.success("address added successfully");
+      queryClient.invalidateQueries(["userSearch", phone]);
       setIsNewAddressDialogOpen(false);
     } catch (error) {
       const errorMessage = error.message || "Unexpected error";
@@ -862,15 +974,7 @@ function CreateOrder() {
       if (response) {
         toast.success("Address updated successfully");
 
-        queryClient.setQueryData(["userAddresses"], (oldData) => {
-          if (!oldData) return oldData;
-          return oldData.map((address) =>
-            address.id === selectedEditAddress.id
-              ? { ...address, ...formattedData }
-              : address
-          );
-        });
-
+        queryClient.invalidateQueries(["userSearch", phone]);
         setOpenEditAddressDialog(false);
       } else {
         toast.error("Something went wrong");
@@ -910,6 +1014,61 @@ function CreateOrder() {
     }
   };
 
+  // useEffect(() => {
+  //   // تأكد إن الـ selectedAddress مش بيتغير
+  //   console.log("Selected Address after re-render:", selectedAddress);
+  // }, [selectedAddress]);
+
+  const totalPrice = cartItems?.map((item) => item.price * item.quantity);
+  console.log("cartItems", cartItems);
+  // console.log("cartItems", cartItems.quantity);
+  // console.log("TotalExtrasPrice", totalExtrasPrice);
+  // const grandTotal = cartItems.reduce((sum, item) => {
+  //   // حساب مجموع سعر الإضافات لهذا العنصر فقط
+  //   const extrasTotal =
+  //     item.selectedMainExtras?.reduce(
+  //       (acc, extra) => acc + (parseFloat(extra.price_en) || 0),
+  //       0
+  //     ) || 0;
+
+  //   // حساب السعر النهائي لهذا العنصر
+  //   const itemTotal = item.price * item.quantity + extrasTotal;
+
+  //   return sum + itemTotal;
+  // }, 0);
+
+  // // تأكد أن `grandTotal` هو رقم صحيح وقم بتنسيقه
+  // const formattedGrandTotal = parseFloat(grandTotal || 0).toFixed(2);
+
+  const grandTotal = cartItems.reduce((sum, item) => {
+    // تأكد أن السعر والكمية أرقام عشرية صحيحة
+    const itemPrice = parseFloat(item.price) || 0;
+    const itemQuantity = parseFloat(item.quantity) || 0; // استخدم parseFloat بدل parseInt
+
+    // حساب مجموع سعر الإضافات لهذا العنصر فقط
+    const extrasTotal =
+      item.selectedMainExtras?.reduce(
+        (acc, extra) => acc + (parseFloat(extra.price_en) || 0),
+        0
+      ) || 0;
+
+    // حساب السعر النهائي لهذا العنصر
+    const itemTotal = itemPrice * itemQuantity + extrasTotal;
+
+    return sum + itemTotal;
+  }, 0);
+
+  const formattedGrandTotal = parseFloat(grandTotal).toFixed(2);
+
+  // console.log("grandTotal", grandTotal);
+  // console.log("formattedGrandTotal", formattedGrandTotal);
+
+  const vatAmount = grandTotal * (Tax / 100);
+  // const deliveryFee = 20;
+  const discount = 0;
+  const Delivery = selectedAddress?.delivery || 0;
+
+  const totalAmount = grandTotal + vatAmount + Delivery - discount;
   if (isLoadingBranchs) return <p>Loading branches...</p>;
   if (errorBranchs) return <p>Error loading branches: {error.message}</p>;
   return (
@@ -930,10 +1089,10 @@ function CreateOrder() {
       </div>
 
       {/* الكارتات */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_550px] gap-4 m">
         {/* الكارت الكبير (على الشمال) */}
 
-        <div className="lg:col-span-2 p-4 shadow-md rounded-lg">
+        <div className="lg:col-span p-4 shadow-md rounded-lg">
           {/*  مربع البحث */}
           <div className="space-y-4">
             {/*  مربع البحث */}
@@ -990,11 +1149,9 @@ function CreateOrder() {
                     </div>
                     <div className="flex justify-between items-center gap-3 p-3">
                       <h3 className="text-sm text-muted-foreground mt-2">
-                        {item.name}
+                        {item?.name}
                       </h3>
-                      <p className="text-gray-300 text-sm">
-                        {item?.price?.toFixed(2)} EGP
-                      </p>
+                      <p className=" text-sm">{item?.price?.toFixed(2)} EGP</p>
                     </div>
                   </Card>
                 ))}
@@ -1006,32 +1163,60 @@ function CreateOrder() {
                   >
                     <DialogContent size="3xl">
                       <DialogHeader>
-                        <DialogTitle className="text-base font-medium text-default-700">
-                          Add Item Choices
+                        <DialogTitle className="text-base font-medium text-default-">
+                          {selectedItem?.name}
                         </DialogTitle>
                       </DialogHeader>
-                      <div className="text-sm flex justify-between items-center text-default-500 space-y-4">
+                      <div className="text-sm flex justify-between items-center text-default- space-y-4">
                         <div className="items-center">
-                          <h3 className="font-medium">{selectedItem?.name}</h3>
+                          <h3 className="font-medium">
+                            {selectedItem?.description}
+                          </h3>
                         </div>
-                        <div className="flex justify-between items-center mt-4">
-                          <p className="text-sm mr-5">
-                            {(selectedItem?.price * counter).toFixed(2)} Egp
+
+                        <div className="flex items-center space-">
+                          {/* السعر الإجمالي */}
+                          <p className="text-sm font-semibold text-gray-">
+                            {(selectedItem?.price * counter).toFixed(2)} EGP
                           </p>
-                          <Button onClick={handleDecrease} className="text-lg">
-                            -
-                          </Button>
-                          <span className="text-xl mx-4">{counter}</span>
-                          <Button onClick={handleIncrease} className="text-lg">
-                            +
-                          </Button>
+
+                          <button
+                            onClick={() =>
+                              setCounter((prev) => (prev > 1 ? prev - 1 : 1))
+                            }
+                            className="px-2 py-1 bg-red-500 text-white rounded-l-md hover:bg-red-600 transition-colors ml-4"
+                          >
+                            <FaMinus />
+                          </button>
+
+                          <input
+                            type="number"
+                            step="0.001" // يحدد الخطوة لعشري واحد
+                            value={counter}
+                            onInput={(e) => {
+                              if (e.target.value.length > 4) {
+                                e.target.value = e.target.value.slice(0, 4); // اقتصاص القيمة إلى 4 أرقام
+                              }
+                            }}
+                            onChange={(e) => {
+                              const value = parseFloat(e.target.value);
+                              if (!isNaN(value) && value >= 0.1) {
+                                // السماح بالأرقام العشرية وعدم السماح بالقيم السالبة
+                                setCounter(value);
+                              }
+                            }}
+                            className="w-16 text-center border border-gray-300 rounded-[2px] focus:outline-none focus:ring-2 focus:-blue-500 focus:border-transparent"
+                          />
+                          <button
+                            onClick={() => setCounter((prev) => prev + 1)}
+                            className="px-2 py-1 bg-green-500 text-white rounded-r-md hover:bg-green-600 transition-colors ml5"
+                          >
+                            <FaPlus />
+                          </button>
                         </div>
                       </div>
 
                       <div className="mt-4">
-                        {/* <h3 className="font-medium text-lg">
-                          Select Size ({selectedItem?.availability})
-                        </h3> */}
                         <div className="flex flex-c gap-5">
                           {selectedItem?.info?.map((size, index) => (
                             <label
@@ -1070,119 +1255,13 @@ function CreateOrder() {
                           ))}
                         </div>
                       </div>
-                      {/* {selectedItem?.itemExtras?.length > 0 && (
-  <div className="mt-3 p-3 bg--200 rounded-md">
-    <p className="font-semibold text-gray-800">الإضافات:</p>
-    <div className="flex flex-wrap gap-2 mt-2">
-      {selectedItem.itemExtras.map((extra, index) => (
-        <label
-          key={index}
-          className="flex items-center space-x-2 bg- p-2 rounded-md shadow"
-        >
-          <input
-            type="checkbox"
-            value={extra.id}
-            checked={selectedItem.selectedExtras.some(
-              (ex) => ex.id === extra.id
-            )}
-            onChange={(e) => {
-              const checked = e.target.checked;
-              setSelectedItem((prev) => {
-                let updatedExtras = checked
-                  ? [...prev.selectedExtras, extra] // إضافة الاختيار
-                  : prev.selectedExtras.filter((ex) => ex.id !== extra.id); // إزالة الاختيار
-
-                return {
-                  ...prev,
-                  selectedExtras: updatedExtras,
-                };
-              });
-            }}
-          />
-          <span>{extra.name_ar} - {extra.name_en}</span>
-        </label>
-      ))}
-    </div>
-  </div>
-)} */}
-
-                      {/* {selectedItem?.itemExtras && (
-                        <div className="mt-4">
-                          <h3 className="font-medium text-lg">
-                            {selectedItem?.itemExtras.category_ar}
-                          </h3>
-                          <div className="flex flex- gap-3">
-                            {selectedItem?.itemExtras.data.map(
-                              (extra, index) => (
-                                <label
-                                  key={index}
-                                  className="flex items-center space-x-2"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    value={extra.name_en}
-                                    onChange={(e) => {
-                                      const checked = e.target.checked;
-                                      setSelectedItem((prev) => {
-                                        const updatedExtras = checked
-                                          ? [...prev.selectedExtras, extra]
-                                          : prev.selectedExtras.filter(
-                                              (ex) => ex.id !== extra.id
-                                            );
-                                        return {
-                                          ...prev,
-                                          selectedExtras: updatedExtras,
-                                        };
-                                      });
-                                    }}
-                                  />
-                                  <span>
-                                    {extra.name_en} 
-                                  </span>
-                                </label>
-                              )
-                            )}
-                          </div>
-                        </div>
-                      )} */}
-                      {/* اختيار الحجم */}
-                      {/* <div className="mt-3">
-                        {selectedItem?.info?.map((size, index) => (
-                          <label
-                            key={index}
-                            className="flex items-center space-x-2 cursor-pointer p-2 border border-gray-400 dark:border-gray-600 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition"
-                          >
-                            <input
-                              type="radio"
-                              name="size"
-                              value={size?.size_en}
-                              checked={
-                                selectedItem?.selectedInfo === size?.size_en
-                              }
-                              onChange={() =>
-                                setSelectedItem((prev) => ({
-                                  ...prev,
-                                  selectedInfo: size?.size_en,
-                                  itemExtras: size?.item_extras || [], // تحديث الإضافات الخاصة بالحجم فقط
-                                  extrasData: size?.item_extras?.data || [],
-                                  price: size?.price?.price,
-                                }))
-                              }
-                            />
-                            <span className="text-gray-900 dark:text-gray-100">
-                              {size?.size_en} (
-                              {size?.availability?.availability})
-                            </span>
-                          </label>
-                        ))}
-                      </div> */}
-
-                      <div className="border rounded-lg overflow-hidden shadow-md">
+                      <hr className="my-2" />
+                      <div className="border rounded-lg overflow-hidden shadow-md mt-3">
                         <div
                           className="p-3 bg-gray- cursor-pointer flex justify-between items-center"
                           onClick={toggleExtras}
                         >
-                          <h3 className="font-bold text-xl">
+                          <h3 className="font-bold text-[16px]">
                             {selectedItem?.itemExtras?.category_ar} (Choose up
                             to {selectedItem?.extrasData?.length} Items)
                           </h3>
@@ -1217,7 +1296,6 @@ function CreateOrder() {
                                 <input
                                   type="radio"
                                   value={extra.name_en}
-                           
                                   checked={
                                     selectedItem.selectedExtras.length > 0 &&
                                     selectedItem.selectedExtras[0].id ===
@@ -1244,7 +1322,7 @@ function CreateOrder() {
                           className="p-3 bg-gray- cursor-pointer flex justify-between items-center"
                           onClick={toggleExtrasMainExtra}
                         >
-                          <h3 className="font-bold text-xl">
+                          <h3 className="font-bold text-[16px] ">
                             {selectedItem?.mainExtras?.category_ar} (Choose up
                             to {selectedItem?.mainExtras?.length} Items)
                           </h3>
@@ -1295,6 +1373,24 @@ function CreateOrder() {
                                         (ex) => ex.id
                                       ); // تخزين الـ ID فقط
 
+                                      // حساب السعر الإجمالي الجديد
+                                      const newTotalPrice =
+                                        updatedExtras.reduce(
+                                          (acc, curr) =>
+                                            acc +
+                                            parseFloat(curr.price_en || "0"), // تحويل السعر إلى رقم مع معالجة القيم الفارغة
+                                          0
+                                        );
+
+                                      console.log(
+                                        "Selected Extras:",
+                                        updatedExtras
+                                      );
+                                      console.log(
+                                        "Total Price:",
+                                        newTotalPrice
+                                      );
+                                      setTotalExtrasPrice(newTotalPrice);
                                       return {
                                         ...prev,
                                         selectedMainExtras: updatedExtras,
@@ -1310,19 +1406,61 @@ function CreateOrder() {
                         </div>
                       </div>
 
-                      <DialogFooter className="mt-8">
-                        <DialogClose asChild>
-                          {/* <Button
+                      {/* <div className="text-sm font-semibold ">
+                        <p>{selectedItem?.selectedInfo}</p>
+                      </div> */}
+
+                      <div className="flex flex-col lg:flex-row lg:items-center gap-2 m-4">
+                        <Label className="lg:min-w-[100px]">Note:</Label>
+                        <Input
+                          value={note}
+                          onChange={(e) => setNote(e.target.value)}
+                          type="text"
+                          placeholder="Note"
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="flex justify-end">
+                        <p className="text-sm font-semibold mr-1 ">Subtoal: </p>
+                        <p className="text-sm font-semibold ">
+                          {(
+                            selectedItem?.price * counter +
+                            totalExtrasPrice
+                          ).toFixed(2)}
+                          EGP
+                        </p>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm font-semibold flex flex-wrap max-w-[300px]">
+                          <p className="">
+                            {[
+                              selectedItem?.selectedInfo,
+                              ...(selectedItem?.selectedExtras || []).map(
+                                (extra) => extra.name_en
+                              ),
+                              ...(selectedItem?.selectedMainExtras || []).map(
+                                (extra) => extra.name_en
+                              ),
+                            ]
+                              .filter(Boolean) // إزالة القيم الفارغة أو undefined
+                              .join(", ")}
+                          </p>
+                        </div>
+
+                        <DialogFooter className="mt-8">
+                          <DialogClose asChild>
+                            {/* <Button
                             variant="outline"
                             onClick={() => setIsItemDialogOpen(false)}
                           >
                             Close
                           </Button> */}
-                        </DialogClose>
-                        <Button type="submit" onClick={handleAddToCart}>
-                          Add to Cart
-                        </Button>
-                      </DialogFooter>
+                          </DialogClose>
+                          <Button type="submit" onClick={handleAddToCart}>
+                            Add to Cart
+                          </Button>
+                        </DialogFooter>
+                      </div>
                     </DialogContent>
                   </Dialog>
                 )}
@@ -1656,7 +1794,7 @@ function CreateOrder() {
           </div>
         </div>
 
-        <Card className="p-4 shadow-md rounded-lg">
+        <Card className="p-4 shadow-md rounded-lg w-full">
           <div className="flex gap-1 items-center justify-between mb-3">
             <div className="relative flex-grow">
               <span className="absolute top-1/2 left-2 -translate-y-1/2">
@@ -1784,92 +1922,9 @@ function CreateOrder() {
                       <DialogTitle>Edit user address</DialogTitle>
                     </DialogHeader>
 
-                    {/* <form
-                      onSubmit={handleEditAddressUser(onSubmitEditUserAddress)}
-                    >
-                      <Controller
-                        name="area"
-                        control={controlEditAddress}
-                        rules={{ required: "Area is required" }}
-                        render={({ field }) => (
-                          <Select
-                            {...field}
-                            options={areasOptions || []}
-                            placeholder="Area"
-                            className="react-select w-full my-3"
-                            classNamePrefix="select"
-                            value={
-                              areasOptions?.find(
-                                (option) => option.value === field.value?.value
-                              ) || null
-                            } // 👈 هنا الحل!
-                            onChange={(selectedOption) => {
-                              field.onChange(selectedOption);
-                              handleChangeArea(selectedOption);
-                            }}
-                            styles={selectStyles(theme, color)}
-                          />
-                        )}
-                      />
-
-                      {errorsEditAddressUser.area && (
-                        <p className="text-red-500 text-sm">
-                          {errorsEditAddressUser.area.message}
-                        </p>
-                      )}
-
-                      <Input
-                        type="text"
-                        {...registerEditAddressUser("street")}
-                        placeholder="Street"
-                      />
-
-                      <Input
-                        type="text"
-                        {...registerEditAddressUser("building")}
-                        placeholder="Building"
-                      />
-                       
-                      <Input
-                        type="text"
-                        {...registerEditAddressUser("floor")}
-                        placeholder="Floor"
-                      />
-                      <Input
-                        type="text"
-                        {...registerEditAddressUser("apt")}
-                        placeholder="Apt"
-                      />
-                      <Input
-                        type="text"
-                        {...registerEditAddressUser("additionalInfo")}
-                        placeholder="Additional Info"
-                      />
-                      <Input
-                        type="text"
-                        {...registerEditAddressUser("name")}
-                        placeholder="Address Name"
-                      />
-                      {errorsEditAddressUser.name && (
-                        <p className="text-red-500 text-sm">
-                          {errorsEditAddressUser.name.message}
-                        </p>
-                      )}
-                      <DialogFooter>
-                        <DialogClose asChild>
-                          <Button
-                            variant="outline"
-                            onClick={() => setOpenEditAddressDialog(false)}
-                          >
-                            Close
-                          </Button>
-                        </DialogClose>
-                        <Button type="submit">Save Changes</Button>
-                      </DialogFooter>
-                    </form> */}
                     <form
                       onSubmit={handleEditAddressUser(onSubmitEditUserAddress)}
-                      className="space-y-4" // يضيف مسافات بين العناصر
+                      className="space-y-4"
                     >
                       {/* Select Field */}
                       <Controller
@@ -2003,24 +2058,7 @@ function CreateOrder() {
                   Add address
                 </Button>
               </div>
-              {/* {deliveryMethod === "delivery" && (
-                <div className="mt-3">
-                  <h4 className="font-medium">Address:</h4>
-                  {selectedUser?.address?.map((address, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id={address.id}
-                        checked={selectedAddress === address?.address1}
-                        onChange={() => setSelectedAddress(address?.address1)}
-                      />
-                      <label htmlFor={address.address_name}>
-                        {address.address_name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              )} */}
+
               {deliveryMethod === "delivery" && (
                 <div className="my-3 ">
                   <h4 className="font-medium my-3 ">Address:</h4>
@@ -2106,6 +2144,13 @@ function CreateOrder() {
                     classNamePrefix="select"
                     options={branchOptions}
                     onChange={handleSelectChangeBranches}
+                    value={
+                      branchOptions
+                        ? branchOptions.find(
+                            (option) => option.value === selectedBranchId
+                          ) || null
+                        : null
+                    }
                     placeholder="Branches"
                     styles={selectStyles(theme, color)}
                   />
@@ -2113,170 +2158,374 @@ function CreateOrder() {
               )}
             </div>
           )}
-          <Card title="Bordered Tables">
-            {/* <Table className="border border-default-300">
-              <TableHeader>
-                <TableRow>
-                  {columns.map((column) => (
-                    <TableHead
-                      key={column.key}
-                      className="border border-default-300 "
-                    >
-                      {column.label}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {usersTable.slice(0, 5).map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="border border-default-300">
-                      {item.Items}
-                    </TableCell>
-                    <TableCell className="border border-default-300">
-                      {item.Edit}
-                    </TableCell>
-                
-                    <TableCell className="border border-default-300">
-                      <div className="flex justify-center items-center">
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          color="destructive"
-                          className="h-6 w-6"
-                        >
-                          <Icon icon="heroicons:trash" className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell className="border border-default-300">
-                      <div className="flex justify-between flex-col items-center">
-                        <p className="text-sm mr-5">$10.99</p>
-                        <div className="flex">
-                          <Button
-                            onClick={() => handleDecreaseTable(item.id)}
-                            className="text-sm"
-                          >
-                            -
-                          </Button>
-                          <span className="text-xl mx-4">
-                            {countersTable[item.id]}
-                          </span>
-                          <Button
-                            onClick={() => handleIncreaseTable(item.id)}
-                            className="text-sm"
-                          >
-                            +
-                          </Button>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="border border-default-300">
-                      {item.UnitPrice}
-                    </TableCell>
-                    <TableCell className="border border-default-300">
-                      {item.TotalPrice}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table> */}
+          <Card title="Bordered Tables w-full">
             {cartItems.length > 0 && (
               <>
                 <h3 className="text-2xl my-5">Products</h3>
                 <Table className="border border-default-300">
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Item</TableHead>
-                      <TableHead>Quantity</TableHead>
-                      <TableHead>Unit Price</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Actions</TableHead>
+                    <TableRow className="bg-gray-200 dark:bg-gray-800">
+                      <TableHead className="text-gray-800 dark:text-white">
+                        Item
+                      </TableHead>
+                      <TableHead className="text-gray-800 dark:text-white">
+                        Quantity
+                      </TableHead>
+                      <TableHead className="text-gray-800 dark:text-white">
+                        Actions
+                      </TableHead>
+                      <TableHead className="text-gray-800 dark:text-white">
+                        Unit Price
+                      </TableHead>
+                      <TableHead className="text-gray-800 dark:text-white">
+                        Total
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
+
                   <TableBody>
-                    {cartItems.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell>
-                          <div className="flex">
-                            <Button
-                              onClick={() => handleDecreaseTable(item.id)}
+                    {cartItems.map((item) => {
+                      // حساب مجموع أسعار الإضافات
+                      const extrasTotal =
+                        item.mainExtras?.reduce(
+                          (sum, extra) => sum + extra.price_en,
+                          0
+                        ) || 0;
+
+                      // حساب السعر الكلي للعنصر (السعر الأساسي + الإضافات) مضروبًا في الكمية
+                      const itemTotal =
+                        (item.price + extrasTotal) * item.quantity +
+                        totalExtrasPrice;
+
+                      return (
+                        <React.Fragment key={item.id}>
+                          {/* الصف الأساسي للعنصر */}
+                          <TableRow className="bg-white dark:bg-gray-600">
+                            <TableCell className="text-gray-800 dark:text-gray-200">
+                              <div className="flex flex-col gap-1 mb-2 ">
+                                <span className="text-center">
+                                  {item.selectedInfo}
+                                </span>
+                              </div>
+                              <div>
+                                <Input
+                                  type="text"
+                                  value={item.note || ""}
+                                  placeholder="No note added"
+                                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
+                                />
+                              </div>
+                            </TableCell>
+
+                            <TableCell>
+                              <div className="flex items-center">
+                                <button
+                                  onClick={() => handleDecreaseTable(item.id)}
+                                  className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
+                                >
+                                  -
+                                </button>
+                                <span className="mx-4 text-gray-800 dark:text-gray-200">
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  onClick={() => handleIncreaseTable(item.id)}
+                                  className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-3 ml-auto mb-3">
+                                <button
+                                  size="icon"
+                                  onClick={() => handleEditItem(item)}
+                                  className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
+                                >
+                                  <FiEdit className="mr-1 text-xs" />
+                                </button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <button className="flex items-center text-red-500 hover:text-red-400 gap-[2px]">
+                                      <FiTrash2 className="text-xs" />
+                                    </button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200">
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle className="text-gray-800 dark:text-gray-200">
+                                        Are you absolutely sure?
+                                      </AlertDialogTitle>
+                                      <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+                                        This action cannot be undone. This will
+                                        permanently delete this item from your
+                                        saved items.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel
+                                        type="button"
+                                        variant="outline"
+                                        className="text-gray-800 dark:text-gray-200 border-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                      >
+                                        Cancel
+                                      </AlertDialogCancel>
+                                      <AlertDialogAction
+                                        className="bg-red-600 hover:bg-red-500 text-white"
+                                        onClick={() =>
+                                          handleRemoveItem(item.id)
+                                        }
+                                      >
+                                        Ok
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-gray-800 dark:text-gray-200">
+                              {item.price.toFixed(2)} EGP
+                            </TableCell>
+                            <TableCell className="text-gray-800 dark:text-gray-200">
+                              {itemTotal.toFixed(2)} EGP
+                            </TableCell>
+                          </TableRow>
+
+                          {/* عرض الإضافات الخاصة بالعنصر */}
+                          {item.selectedMainExtras?.map((extra) => (
+                            <TableRow
+                              key={extra.id}
+                              className="bg-gray-100 dark:bg-gray-700"
                             >
-                              -
-                            </Button>
-                            <span className="mx-4">{item.quantity}</span>
-                            <Button
-                              onClick={() => handleIncreaseTable(item.id)}
+                              <TableCell className="pl-6 text-gray-800 dark:text-gray-200">
+                                {extra.name_en}
+                              </TableCell>
+                              <TableCell colSpan={3}></TableCell>
+                              <TableCell className="text-gray-800 dark:text-gray-200">
+                                {extra.price_en} EGP
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {item.selectedExtras?.map((extra) => (
+                            <TableRow
+                              key={extra.id}
+                              className="bg-gray-100 dark:bg-gray-700"
                             >
-                              +
-                            </Button>
-                          </div>
-                        </TableCell>
-                        <TableCell>${item.price.toFixed(2)}</TableCell>
-                        <TableCell>${item.total.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Button
-                            onClick={() => handleRemoveItem(item.id)}
-                            color="destructive"
-                          >
-                            Remove
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                              <TableCell className="pl-6 text-gray-800 dark:text-gray-200">
+                                {extra.name_en}
+                              </TableCell>
+                              <TableCell colSpan={3}></TableCell>
+                              <TableCell className="text-gray-800 dark:text-gray-200">
+                                {extra.price_en} EGP
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </React.Fragment>
+                      );
+                    })}
                   </TableBody>
+                  <tfoot>
+                    <TableRow className="bg-gray-300 dark:bg-gray-900">
+                      <TableCell
+                        colSpan={4}
+                        className="font-bold text-gray-900 dark:text-gray-100 text-left"
+                      >
+                        Grand Total:
+                      </TableCell>
+                      <TableCell className="font-bold text-gray-900 dark:text-gray-100">
+                        {grandTotal.toFixed(2)} EGP
+                      </TableCell>
+                    </TableRow>
+                  </tfoot>
                 </Table>
               </>
             )}
           </Card>
-          {/* <Card title="Bordered Tables">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead>Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>Subtotal</TableCell>
-                  <TableCell>4 items</TableCell>
-                  <TableCell>455</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>VAT</TableCell>
-                  <TableCell>14%</TableCell>
-                  <TableCell>81.788</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Delivery</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>20</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Discount</TableCell>
-                  <TableCell>0%</TableCell>
-                  <TableCell>0</TableCell>
-                </TableRow>
-              </TableBody>
-              <TableFooter className="bg-default-100 border-t border-default-300">
-                <TableRow>
-                  <TableCell
-                    colSpan="2"
-                    className="text-sm text-default-600 font-semibold"
-                  >
-                    Total
-                  </TableCell>
-                  <TableCell className="text-sm text-default-600 font-semibold text-right">
-                    556.79
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
-          </Card> */}
-          <div className="flex justify-between items-center"></div>
+          {cartItems.length > 0 && (
+            <>
+              <Card title="Bordered Tables">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Details</TableHead>
+                      <TableHead>Amount</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>Subtotal</TableCell>
+                      <TableCell>{cartItems?.length}</TableCell>
+                      <TableCell>{grandTotal.toFixed(2)} EGP</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>VAT</TableCell>
+                      <TableCell>{Tax}%</TableCell>
+                      <TableCell>
+                        {(grandTotal * (Tax / 100)).toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Delivery</TableCell>
+                      <TableCell></TableCell>
+                      <TableCell>{Delivery || 0}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Discount</TableCell>
+                      <TableCell>0%</TableCell>
+                      <TableCell>0</TableCell>
+                    </TableRow>
+                  </TableBody>
+                  <TableFooter className="bg-default-100 border-t border-default-300">
+                    <TableRow>
+                      <TableCell
+                        colSpan="2"
+                        className="text-sm text-default-600 font-semibold"
+                      >
+                        Total
+                      </TableCell>
+                      <TableCell className="text-sm text-default-600 font-semibold text-right">
+                        {totalAmount.toFixed(2)} EGP
+                      </TableCell>
+                    </TableRow>
+                  </TableFooter>
+                </Table>
+              </Card>
+
+              {cancelOrderDialogOpen && (
+                <Dialog
+                  open={cancelOrderDialogOpen}
+                  onOpenChange={setCancelOrderDialogOpen}
+                >
+                  <DialogContent size="3xl">
+                    <DialogHeader>
+                      <DialogTitle className="text-base font-medium text-default-700">
+                        Payment Process
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="text-sm text-default-500 space-y-4">
+                      <form
+                        onSubmit={handleSubmitAddNewAddress(onSubmitAddAddress)}
+                      >
+                        <Controller
+                          name="area"
+                          control={controlAddress}
+                          rules={{ required: "Area is required" }}
+                          render={({ field }) => (
+                            <Select
+                              {...field}
+                              options={areasOptions || []}
+                              placeholder="Area"
+                              className="react-select w-full my-3"
+                              classNamePrefix="select"
+                              // onChange={handleChangeArea}
+                              onChange={(selectedOption) => {
+                                field.onChange(selectedOption);
+                                handleChangeArea(selectedOption); // تشغيل دالة التحديث الخاصة بك
+                              }}
+                              styles={selectStyles(theme, color)}
+                            />
+                          )}
+                        />
+                        {errorsAddNewAddress.area && (
+                          <p className="text-red-500 text-sm">
+                            {errorsAddNewAddress.area.message}
+                          </p>
+                        )}
+                        <div className="flex gap-2 items- my-3">
+                          <div>
+                            <Input
+                              type="text"
+                              placeholder="Street"
+                              {...registerAddNewAddress("street")}
+                              className={`${
+                                registerAddNewAddress.street ? "mb-1" : "mb-4"
+                              }`}
+                            />
+                            {errorsAddNewAddress.street && (
+                              <p className="text-red-500 text-sm">
+                                {errorsAddNewAddress.street.message}
+                              </p>
+                            )}
+                          </div>
+
+                          <Input
+                            type="text"
+                            placeholder="Building"
+                            {...registerAddNewAddress("building")}
+                          />
+                        </div>
+                        <div className="flex gap-2 items- my-3">
+                          <Input
+                            type="text"
+                            placeholder="Floor"
+                            {...registerAddNewAddress("floor")}
+                            // className="mb-4"
+                            // className={`${
+                            //   registerAddNewAddress.floor ? "mb-1" : "mb-4"
+                            // }`}
+                          />
+
+                          <Input
+                            type="text"
+                            placeholder="Apt"
+                            {...registerAddNewAddress("apt")}
+                            className="mb-4"
+                          />
+                        </div>
+                        <Input
+                          type="text"
+                          placeholder="Land mark"
+                          {...registerAddNewAddress("additionalInfo")}
+                          className="mb-4"
+                        />
+                        <Input
+                          type="text"
+                          placeholder="Address name"
+                          {...registerAddNewAddress("name")}
+                          // className="mb-4"
+                          className={`${
+                            errorsAddNewAddress.name ? "mb-1" : "mb-4"
+                          }`}
+                        />
+                        {errorsAddNewAddress.name && (
+                          <p className="text-red-500 text-sm">
+                            {errorsAddNewAddress.name.message}
+                          </p>
+                        )}
+                        <DialogFooter className="mt-8">
+                          <DialogClose asChild>
+                            <Button
+                              variant="outline"
+                              onClick={() => setCancelOrderDialogOpen(false)}
+                            >
+                              Close
+                            </Button>
+                          </DialogClose>
+                          <Button type="submit">submit</Button>
+                        </DialogFooter>
+                      </form>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+
+              <div className="flex items-center justify-between gap-5 my-5">
+                <Button
+                  className="w-1/2"
+                  color="success"
+                  onClick={() => setCancelOrderDialogOpen(true)}
+                >
+                  Pay
+                </Button>
+                <Button className="w-1/2" color="destructive">
+                  Cancel
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* <div className="flex justify-between items-center"></div> */}
         </Card>
 
         {/* <Test /> */}

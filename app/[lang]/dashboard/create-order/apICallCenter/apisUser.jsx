@@ -11,7 +11,7 @@ export const fetchUserByPhone = async (phone) => {
     const response = await axios.get(
       `${BASE_URL}/callcenter/user/search?api_token=${token}&phone=${phone}`
     );
-    console.log("serach user ", response.data.users);
+    // console.log("serach user ", response.data.users);
     return response.data.users;
   } catch (error) {
     console.error("Error fetching user:", error);

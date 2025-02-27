@@ -27,7 +27,7 @@ export const fetchBranches = async (restaurantId) => {
     // console.log("API Response branches restaurantId:", restaurantId);
     return response.data.messages.branches;
   } catch (error) {
-    console.error("Error fetching user:", error);
+    console.error("Error fetching branches:", error);
     throw error;
   }
 };
@@ -66,6 +66,31 @@ export const fetchViewItem = async (restaurantId, addressId, itemId) => {
   } catch (error) {
     console.error("Error fetching view item:", error);
 
+    throw error;
+  }
+};
+
+export const fetchTax = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}/settings`);
+    // console.log("API Response branches:", response.data.data.settings.tax);
+    // console.log("API Response branches restaurantId:", restaurantId);
+    return response.data.data.settings.tax;
+  } catch (error) {
+    console.error("Error fetching Tax:", error);
+    throw error;
+  }
+};
+export const fetchOrderType = async (restaurantId) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/callcenter/get/sources?api_token=${token}&restaurantId=${restaurantId}`
+    );
+    console.log("API Response fetchOrderType:", response.data.messages.sources);
+    // console.log("API Response branches restaurantId:", restaurantId);
+    return response.data.messages.sources;
+  } catch (error) {
+    console.error("Error fetching fetch Order Type:", error);
     throw error;
   }
 };
