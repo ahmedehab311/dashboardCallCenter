@@ -86,7 +86,7 @@ export const fetchOrderType = async (restaurantId) => {
     const response = await axios.get(
       `${BASE_URL}/callcenter/get/sources?api_token=${token}&restaurantId=${restaurantId}`
     );
-    console.log("API Response fetchOrderType:", response.data.messages.sources);
+    // console.log("API Response fetchOrderType:", response.data.messages.sources);
     // console.log("API Response branches restaurantId:", restaurantId);
     return response.data.messages.sources;
   } catch (error) {

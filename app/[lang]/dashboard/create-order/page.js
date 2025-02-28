@@ -784,12 +784,11 @@ function CreateOrder() {
   }));
   console.log("orderTypeOptions", orderTypeOptions);
 
-  const [selecteOrderTypeId,setOrderTypeId] = useState(null)
+  const [selecteOrderTypeId, setOrderTypeId] = useState(null);
   const handleChangeOrderType = (selectValue) => {
     setOrderTypeId(selectValue.value);
     // console.log("selected area", selectedArea);
   };
-
 
   const [areaIdSelect, setAreaIdSelect] = useState(null);
   const areasOptions = areas?.map((area) => ({
@@ -797,7 +796,7 @@ function CreateOrder() {
     label: area?.area_name_en,
   }));
   // console.log("areaIdSelect", areaIdSelect);
- 
+
   const handleChangeArea = (selectValue) => {
     setAreaIdSelect(selectValue.value);
     // console.log("selected area", selectedArea);
@@ -2186,17 +2185,32 @@ function CreateOrder() {
                   <TableBody>
                     {cartItems.map((item) => {
                       // حساب مجموع أسعار الإضافات
-                      const extrasTotal =
-                        item.mainExtras?.reduce(
+                      {
+                        /* const extrasTotal =
+                        item.selectedMainExtras?.reduce(
                           (sum, extra) => sum + extra.price_en,
                           0
                         ) || 0;
 
                       // حساب السعر الكلي للعنصر (السعر الأساسي + الإضافات) مضروبًا في الكمية
-                      const itemTotal =
-                        (item.price + extrasTotal) * item.quantity +
-                        totalExtrasPrice;
+                      const total = item.price * item.quantity;
+                      const itemTotal = total + extrasTotal; */
+                      }
+                      const extrasTotal =
+                        item.selectedMainExtras?.reduce(
+                          (sum, extra) =>
+                            sum + parseFloat(extra?.price_en || 0), // تأكد أن القيمة رقمية
+                          0
+                        ) || 0;
 
+                      const itemPrice = parseFloat(item?.price || 0);
+                      const itemQuantity = parseFloat(item?.quantity || 0);
+
+                      const total = itemPrice * itemQuantity;
+                      const itemTotal = total + extrasTotal;
+
+                      // الآن itemTotal رقم حقيقي ويمكن استخدام toFixed(2)
+                      console.log("itemTotal:", itemTotal);
                       return (
                         <React.Fragment key={item.id}>
                           {/* الصف الأساسي للعنصر */}
