@@ -2174,7 +2174,11 @@ function CreateOrder() {
                         Actions
                       </TableHead>
                       <TableHead className="text-gray-800 dark:text-white">
-                        Unit Price
+                        {/* Unit Price */}
+                        <span className="inline-flex items-center gap-1">
+                          Unit
+                          <span>Price</span>
+                        </span>
                       </TableHead>
                       <TableHead className="text-gray-800 dark:text-white">
                         Total
