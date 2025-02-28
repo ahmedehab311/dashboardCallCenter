@@ -2298,7 +2298,10 @@ function CreateOrder() {
                               </div>
                             </TableCell>
                             <TableCell className="text-gray-800 dark:text-gray-200">
-                              {item.price.toFixed(2)} EGP
+                              <span className="inline-flex items-center gap-1">
+                                {item.price.toFixed(2)}
+                                <span>EGP</span>
+                              </span>
                             </TableCell>
                             <TableCell className="text-gray-800 dark:text-gray-200">
                               {itemTotal.toFixed(2)} EGP
@@ -2329,8 +2332,14 @@ function CreateOrder() {
                                 {extra.name_en}
                               </TableCell>
                               <TableCell colSpan={3}></TableCell>
+                              {/* <TableCell >
+                                EGP
+                              </TableCell> */}
                               <TableCell className="text-gray-800 dark:text-gray-200">
-                                {extra.price_en} EGP
+                                <span className="inline-flex items-center gap-1">
+                                  {extra.price_en}
+                                  <span>EGP</span>
+                                </span>
                               </TableCell>
                             </TableRow>
                           ))}
@@ -2347,7 +2356,10 @@ function CreateOrder() {
                         Grand Total:
                       </TableCell>
                       <TableCell className="font-bold text-gray-900 dark:text-gray-100">
-                        {grandTotal.toFixed(2)} EGP
+                        <span className="inline-flex items-center gap-1">
+                          {grandTotal.toFixed(2)}
+                          <span>EGP</span>
+                        </span>
                       </TableCell>
                     </TableRow>
                   </tfoot>
