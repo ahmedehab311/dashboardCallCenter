@@ -37,10 +37,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Plus, Search } from "lucide-react";
-import Image from "next/image";
 import { selectStyles } from "@/lib/utils";
-import Cookies from "js-cookie";
-
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchRestaurantsList,
@@ -478,6 +475,8 @@ function CreateOrder() {
       setSelectedBranch(firstBranch);
     }
   }, [selectedAddress]);
+  console.log("SelectedBranch",selectedBranch);
+  
   // console.log("selectedBranch", selectedBranch);
   // console.log("price_list", selectedBranch?.price_list);
 
@@ -563,6 +562,19 @@ function CreateOrder() {
     }
   }, [selectedUser]);
 
+  // useEffect(() => {
+  //   if (deliveryMethod === "pickup") {
+  //     const currentSelectedBranchId = getValueCreateOrder("branches"); 
+  //     if (selectedBranchId && selectedBranchId !== currentSelectedBranchId) {
+  //       setValueCreateOrder("branches", selectedBranchId, { shouldValidate: true });
+  //     }
+  //   }
+  //   console.log("currentSelectedBranchId",getValueCreateOrder("branches"));
+  //   console.log("selectedBranchId",selectedBranchId);
+    
+  // }, [selectedBranchId, deliveryMethod, setValueCreateOrder]);
+
+  
   // console.log("SelectedAddressArray", selectedAddressArray);
   // console.log("SelectedAddress", selectedAddress);
   // console.log("selectedEditAddress", selectedEditAddress);
@@ -620,70 +632,7 @@ function CreateOrder() {
   // console.log("selectedItem", selectedItem);
 
   const [note, setNote] = useState("");
-  // const handleAddToCart = () => {
-  //   setCartItems((prevItems) => {
-  //     const existingItem = prevItems.find(
-  //       (item) => item.id === selectedItem.id
-  //     );
 
-  //     if (existingItem) {
-  //       // تحديث العنصر عند وجوده بالفعل
-  //       return prevItems.map((item) =>
-  //         item.id === selectedItem.id
-  //           ? {
-  //               ...item,
-  //               quantity: counter,
-  //               total: counter * item.price, // تحديث المجموع
-
-  //               mainExtras: [...selectedItem.mainExtras], // ✅ تحديث الإضافات
-  //               selectedMainExtras: [...selectedItem.selectedMainExtras],
-  //               selectedExtras: [...selectedItem.selectedExtras],
-  //               selectedInfo: selectedItem.selectedInfo,
-  //               note: note,
-  //             }
-  //           : item
-  //       );
-  //     }
-
-  //     // إضافة عنصر جديد إذا لم يكن موجودًا
-  //     return [
-  //       ...prevItems,
-  //       {
-  //         ...selectedItem,
-  //         quantity: counter,
-  //         total: counter * selectedItem.price,
-
-  //         mainExtras: [...selectedItem.mainExtras], // ✅ تحديث الإضافات
-  //         selectedMainExtras: [...selectedItem.selectedMainExtras],
-  //         selectedExtras: [...selectedItem.selectedExtras],
-  //         selectedInfo: selectedItem.selectedInfo,
-  //         note: note,
-  //       },
-  //     ];
-  //   });
-  //   setNote("");
-  //   setIsItemDialogOpen(false); // إغلاق الديالوج بعد الإضافة
-  // };
-  // const handleAddToCart = () => {
-  //   setCartItems((prevItems) => [
-  //     ...prevItems,
-  //     {
-  //       ...selectedItem,
-  //       id: `${selectedItem.id}-${Date.now()}`,
-  //       quantity: counter,
-  //       total: counter * selectedItem.price,
-
-  //       mainExtras: [...selectedItem.mainExtras],
-  //       selectedMainExtras: [...selectedItem.selectedMainExtras],
-  //       selectedExtras: [...selectedItem.selectedExtras],
-  //       selectedInfo: selectedItem.selectedInfo,
-  //       note: note,
-  //     },
-  //   ]);
-
-  //   setNote("");
-  //   setIsItemDialogOpen(false); // إغلاق الديالوج بعد الإضافة
-  // };
   const handleAddToCart = () => {
     setCartItems((prevItems) => {
       // ✅ التحقق مما إذا كان العنصر موجودًا بالفعل في `cart`
@@ -731,25 +680,7 @@ function CreateOrder() {
     setNote("");
     setIsItemDialogOpen(false);
   };
-  // const prepareCartData = () => {
-  //   return cartItems.map((item) => ({
-  //     id: item?.selectedIdSize, // ✅ تأكد أن الـ ID صحيح من الـ item
-  //     choices: [],
-  //     options: [],
-  //     extras: [
-  //       ...(item?.selectedMainExtrasIds || []),
-  //       ...(item?.selectedExtrasIds || []),
-  //     ],
-  //     count: item.quantity,
-  //     special: item?.note || "",
-  //   }));
-  // };
 
-  
-  // const itemsQueryParam = prepareCartData();
-  // console.log("itemsQueryParam", itemsQueryParam);
-  // console.log("selectedItem?.selectedIdSize", selectedItem?.selectedIdSize);
-  // console.log("selectedItem", selectedItem);
 
   const handleNoteChange = (e, itemId) => {
     const newNote = e.target.value;
@@ -799,11 +730,7 @@ function CreateOrder() {
     refetchMenu();
   };
 
-  // const handleSelectChangeBranchesCreateOrder = (selectedOption) => {
-  //   setSelectedBranchIdCreateOrder(selectedOption?.value); // ✅ تخزين القيمة الصحيحة
-  //   setSelectedBranchPriceList(selectedOption?.priceList);
-  //   setValueCreateOrder("branches", selectedOption?.value); // ✅ تسجيلها في الفورم
-  // };
+
   const [showDateTime, setShowDateTime] = useState(false);
 
   const handleSelectChangeBranchesCreateOrder = (selectedOption) => {
@@ -865,7 +792,33 @@ function CreateOrder() {
     }
   }, [deliveryMethod]);
   
-
+  useEffect(() => {
+    const currentSelectedBranchId = getValueCreateOrder("branches"); 
+    const deliveryBranch = selectedAddress?.branch?.[0]?.id || null; 
+    
+    if (deliveryMethod === "pickup") {
+      if (selectedBranchId && selectedBranchId !== currentSelectedBranchId) {
+        setValueCreateOrder("branches", selectedBranchId, { shouldValidate: true });
+      }
+    } 
+    // else if (deliveryMethod === "delivery") {
+    //   if (deliveryBranch && deliveryBranch !== currentSelectedBranchId) {
+    //     setSelectedBranchId(deliveryBranch);
+    //     setValueCreateOrder("branches", deliveryBranch, { shouldValidate: true });
+    //   }
+    // }
+    if (deliveryMethod === "delivery") {
+      if (deliveryBranch && deliveryBranch !== currentSelectedBranchId) {
+        setValueCreateOrder("branches", deliveryBranch, { shouldValidate: true });
+        setSelectedBranchId(deliveryBranch); // تحديث السيلكت الداخلي فقط
+      }
+    }
+  
+    console.log("currentSelectedBranchId:", getValueCreateOrder("branches"));
+    console.log("selectedBranchId:", selectedBranchId);
+    console.log("deliveryBranch:", deliveryBranch);
+  }, [selectedBranchId, deliveryMethod, selectedAddress, setValueCreateOrder]);
+  
   const [selectedOrderPaymeny, setSelectedOrderPaymeny] = useState(null);
   const orderPaymenyOptions = [{ value: 1, label: "Cash" }];
 
@@ -1121,77 +1074,8 @@ function CreateOrder() {
 
   // console.log("📦 selectedAddress الطلب:", selectedAddress);
   // console.log("📦 selectedUser الطلب:", selectedUser);
-    const formattedItems = {
-      items: cartItems.map((item) => ({
-        id: item.selectedIdSize,
-        choices: [],
-        options: [],
-        extras: [
-          ...(item.selectedMainExtrasIds || []),
-          ...(item.selectedExtrasIds || []),
-        ],
-        count: item.quantity,
-        special: item.note || "",
-      })),
-    };
 
-  // const itemsString = JSON.stringify(formattedItems); // تحويل إلى JSON
-// const finalItems = `"items":${itemsString}`;
-// const finalItems = `items=${encodeURIComponent(itemsString)}`;  // إضافة الاقتباسات المطلوبة
-// console.log("finalItems:", finalItems);
-//   console.log("itemsString", itemsString);
-// console.log("itemsString type",typeof  itemsString);
-console.log("formattedItems",formattedItems)
 
-  // const onSubmithandleCreateOrder = async (data) => {
-  //   console.log("📦 بيانات الطلب:", data);
-  //   setLoading(true);
-
-  //   try {
-  //     await createOrder({
-  //       lookupId: selectedUser?.id,
-  //       address: selectedAddress?.id,
-  //       area: selectedAddress?.area,
-  //       notes: data.notes || "",
-  //       source: data.ordersource,
-  //       status: data.orderstatus === 1 ? "pending" : "new",
-  //       insertcoupon: data.insertcoupon,
-  //       insertpoints: data.insertpoints,
-  //       payment: 1,
-  //       delivery_type: data.ordertype,
-  //       branch: data.branches,
-  //     });
-    
-  //     console.log("🛒 formattedItems قبل الإرسال:", formattedItems);
-  //     toast.success("✅ Order created successfully!");
-  //     setCancelOrderDialogOpen(false);
-  //   } catch (error) {
-  //     console.error("❌ خطأ في إنشاء الطلب:", error);
-  //     toast.error(error.message || "حدث خطأ غير متوقع!");
-  //   } finally {
-  //     setLoading(false);
-  //     setCancelOrderDialogOpen(false);
-
-  //     resetCreateOrder({
-  //       ordertype: orderTypeOptions.length > 0 ? orderTypeOptions[0].value : "",
-  //       ordersource:
-  //         orderSourceOptions.length > 0 ? orderSourceOptions[0].label : "",
-  //       orderstatus:
-  //         orderStatusOptions.length > 0 ? orderStatusOptions[0].value : "",
-  //       orderpayment:
-  //         orderPaymenyOptions.length > 0 ? orderPaymenyOptions[0].value : "",
-  //     });
-
-  //     setShowDateTime(false);
-
-  //     if (orderSourceOptions.length > 0) {
-  //       setOrderSourceSelected(orderSourceOptions[0]);
-  //     }
-  //     if (orderStatusOptions.length > 0) {
-  //       setSelectedOrderStatus(orderStatusOptions[0]);
-  //     }
-  //   }
-  // };
   const onSubmithandleCreateOrder = async (data) => {
     console.log("📦 بيانات الطلب:", data);
     setLoading(true);
@@ -1208,6 +1092,7 @@ console.log("formattedItems",formattedItems)
         status: data.orderstatus === 1 ? "pending" : "new",
         insertcoupon: data.insertcoupon,
         insertpoints: data.insertpoints,
+        time:data?.startTime,
         payment: 1,
         delivery_type: data.ordertype,
         items: cartItems,
@@ -1215,7 +1100,7 @@ console.log("formattedItems",formattedItems)
         branch: data.branches,
       });
   
-      toast.success("✅ Order created successfully!");
+      toast.success(" Order created successfully!");
       setCancelOrderDialogOpen(false);
     } catch (error) {
       console.error("❌ خطأ في إنشاء الطلب:", error);
@@ -1242,6 +1127,8 @@ console.log("formattedItems",formattedItems)
       if (orderStatusOptions.length > 0) {
         setSelectedOrderStatus(orderStatusOptions[0]);
       }
+      setDiscountValue("");
+      setDiscountPercentage("");
     }
   };
   const grandTotal = cartItems.reduce((sum, item) => {
@@ -1262,63 +1149,62 @@ console.log("formattedItems",formattedItems)
     return sum + itemTotal;
   }, 0);
 
-  const formattedGrandTotal = parseFloat(grandTotal).toFixed(2);
+  // const formattedGrandTotal = parseFloat(grandTotal).toFixed(2);
 
   const [discountValue, setDiscountValue] = useState("");
   const [discountPercentage, setDiscountPercentage] = useState("");
 
   const vatAmount = parseFloat(grandTotal * (parseFloat(Tax) / 100));
   const discount = 0;
+
   const Delivery =
-    deliveryMethod === "pickup"
-      ? 0
-      : parseFloat(selectedBranch?.delivery_fees) || 0;
+  selectedOrderType?.value === 2
+    ? 0
+    : parseFloat(selectedBranch?.delivery_fees) || 0;
 
-  const totalAmount = grandTotal + vatAmount + Delivery - discount;
 
-  // const finalTotal = useMemo(() => {
-  //   return selectedOrderType?.value === 2
-  //     ? totalAmount - Delivery
-  //     : totalAmount;
-  // }, [totalAmount, selectedOrderType, Delivery]);
+  const totalAmount = grandTotal + vatAmount + Delivery - discount; 
+
+
   const finalTotal = useMemo(() => {
-    // console.log("🔄 حساب finalTotal...");
-    // console.log("📌 selectedOrderType:", selectedOrderType);
-    // console.log("📌 Delivery:", Delivery);
-    // console.log("📌 totalAmount:", totalAmount);
+    let total = selectedOrderType?.value === 2 ? totalAmount - Delivery : totalAmount;
+    return total - discountValue; 
+  }, [totalAmount, selectedOrderType, Delivery, discountValue]); 
   
-    return selectedOrderType?.value === 2 ? totalAmount - Delivery : totalAmount;
-  }, [totalAmount, selectedOrderType, Delivery]);
+  
   const handleDiscountValueChange = (e) => {
     let value = parseFloat(e.target.value);
-
+  
     if (!isNaN(value)) {
-      if (value > finalTotal) {
-        value = finalTotal;
+      if (value > totalAmount) {
+        value = totalAmount; 
       }
       setDiscountValue(value);
-
-      setDiscountPercentage((value / finalTotal) * 100);
+  
+      setDiscountPercentage(Number(((value / totalAmount) * 100).toFixed(3)));
     } else {
       setDiscountValue("");
       setDiscountPercentage("");
     }
   };
-
+  
+  
   const handleDiscountPercentageChange = (e) => {
     let value = parseFloat(e.target.value);
-
+  
     if (!isNaN(value)) {
       if (value > 100) {
-        value = 100; // ✅ لا يمكن أن تكون النسبة المئوية أكبر من 100%
+        value = 100; 
       }
       setDiscountPercentage(value);
-      setDiscountValue((value / 100) * grandTotal);
+      
+      setDiscountValue(Number(((value / 100) * totalAmount).toFixed(3)));
     } else {
       setDiscountPercentage("");
       setDiscountValue("");
     }
   };
+  
 
   const handleCacelOrder = () => {
     setSearch("");
@@ -2399,7 +2285,7 @@ console.log("formattedItems",formattedItems)
 
               {deliveryMethod === "pickup" && (
                 <div className="flex flex-col lg:flex-row lg:items-center gap-2">
-                  <Select
+                  {/* <Select
                     className="react-select w-full"
                     classNamePrefix="select"
                     options={branchOptions}
@@ -2413,7 +2299,24 @@ console.log("formattedItems",formattedItems)
                     }
                     placeholder="Branches"
                     styles={selectStyles(theme, color)}
-                  />
+                  /> */}
+                  <Select
+  className="react-select w-full"
+  classNamePrefix="select"
+  options={branchOptions}
+  onChange={(selectedOption) => {
+    if (!selectedOption) return;
+
+    const branchId = Number(selectedOption.value);
+    setSelectedBranchId(branchId);
+  }}
+  // value={
+  //   branchOptions.find((option) => option.value === selectedBranchId) || null
+  // }
+  placeholder="Branches"
+  styles={selectStyles(theme, color)}
+/>
+
                 </div>
               )}
             </div>
@@ -2519,7 +2422,7 @@ console.log("formattedItems",formattedItems)
                               </div>
                             </TableCell>
                             <TableCell>
-                              <div className="flex gap-3 ml-auto mb-3">
+                              <div className="flex gap-3 ml-auto ">
                                 <button
                                   size="icon"
                                   onClick={() => handleEditItem(item)}
@@ -2891,10 +2794,10 @@ console.log("formattedItems",formattedItems)
                               control={controlCreateOrder}
                               defaultValue={selectedBranch?.id || ""}
                               render={({ field }) => {
-                                // console.log(
-                                //   "Selected Branch Value:",
-                                //   field.value
-                                // ); // ✅ تأكيد القيمة
+                                console.log(
+                                  "Selected Branch Value:",
+                                  field.value
+                                ); // ✅ تأكيد القيمة
                                 return (
                                   <Select
                                     {...field}
@@ -3060,7 +2963,7 @@ console.log("formattedItems",formattedItems)
                                   onChange={handleDiscountPercentageChange}
                                   className="border-0 p-2 w-20 text-center"
                                 />
-                                <span className="px-3 bg-gray-200 border-l h-[36px] flex items-center justify-center">
+                                <span className="px-3 bg-gray- border-l h-[36px] flex items-center justify-center">
                                   %
                                 </span>
                               </div>

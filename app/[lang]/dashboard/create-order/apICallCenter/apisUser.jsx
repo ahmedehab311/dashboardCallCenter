@@ -378,6 +378,7 @@ export const createOrder = async ({
   branch,
   items,
   lng,
+  time,
   lat,
 }) => {
   const formattedItems = {
@@ -393,6 +394,10 @@ export const createOrder = async ({
       special: item.note || "",
     })),
   };
+  console.log("formattedItems:", formattedItems); 
+  const apiUrl = `/callcenter/order/create?api_token=${token}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${time}&source=${source}&branch=${branch}&status=${status}&payment=${payment}&coins=${insertpoints || "00.00"}&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}`;
+
+console.log("Final API URL:", apiUrl); 
 
   try {
     const response = await apiInstance.post(
@@ -405,7 +410,7 @@ export const createOrder = async ({
           area,
           items: JSON.stringify(formattedItems),
           notes,
-          time: "",
+          ...(time ? { time } : {}),
           source,
           branch,
           status,
