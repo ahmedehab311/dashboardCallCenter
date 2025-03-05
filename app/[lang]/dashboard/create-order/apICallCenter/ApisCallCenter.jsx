@@ -45,7 +45,7 @@ export const fetchMenu = async (restaurantId, priceList) => {
         },
       }
     );
-
+    // console.log("priceList fetchMenu", priceList);
     return response.data.data.menus[0];
   } catch (error) {
     console.error("Error fetching menu:", error);
@@ -81,13 +81,12 @@ export const fetchTax = async () => {
     throw error;
   }
 };
-export const fetchOrderType = async (restaurantId) => {
+export const fetchorderSource = async (restaurantId) => {
   try {
     const response = await axios.get(
       `${BASE_URL}/callcenter/get/sources?api_token=${token}&restaurantId=${restaurantId}`
     );
-    // console.log("API Response fetchOrderType:", response.data.messages.sources);
-    // console.log("API Response branches restaurantId:", restaurantId);
+
     return response.data.messages.sources;
   } catch (error) {
     console.error("Error fetching fetch Order Type:", error);

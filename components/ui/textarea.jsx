@@ -130,7 +130,7 @@ const Textarea = React.forwardRef(
     ref
   ) => {
     return (
-      <div className="fle w-[55%] ">
+      <div className=" ">
       
         <textarea
           className={cn(

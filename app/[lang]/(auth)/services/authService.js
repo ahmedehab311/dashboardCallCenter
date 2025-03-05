@@ -93,12 +93,16 @@ export const loginUser = async (credentials) => {
     const response = await axios.post(url);
     if (process.env.NODE_ENV === "development") {
       console.log("API Content:", response);
+      console.log("API Content lookup_id:", response.data.data.userData.lookup_id);
     }
 
     const { messages } = response;
 
     if (response?.data?.data?.token) {
       Cookies.set("token", response?.data?.data?.token);
+      // Cookies.set("look_up",  response.data.data.userData.lookup_id);
+      Cookies.set("look_up", String(response.data.data.userData.lookup_id));
+
       Cookies.remove("domain");
       Cookies.remove("user");
       Cookies.remove("access_token");

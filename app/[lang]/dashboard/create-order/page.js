@@ -39,9 +39,8 @@ import {
 import { Plus, Search } from "lucide-react";
 import Image from "next/image";
 import { selectStyles } from "@/lib/utils";
-import Test from "./test";
-import BorderedTables from "./bordered-tables";
-import { Icon } from "@iconify/react";
+import Cookies from "js-cookie";
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchRestaurantsList,
@@ -49,7 +48,7 @@ import {
   fetchMenu,
   fetchViewItem,
   fetchTax,
-  fetchOrderType,
+  fetchorderSource,
 } from "./apICallCenter/ApisCallCenter";
 import { toast } from "react-hot-toast";
 import {
@@ -60,6 +59,7 @@ import {
   createAddress,
   updateUserAddress,
   deleteAddress,
+  createOrder ,
 } from "./apICallCenter/apisUser";
 import { BASE_URL_iamge } from "@/api/BaseUrl";
 import { z } from "zod";
@@ -67,6 +67,7 @@ import { useForm, Controller, set } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaMinus, FaPlus } from "react-icons/fa";
+import { Textarea } from "@/components/ui/textarea";
 
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
@@ -125,6 +126,20 @@ const editUserAddressSchema = z.object({
   apt: z.string().optional(),
   additionalInfo: z.string().optional(),
 });
+const createOrderSchema = z.object({
+  ordertype: z.number({ required_error: "Order type is required" }),
+  ordersource: z.string().optional(),
+  orderpayment: z.number().optional(),
+  orderstatus: z.number({ required_error: "Order Status is required" }),
+  branches: z.number().optional(),
+  startDate: z.string().optional(),
+  startTime: z.string().optional(),
+  insertcoupon: z.string().optional(),
+  insertpoints: z.number().optional(),
+  discountValue: z.number().optional(),
+  discountPercentage: z.number().optional(),
+  notes: z.string().optional(),
+});
 
 function CreateOrder() {
   const {
@@ -139,6 +154,7 @@ function CreateOrder() {
     register: registerAddNewUser,
     handleSubmit: handleSubmitAddNewUser,
     setValue: setValueAddNewUser,
+    reset: resetAddNewUser,
     trigger,
     formState: { errors: errorsAddNewUser },
   } = useForm({ resolver: zodResolver(addUserSchema), mode: "onSubmit" });
@@ -147,6 +163,7 @@ function CreateOrder() {
     register: registerAddNewAddress,
     handleSubmit: handleSubmitAddNewAddress,
     setValue: setValueAddNewAddress,
+    reset: resetAddNewAddress,
     formState: { errors: errorsAddNewAddress },
   } = useForm({ resolver: zodResolver(addAddressSchema), mode: "onSubmit" });
   const {
@@ -159,6 +176,23 @@ function CreateOrder() {
     resolver: zodResolver(editUserAddressSchema),
     mode: "onSubmit",
   });
+  const {
+    control: controlCreateOrder,
+    register: registerCreateOrder,
+    handleSubmit: handleCreateOrder,
+    setValue: setValueCreateOrder,
+    getValues: getValueCreateOrder,
+    reset: resetCreateOrder,
+    formState: { errors: errorsCreateOrder },
+  } = useForm({
+    resolver: zodResolver(createOrderSchema),
+    mode: "onSubmit",
+    defaultValues: {
+      orderpayment: 1, // ✅ ضبط القيمة الافتراضية على "Cash"
+      ordersource: "", // أو أي قيمة افتراضية مناسبة
+    },
+  });
+  console.log("errorsCreateOrder", errorsCreateOrder);
 
   const { theme } = useTheme();
   const queryClient = useQueryClient();
@@ -166,6 +200,8 @@ function CreateOrder() {
   const [phone, setPhone] = useState("");
   const [selectedRestaurantId, setSelectedRestaurantId] = useState(1);
   const [selectedBranchId, setSelectedBranchId] = useState(null);
+  const [selectedBranchIdCreateOrder, setSelectedBranchIdCreateOrder] =
+    useState(null);
   const [SelectedBranchPriceist, setSelectedBranchPriceList] = useState(1);
   // apis
   // api restaurants select
@@ -198,14 +234,12 @@ function CreateOrder() {
   });
 
   const {
-    data: orderType,
-    isLoadingOrderType,
-    errorOrderType,
-    // refetch: refetchBranches,
+    data: orderSource,
+    isLoadingorderSource,
+    errororderSource,
   } = useQuery({
-    queryKey: ["OrderTypeList", selectedRestaurantId],
-    queryFn: () => fetchOrderType(selectedRestaurantId),
-    // enabled: !!selectedRestaurantId,
+    queryKey: ["OrderSourceeList", selectedRestaurantId],
+    queryFn: () => fetchorderSource(selectedRestaurantId),
   });
   const {
     data: Tax,
@@ -216,7 +250,7 @@ function CreateOrder() {
     queryFn: fetchTax,
   });
   // console.log("Tax in basic", Tax);
-  console.log("orderType in basic", orderType);
+  // console.log("orderType in basic", orderType);
 
   const {
     data: menu,
@@ -251,11 +285,6 @@ function CreateOrder() {
           : `${BASE_URL_iamge}/${item.image}`,
       }))
     ) || [];
-  // console.log("imageUrl", items.imageUrl);
-  // console.log("First item imageUrl:", items[0]?.image);
-  // console.log("First item price:", items[0]?.price);
-
-  // api User Data For serach
 
   const {
     data: selectedUser,
@@ -297,79 +326,7 @@ function CreateOrder() {
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
   const [isOpenMainExtra, setIsOpenMainExtra] = useState(true);
-  // const handleItemClick = async (item) => {
-  //   setSelectedItem(item);
-  //   setIsItemDialogOpen(true);
-  //   //  console.log(
-  //   //   "restaurantId from fetch handleItemClick",
-  //   //   selectedRestaurantId
-  //   // );
-  //   // console.log("addressId from fetch handleItemClick", selectedAddress?.id);
-  //   // console.log("itemId from fetch handleItemClick", item.id);
-  //   setIsOpen(!isOpen);
-  //   try {
-  //     const response = await fetchViewItem(
-  //       selectedRestaurantId,
-  //       selectedAddress?.id,
-  //       item.id
-  //     );
-  //     if (response) {
-  //       setSelectedItem({
-  //         id: response.id,
-  //         name: response.name_en, // أو response.name_ar لو بالعربي
-  //         description: response.description_en, // أو response.description_ar
-  //         image: response.image,
-  //         availability: response.info?.[0]?.availability.availability,
-  //         info: response.info || [],
-  //         selectedInfo: response.info?.[0]?.size_en || "", // أول عنصر تلقائيًا
-  //         itemExtras: response.item_extras?.[0] || null, // أول مجموعة Extra
-  //         extrasData: response.item_extras?.[0]?.data || [],
-  //         selectedExtras: [], // مصفوفة لتخزين الإضافات المختارة
-  //         selectedExtrasIds: [],
-  //         price: response.info?.[0]?.price.price,
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching item details:", error);
-  //   }
-  // };
-  // const handleItemClick = async (item) => {
-  //   setSelectedItem(item);
-  //   setIsItemDialogOpen(true);
-  //   setIsOpen(!isOpen);
 
-  //   try {
-  //     const response = await fetchViewItem(
-  //       selectedRestaurantId,
-  //       selectedAddress?.id,
-  //       item.id
-  //     );
-
-  //     if (response) {
-  //       const firstInfo = response?.info?.[0] || null;
-
-  //       setSelectedItem({
-  //         id: response.id,
-  //         name: response.name_en,
-  //         description: response.description_en,
-  //         image: response.image,
-  //         availability: firstInfo?.availability?.availability,
-  //         info: response?.info || [],
-  //         selectedInfo: firstInfo?.size_en || "",
-  //         selectedMainExtras: [],
-  //         selectedMainExtrasIds: [],
-  //         mainExtras: response?.item_extras?.[0]?.data || [],
-  //         itemExtras: firstInfo?.item_extras || [],
-  //         extrasData: firstInfo?.item_extras[0]?.data || [],
-  //         selectedExtras: [],
-  //         selectedExtrasIds: [],
-  //         price: firstInfo?.price?.price,
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching item details:", error);
-  //   }
-  // };
   const handleItemClick = async (item) => {
     setSelectedItem(item);
     setIsItemDialogOpen(true);
@@ -395,6 +352,7 @@ function CreateOrder() {
           availability: firstInfo?.availability?.availability,
           info: response?.info || [],
           selectedInfo: firstInfo?.size_en || "",
+          selectedIdSize: firstInfo?.id || "",
           selectedMainExtras: [],
           selectedMainExtrasIds: [],
           mainExtras: response?.item_extras?.[0]?.data || [],
@@ -409,15 +367,16 @@ function CreateOrder() {
       console.error("Error fetching item details:", error);
     }
   };
-  console.log("selectedItem", selectedItem);
-  // console.log("selectedInfo", selectedItem?.selectedInfo);
+  // console.log("selectedIdSize", selectedItem?.selectedIdSize);
+  // console.log("info", selectedItem?.info);
+  // console.log("selectedIdSize", selectedItem?.selectedIdSize);
   // console.log("mainExtras", selectedItem?.mainExtras);
   // console.log("itemExtras", selectedItem?.itemExtras);
   // console.log("info", selectedItem?.info);
   // console.log("extrasData", selectedItem?.extrasData);
-  console.log("selectedExtras", selectedItem?.selectedExtras);
+  // console.log("selectedExtras", selectedItem?.selectedExtras);
   // console.log("selectedExtrasIds", selectedItem?.selectedExtrasIds);
-  console.log("selectedMainExtras", selectedItem?.selectedMainExtras);
+  // console.log("selectedMainExtras", selectedItem?.selectedMainExtras);
   // console.log("selectedMainExtrasIds", selectedItem?.selectedMainExtrasIds);
 
   const handleEditItem = (item) => {
@@ -509,8 +468,18 @@ function CreateOrder() {
   const [search, setSearch] = useState("");
   const [allUserData, setAllUserData] = useState(null);
   const [selectedAddress, setSelectedAddress] = useState(null);
+  const [selectedBranch, setSelectedBranch] = useState(null);
   const [errorSearchUser, setErrorSearchUser] = useState(null);
-  console.log("selectedAddress", selectedAddress);
+
+  // تحديث السعر عند تحديد عنوان جديد
+  useEffect(() => {
+    if (selectedAddress?.branch?.length > 0) {
+      const firstBranch = selectedAddress.branch[0];
+      setSelectedBranch(firstBranch);
+    }
+  }, [selectedAddress]);
+  // console.log("selectedBranch", selectedBranch);
+  // console.log("price_list", selectedBranch?.price_list);
 
   // useEffect(() => {
   //   const handleBeforeUnload = (event) => {
@@ -531,13 +500,28 @@ function CreateOrder() {
   //     window.removeEventListener("beforeunload", handleBeforeUnload);
   //   };
   // }, [search]);
+  // const handleSearch = () => {
+  //   if (search) {
+  //     setPhone(search);
+  //     setErrorSearchUser("");
+  //   }
+  //   setErrorSearchUser("");
+  // };
   const handleSearch = () => {
     if (search) {
       setPhone(search);
+      if (selectedUser?.address?.length > 0 && !selectedAddress) {
+        setSelectedAddress(selectedUser.address[0]);
+      }
       setErrorSearchUser("");
+      if (selectedBranch) {
+        setSelectedBranchPriceList(selectedBranch.price_list);
+      }
+    } else {
+      setErrorSearchUser("Please enter a valid search term.");
     }
-    setErrorSearchUser("");
   };
+
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       handleSearch(); // استدعاء دالة البحث عند الضغط على إنتر
@@ -549,7 +533,7 @@ function CreateOrder() {
     setPhone("");
     setAllUserData(null);
     setSelectedAddress(null);
-    setSearch("");
+    setSelectedAddressArray(null);
   };
 
   useEffect(() => {
@@ -571,7 +555,11 @@ function CreateOrder() {
   }, [selectedUser]);
   useEffect(() => {
     if (selectedUser?.address?.length > 0) {
+      setSelectedAddress(selectedUser.address[0]);
       setSelectedAddressArray(selectedUser.address);
+    } else {
+      setSelectedAddress(null); // 🔥 تفريغ العنوان إذا لم يكن هناك عناوين
+      setSelectedAddressArray([]);
     }
   }, [selectedUser]);
 
@@ -628,6 +616,10 @@ function CreateOrder() {
   };
 
   const [cartItems, setCartItems] = useState([]);
+  // console.log("cartItems", cartItems);
+  // console.log("selectedItem", selectedItem);
+
+  const [note, setNote] = useState("");
   // const handleAddToCart = () => {
   //   setCartItems((prevItems) => {
   //     const existingItem = prevItems.find(
@@ -635,105 +627,138 @@ function CreateOrder() {
   //     );
 
   //     if (existingItem) {
+  //       // تحديث العنصر عند وجوده بالفعل
   //       return prevItems.map((item) =>
   //         item.id === selectedItem.id
   //           ? {
   //               ...item,
-  //               quantity: item.quantity + counter,
-  //               total: (item.quantity + counter) * item.price,
+  //               quantity: counter,
+  //               total: counter * item.price, // تحديث المجموع
+
+  //               mainExtras: [...selectedItem.mainExtras], // ✅ تحديث الإضافات
+  //               selectedMainExtras: [...selectedItem.selectedMainExtras],
+  //               selectedExtras: [...selectedItem.selectedExtras],
+  //               selectedInfo: selectedItem.selectedInfo,
+  //               note: note,
   //             }
   //           : item
   //       );
   //     }
 
+  //     // إضافة عنصر جديد إذا لم يكن موجودًا
   //     return [
   //       ...prevItems,
   //       {
   //         ...selectedItem,
   //         quantity: counter,
-  //         total: counter * selectedItem?.price,
-  //         mainExtras: selectedItem?.selectedMainExtras,
+  //         total: counter * selectedItem.price,
+
+  //         mainExtras: [...selectedItem.mainExtras], // ✅ تحديث الإضافات
+  //         selectedMainExtras: [...selectedItem.selectedMainExtras],
+  //         selectedExtras: [...selectedItem.selectedExtras],
+  //         selectedInfo: selectedItem.selectedInfo,
+  //         note: note,
   //       },
   //     ];
   //   });
-  //   setIsItemDialogOpen(false);
+  //   setNote("");
+  //   setIsItemDialogOpen(false); // إغلاق الديالوج بعد الإضافة
   // };
   // const handleAddToCart = () => {
-  //   setCartItems((prevItems) => {
-  //     const existingItem = prevItems.find((item) => item.id === selectedItem.id);
+  //   setCartItems((prevItems) => [
+  //     ...prevItems,
+  //     {
+  //       ...selectedItem,
+  //       id: `${selectedItem.id}-${Date.now()}`,
+  //       quantity: counter,
+  //       total: counter * selectedItem.price,
 
-  //     if (existingItem) {
-  //       // إذا كان العنصر موجودًا، نحدثه
-  //       return prevItems.map((item) =>
-  //         item.id === selectedItem.id
-  //           ? {
-  //               ...item,
-  //               quantity: counter, // نستخدم الكمية الجديدة من الكونتر
-  //               total: counter * item.price, // نحسب المجموع الجديد
-  //               mainExtras: selectedItem.mainExtras, // نستخدم الإضافات المحددة
-  //             }
-  //           : item
-  //       );
-  //     }
+  //       mainExtras: [...selectedItem.mainExtras],
+  //       selectedMainExtras: [...selectedItem.selectedMainExtras],
+  //       selectedExtras: [...selectedItem.selectedExtras],
+  //       selectedInfo: selectedItem.selectedInfo,
+  //       note: note,
+  //     },
+  //   ]);
 
-  //     // إذا كان العنصر غير موجود، نضيفه جديدًا
-  //     return [
-  //       ...prevItems,
-  //       {
-  //         ...selectedItem,
-  //         quantity: counter,
-  //         total: counter * selectedItem?.price,
-  //         mainExtras: selectedItem?.mainExtras,
-  //       },
-  //     ];
-  //   });
-
-  //   setIsItemDialogOpen(false); // نغلق الديالوج بعد التحديث
+  //   setNote("");
+  //   setIsItemDialogOpen(false); // إغلاق الديالوج بعد الإضافة
   // };
-  const [note, setNote] = useState("");
   const handleAddToCart = () => {
     setCartItems((prevItems) => {
-      const existingItem = prevItems.find(
+      // ✅ التحقق مما إذا كان العنصر موجودًا بالفعل في `cart`
+      const existingItemIndex = prevItems.findIndex(
         (item) => item.id === selectedItem.id
       );
 
-      if (existingItem) {
-        // تحديث العنصر عند وجوده بالفعل
-        return prevItems.map((item) =>
-          item.id === selectedItem.id
-            ? {
-                ...item,
-                quantity: counter, // تحديث الكمية
-                total: counter * item.price, // تحديث المجموع
-
-                mainExtras: [...selectedItem.mainExtras], // ✅ تحديث الإضافات
-                selectedMainExtras: [...selectedItem.selectedMainExtras],
-                selectedExtras: [...selectedItem.selectedExtras],
-                selectedInfo: selectedItem.selectedInfo,
-                note: note,
-              }
-            : item
-        );
-      }
-
-      // إضافة عنصر جديد إذا لم يكن موجودًا
-      return [
-        ...prevItems,
-        {
+      if (existingItemIndex !== -1) {
+        const updatedItems = [...prevItems];
+        updatedItems[existingItemIndex] = {
           ...selectedItem,
           quantity: counter,
+          // idBasic:selectedItem?.id,
           total: counter * selectedItem.price,
-
-          mainExtras: [...selectedItem.mainExtras], // ✅ تحديث الإضافات
+          mainExtras: [...selectedItem.mainExtras],
           selectedMainExtras: [...selectedItem.selectedMainExtras],
           selectedExtras: [...selectedItem.selectedExtras],
+          selectedIdSize: selectedItem.selectedIdSize,
           selectedInfo: selectedItem.selectedInfo,
           note: note,
-        },
-      ];
+        };
+        return updatedItems;
+      } else {
+        // ✅ إضافة العنصر كعنصر جديد إذا لم يكن موجودًا
+        return [
+          ...prevItems,
+          {
+            ...selectedItem,
+            // idBasic:selectedItem?.id,
+
+            id: `${selectedItem.id}-${Date.now()}`,
+            quantity: counter,
+            total: counter * selectedItem.price,
+            mainExtras: [...selectedItem.mainExtras],
+            selectedMainExtras: [...selectedItem.selectedMainExtras],
+            selectedExtras: [...selectedItem.selectedExtras],
+            selectedIdSize: selectedItem.selectedIdSize,
+            selectedInfo: selectedItem.selectedInfo,
+            note: note,
+          },
+        ];
+      }
     });
+
     setNote("");
-    setIsItemDialogOpen(false); // إغلاق الديالوج بعد الإضافة
+    setIsItemDialogOpen(false);
+  };
+  // const prepareCartData = () => {
+  //   return cartItems.map((item) => ({
+  //     id: item?.selectedIdSize, // ✅ تأكد أن الـ ID صحيح من الـ item
+  //     choices: [],
+  //     options: [],
+  //     extras: [
+  //       ...(item?.selectedMainExtrasIds || []),
+  //       ...(item?.selectedExtrasIds || []),
+  //     ],
+  //     count: item.quantity,
+  //     special: item?.note || "",
+  //   }));
+  // };
+
+  
+  // const itemsQueryParam = prepareCartData();
+  // console.log("itemsQueryParam", itemsQueryParam);
+  // console.log("selectedItem?.selectedIdSize", selectedItem?.selectedIdSize);
+  // console.log("selectedItem", selectedItem);
+
+  const handleNoteChange = (e, itemId) => {
+    const newNote = e.target.value;
+
+    setCartItems((prevCart) =>
+      prevCart.map((cartItem) =>
+        cartItem.id === itemId ? { ...cartItem, note: newNote } : cartItem
+      )
+    );
   };
 
   useEffect(() => {
@@ -766,6 +791,7 @@ function CreateOrder() {
     refetchBranches();
     setCartItems([]);
   };
+  // banches
 
   const handleSelectChangeBranches = (selectedOption) => {
     setSelectedBranchId(selectedOption?.value);
@@ -773,23 +799,99 @@ function CreateOrder() {
     refetchMenu();
   };
 
+  // const handleSelectChangeBranchesCreateOrder = (selectedOption) => {
+  //   setSelectedBranchIdCreateOrder(selectedOption?.value); // ✅ تخزين القيمة الصحيحة
+  //   setSelectedBranchPriceList(selectedOption?.priceList);
+  //   setValueCreateOrder("branches", selectedOption?.value); // ✅ تسجيلها في الفورم
+  // };
+  const [showDateTime, setShowDateTime] = useState(false);
+
+  const handleSelectChangeBranchesCreateOrder = (selectedOption) => {
+    if (selectedOption) {
+      const branchId = Number(selectedOption.value); // ✅ تحويل القيمة إلى رقم
+      setSelectedBranchIdCreateOrder(branchId);
+      setSelectedBranchPriceList(selectedOption.priceList);
+      setValueCreateOrder("branches", branchId); // ✅ تسجيلها كرقم
+      console.log("SelectedBranchIdCreateOrder", branchId); // تحقق من القيمة
+    }
+  };
+
+  // console.log("SelectedBranchIdCreateOrder", selectedBranchIdCreateOrder);
+
   const branchOptions = branches?.map((branch) => ({
     value: branch.id,
     label: branch.name_en,
     priceList: branch.price_list,
   }));
-  const orderTypeOptions = orderType?.map((val) => ({
+
+  // order source
+  const orderSourceOptions = orderSource?.map((val) => ({
     value: val.id,
     label: val.source_name,
   }));
-  console.log("orderTypeOptions", orderTypeOptions);
 
-  const [selecteOrderTypeId, setOrderTypeId] = useState(null);
-  const handleChangeOrderType = (selectValue) => {
-    setOrderTypeId(selectValue.value);
-    // console.log("selected area", selectedArea);
-  };
+  const [orderSourceSelected, setOrderSourceSelected] = useState(null);
 
+  useEffect(() => {
+    if (orderSourceOptions?.length > 0 && !orderSourceSelected) {
+      const firstOption = orderSourceOptions[0];
+
+      // ✅ تأكد من عدم التحديث إذا كانت القيمة نفسها
+      if (orderSourceSelected?.label !== firstOption.label) {
+        setOrderSourceSelected(firstOption);
+        setValueCreateOrder("ordersource", firstOption.label);
+      }
+    }
+  }, [orderSourceOptions]);
+  // console.log("orderSourceSelected", orderSourceSelected);
+  // order type
+
+  const orderTypeOptions = [
+    { value: 1, label: "Delivery" },
+    { value: 2, label: "Pickup" },
+  ];
+
+  const [selectedOrderType, setSelectedOrderType] = useState(null);
+
+  useEffect(() => {
+    if (orderTypeOptions.length > 0) {
+      const defaultValue =
+        deliveryMethod === "pickup" ? orderTypeOptions[1] : orderTypeOptions[0];
+  
+      setSelectedOrderType(defaultValue);
+      setValueCreateOrder("ordertype", defaultValue.value);
+  
+      // console.log("🚀 selectedOrderType Updated:", defaultValue);
+    }
+  }, [deliveryMethod]);
+  
+
+  const [selectedOrderPaymeny, setSelectedOrderPaymeny] = useState(null);
+  const orderPaymenyOptions = [{ value: 1, label: "Cash" }];
+
+  useEffect(() => {
+    const defaultValue = orderPaymenyOptions[0];
+    setSelectedOrderPaymeny(defaultValue);
+    setValueCreateOrder("orderpayment", orderPaymenyOptions[0].value);
+  }, [setValueCreateOrder]);
+
+  // console.log("selectedOrderPaymeny", selectedOrderPaymeny);
+  const [selectedOrderStatus, setSelectedOrderStatus] = useState(null);
+  const orderStatusOptions = [
+    { value: 1, label: "Pending" },
+    { value: 2, label: "new" },
+  ];
+
+  useEffect(() => {
+    if (orderStatusOptions.length > 0) {
+      const defaultValue = orderStatusOptions[0];
+      setSelectedOrderStatus(defaultValue);
+      setValueCreateOrder("orderstatus", orderStatusOptions[0].value);
+    }
+  }, [setValueCreateOrder]);
+
+  // console.log("selectedOrderStatus", selectedOrderStatus);
+  // areas
   const [areaIdSelect, setAreaIdSelect] = useState(null);
   const areasOptions = areas?.map((area) => ({
     value: area?.id,
@@ -828,7 +930,7 @@ function CreateOrder() {
     }
   }, [selectedEditAddress, setValueEditAddressUser]);
   const [totalExtrasPrice, setTotalExtrasPrice] = useState(0);
-  console.log("totalExtrasPrice", totalExtrasPrice);
+  // console.log("totalExtrasPrice", totalExtrasPrice);
   const [lodaingEditUserData, setLodaingEditUserData] = useState(false);
   const onSubmitEditUserData = async (data) => {
     const formattedData = Object.entries({
@@ -910,6 +1012,8 @@ function CreateOrder() {
       console.error(error);
       // toast.error(errorMessage);
     } finally {
+      setIsNewUserDialogOpen(false);
+      resetAddNewUser();
       setLoading(false);
     }
   };
@@ -940,6 +1044,8 @@ function CreateOrder() {
       // toast.error(errorMessage);
     } finally {
       setLoading(false);
+      setIsNewAddressDialogOpen(false);
+      resetAddNewAddress();
     }
   };
 
@@ -1013,32 +1119,131 @@ function CreateOrder() {
     }
   };
 
-  // useEffect(() => {
-  //   // تأكد إن الـ selectedAddress مش بيتغير
-  //   console.log("Selected Address after re-render:", selectedAddress);
-  // }, [selectedAddress]);
+  // console.log("📦 selectedAddress الطلب:", selectedAddress);
+  // console.log("📦 selectedUser الطلب:", selectedUser);
+    const formattedItems = {
+      items: cartItems.map((item) => ({
+        id: item.selectedIdSize,
+        choices: [],
+        options: [],
+        extras: [
+          ...(item.selectedMainExtrasIds || []),
+          ...(item.selectedExtrasIds || []),
+        ],
+        count: item.quantity,
+        special: item.note || "",
+      })),
+    };
 
-  const totalPrice = cartItems?.map((item) => item.price * item.quantity);
-  console.log("cartItems", cartItems);
-  // console.log("cartItems", cartItems.quantity);
-  // console.log("TotalExtrasPrice", totalExtrasPrice);
-  // const grandTotal = cartItems.reduce((sum, item) => {
-  //   // حساب مجموع سعر الإضافات لهذا العنصر فقط
-  //   const extrasTotal =
-  //     item.selectedMainExtras?.reduce(
-  //       (acc, extra) => acc + (parseFloat(extra.price_en) || 0),
-  //       0
-  //     ) || 0;
+  // const itemsString = JSON.stringify(formattedItems); // تحويل إلى JSON
+// const finalItems = `"items":${itemsString}`;
+// const finalItems = `items=${encodeURIComponent(itemsString)}`;  // إضافة الاقتباسات المطلوبة
+// console.log("finalItems:", finalItems);
+//   console.log("itemsString", itemsString);
+// console.log("itemsString type",typeof  itemsString);
+console.log("formattedItems",formattedItems)
 
-  //   // حساب السعر النهائي لهذا العنصر
-  //   const itemTotal = item.price * item.quantity + extrasTotal;
+  // const onSubmithandleCreateOrder = async (data) => {
+  //   console.log("📦 بيانات الطلب:", data);
+  //   setLoading(true);
 
-  //   return sum + itemTotal;
-  // }, 0);
+  //   try {
+  //     await createOrder({
+  //       lookupId: selectedUser?.id,
+  //       address: selectedAddress?.id,
+  //       area: selectedAddress?.area,
+  //       notes: data.notes || "",
+  //       source: data.ordersource,
+  //       status: data.orderstatus === 1 ? "pending" : "new",
+  //       insertcoupon: data.insertcoupon,
+  //       insertpoints: data.insertpoints,
+  //       payment: 1,
+  //       delivery_type: data.ordertype,
+  //       branch: data.branches,
+  //     });
+    
+  //     console.log("🛒 formattedItems قبل الإرسال:", formattedItems);
+  //     toast.success("✅ Order created successfully!");
+  //     setCancelOrderDialogOpen(false);
+  //   } catch (error) {
+  //     console.error("❌ خطأ في إنشاء الطلب:", error);
+  //     toast.error(error.message || "حدث خطأ غير متوقع!");
+  //   } finally {
+  //     setLoading(false);
+  //     setCancelOrderDialogOpen(false);
 
-  // // تأكد أن `grandTotal` هو رقم صحيح وقم بتنسيقه
-  // const formattedGrandTotal = parseFloat(grandTotal || 0).toFixed(2);
+  //     resetCreateOrder({
+  //       ordertype: orderTypeOptions.length > 0 ? orderTypeOptions[0].value : "",
+  //       ordersource:
+  //         orderSourceOptions.length > 0 ? orderSourceOptions[0].label : "",
+  //       orderstatus:
+  //         orderStatusOptions.length > 0 ? orderStatusOptions[0].value : "",
+  //       orderpayment:
+  //         orderPaymenyOptions.length > 0 ? orderPaymenyOptions[0].value : "",
+  //     });
 
+  //     setShowDateTime(false);
+
+  //     if (orderSourceOptions.length > 0) {
+  //       setOrderSourceSelected(orderSourceOptions[0]);
+  //     }
+  //     if (orderStatusOptions.length > 0) {
+  //       setSelectedOrderStatus(orderStatusOptions[0]);
+  //     }
+  //   }
+  // };
+  const onSubmithandleCreateOrder = async (data) => {
+    console.log("📦 بيانات الطلب:", data);
+    setLoading(true);
+  
+    try {
+
+  
+      await createOrder({
+        lookupId: selectedUser?.id,
+        address: selectedAddress?.id,
+        area: selectedAddress?.area,
+        notes: data.notes || "",
+        source: data.ordersource,
+        status: data.orderstatus === 1 ? "pending" : "new",
+        insertcoupon: data.insertcoupon,
+        insertpoints: data.insertpoints,
+        payment: 1,
+        delivery_type: data.ordertype,
+        items: cartItems,
+        lat:0,lng:0,
+        branch: data.branches,
+      });
+  
+      toast.success("✅ Order created successfully!");
+      setCancelOrderDialogOpen(false);
+    } catch (error) {
+      console.error("❌ خطأ في إنشاء الطلب:", error);
+      toast.error(error.message || "حدث خطأ غير متوقع!");
+    } finally {
+      setLoading(false);
+      setCancelOrderDialogOpen(false);
+  
+      resetCreateOrder({
+        ordertype: orderTypeOptions.length > 0 ? orderTypeOptions[0].value : "",
+        ordersource:
+          orderSourceOptions.length > 0 ? orderSourceOptions[0].label : "",
+        orderstatus:
+          orderStatusOptions.length > 0 ? orderStatusOptions[0].value : "",
+        orderpayment:
+          orderPaymenyOptions.length > 0 ? orderPaymenyOptions[0].value : "",
+      });
+  
+      setShowDateTime(false);
+  
+      if (orderSourceOptions.length > 0) {
+        setOrderSourceSelected(orderSourceOptions[0]);
+      }
+      if (orderStatusOptions.length > 0) {
+        setSelectedOrderStatus(orderStatusOptions[0]);
+      }
+    }
+  };
   const grandTotal = cartItems.reduce((sum, item) => {
     // تأكد أن السعر والكمية أرقام عشرية صحيحة
     const itemPrice = parseFloat(item.price) || 0;
@@ -1059,15 +1264,70 @@ function CreateOrder() {
 
   const formattedGrandTotal = parseFloat(grandTotal).toFixed(2);
 
-  // console.log("grandTotal", grandTotal);
-  // console.log("formattedGrandTotal", formattedGrandTotal);
+  const [discountValue, setDiscountValue] = useState("");
+  const [discountPercentage, setDiscountPercentage] = useState("");
 
-  const vatAmount = grandTotal * (Tax / 100);
-  // const deliveryFee = 20;
+  const vatAmount = parseFloat(grandTotal * (parseFloat(Tax) / 100));
   const discount = 0;
-  const Delivery = selectedAddress?.delivery || 0;
+  const Delivery =
+    deliveryMethod === "pickup"
+      ? 0
+      : parseFloat(selectedBranch?.delivery_fees) || 0;
 
   const totalAmount = grandTotal + vatAmount + Delivery - discount;
+
+  // const finalTotal = useMemo(() => {
+  //   return selectedOrderType?.value === 2
+  //     ? totalAmount - Delivery
+  //     : totalAmount;
+  // }, [totalAmount, selectedOrderType, Delivery]);
+  const finalTotal = useMemo(() => {
+    // console.log("🔄 حساب finalTotal...");
+    // console.log("📌 selectedOrderType:", selectedOrderType);
+    // console.log("📌 Delivery:", Delivery);
+    // console.log("📌 totalAmount:", totalAmount);
+  
+    return selectedOrderType?.value === 2 ? totalAmount - Delivery : totalAmount;
+  }, [totalAmount, selectedOrderType, Delivery]);
+  const handleDiscountValueChange = (e) => {
+    let value = parseFloat(e.target.value);
+
+    if (!isNaN(value)) {
+      if (value > finalTotal) {
+        value = finalTotal;
+      }
+      setDiscountValue(value);
+
+      setDiscountPercentage((value / finalTotal) * 100);
+    } else {
+      setDiscountValue("");
+      setDiscountPercentage("");
+    }
+  };
+
+  const handleDiscountPercentageChange = (e) => {
+    let value = parseFloat(e.target.value);
+
+    if (!isNaN(value)) {
+      if (value > 100) {
+        value = 100; // ✅ لا يمكن أن تكون النسبة المئوية أكبر من 100%
+      }
+      setDiscountPercentage(value);
+      setDiscountValue((value / 100) * grandTotal);
+    } else {
+      setDiscountPercentage("");
+      setDiscountValue("");
+    }
+  };
+
+  const handleCacelOrder = () => {
+    setSearch("");
+    setPhone("");
+    setAllUserData(null);
+    setSelectedAddress(null);
+    setSelectedAddressArray(null);
+    setCartItems([]);
+  };
   if (isLoadingBranchs) return <p>Loading branches...</p>;
   if (errorBranchs) return <p>Error loading branches: {error.message}</p>;
   return (
@@ -1243,6 +1503,7 @@ function CreateOrder() {
                                       extrasData: newExtrasData, // تحديث الاختيارات الخاصة بالحجم الجديد
                                       selectedItemExtras: [], // مسح اختيارات الإضافات الخاصة بالحجم
                                       price: size?.price?.price,
+                                      selectedIdSize: size?.id,
                                     };
                                   })
                                 }
@@ -1405,10 +1666,6 @@ function CreateOrder() {
                         </div>
                       </div>
 
-                      {/* <div className="text-sm font-semibold ">
-                        <p>{selectedItem?.selectedInfo}</p>
-                      </div> */}
-
                       <div className="flex flex-col lg:flex-row lg:items-center gap-2 m-4">
                         <Label className="lg:min-w-[100px]">Note:</Label>
                         <Input
@@ -1431,7 +1688,7 @@ function CreateOrder() {
                       </div>
                       <div className="flex justify-between items-center">
                         <div className="text-sm font-semibold flex flex-wrap max-w-[300px]">
-                          <p className="">
+                          <p>
                             {[
                               selectedItem?.selectedInfo,
                               ...(selectedItem?.selectedExtras || []).map(
@@ -1441,7 +1698,7 @@ function CreateOrder() {
                                 (extra) => extra.name_en
                               ),
                             ]
-                              .filter(Boolean) // إزالة القيم الفارغة أو undefined
+                              .filter(Boolean)
                               .join(", ")}
                           </p>
                         </div>
@@ -1455,7 +1712,11 @@ function CreateOrder() {
                             Close
                           </Button> */}
                           </DialogClose>
-                          <Button type="submit" onClick={handleAddToCart}>
+                          <Button
+                            type="submit"
+                            onClick={handleAddToCart}
+                            disabled={!selectedUser}
+                          >
                             Add to Cart
                           </Button>
                         </DialogFooter>
@@ -2214,7 +2475,9 @@ function CreateOrder() {
                       const itemTotal = total + extrasTotal;
 
                       // الآن itemTotal رقم حقيقي ويمكن استخدام toFixed(2)
-                      console.log("itemTotal:", itemTotal);
+                      {
+                        /* console.log("itemTotal:", itemTotal); */
+                      }
                       return (
                         <React.Fragment key={item.id}>
                           {/* الصف الأساسي للعنصر */}
@@ -2229,6 +2492,7 @@ function CreateOrder() {
                                 <Input
                                   type="text"
                                   value={item.note || ""}
+                                  onChange={(e) => handleNoteChange(e, item.id)} // ✅ تحديث النوت لكل عنصر
                                   placeholder="No note added"
                                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
                                 />
@@ -2398,7 +2662,7 @@ function CreateOrder() {
                     <TableRow>
                       <TableCell>Delivery</TableCell>
                       <TableCell></TableCell>
-                      <TableCell>{Delivery || 0}</TableCell>
+                      <TableCell>{Delivery || 0} EGP</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>Discount</TableCell>
@@ -2435,105 +2699,438 @@ function CreateOrder() {
                     </DialogHeader>
                     <div className="text-sm text-default-500 space-y-4">
                       <form
-                        onSubmit={handleSubmitAddNewAddress(onSubmitAddAddress)}
+                        onSubmit={handleCreateOrder(onSubmithandleCreateOrder)}
                       >
-                        <Controller
-                          name="area"
-                          control={controlAddress}
-                          rules={{ required: "Area is required" }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              options={areasOptions || []}
-                              placeholder="Area"
-                              className="react-select w-full my-3"
-                              classNamePrefix="select"
-                              // onChange={handleChangeArea}
-                              onChange={(selectedOption) => {
-                                field.onChange(selectedOption);
-                                handleChangeArea(selectedOption); // تشغيل دالة التحديث الخاصة بك
+                        <div className="flex gap-4 my-3">
+                          <div className="flex flex-col w-1/2">
+                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                              payment
+                            </label>
+
+                            <Controller
+                              name="orderpayment"
+                              control={controlCreateOrder}
+                              rules={{
+                                required: "Order payment is required",
                               }}
+                              render={({ field }) => (
+                                <Select
+                                  {...field}
+                                  options={orderPaymenyOptions}
+                                  placeholder="Select Order Payment"
+                                  className="react-select"
+                                  classNamePrefix="select"
+                                  value={
+                                    orderPaymenyOptions.find(
+                                      (option) => option.value === field.value
+                                    ) || null
+                                  } // ✅ تصحيح القيمة
+                                  onChange={(selectedOption) => {
+                                    field.onChange(selectedOption.value);
+                                    setValueCreateOrder(
+                                      "orderpayment",
+                                      selectedOption.value
+                                    );
+                                  }}
+                                  styles={selectStyles(theme, color)}
+                                />
+                              )}
+                            />
+                          </div>
+                          <div className="flex flex-col w-1/2">
+                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                              Channal
+                            </label>
+                            {/* <Controller
+                              name="ordersource"
+                              control={controlCreateOrder}
+                              rules={{
+                                required: "Order source is required",
+                              }}
+                              render={({ field }) => (
+                                <Select
+                                  {...field}
+                                  options={orderSourceOptions}
+                                  placeholder="Select Order Source"
+                                  className="react-select"
+                                  classNamePrefix="select"
+                                  value={
+                                    orderSourceOptions.find(
+                                      (option) => option.label === field.value
+                                    ) || null
+                                  } // ✅ تصحيح القيمة
+                                  onChange={(selectedOption) => {
+                                    field.onChange(selectedOption.value);
+                                    setValueCreateOrder(
+                                      "ordersource",
+                                      selectedOption.value
+                                    );
+                                  }}
+                                  styles={selectStyles(theme, color)}
+                                />
+                              )}
+                              
+                            /> */}
+                            <Controller
+                              name="ordersource"
+                              control={controlCreateOrder}
+                              rules={{
+                                required: "Order source is required",
+                              }}
+                              render={({ field }) => (
+                                <Select
+                                  {...field}
+                                  options={orderSourceOptions}
+                                  placeholder="Select Order Source"
+                                  className="react-select"
+                                  classNamePrefix="select"
+                                  value={
+                                    orderSourceOptions.find(
+                                      (option) => option.label === field.value
+                                    ) || null
+                                  }
+                                  onChange={(selectedOption) => {
+                                    field.onChange(selectedOption.label); // ✅ تخزين label فقط
+                                    setValueCreateOrder(
+                                      "ordersource",
+                                      selectedOption.label,
+                                      { shouldValidate: true }
+                                    );
+                                    setOrderSourceSelected(selectedOption); // ✅ تحديث useState
+                                  }}
+                                  styles={selectStyles(theme, color)}
+                                />
+                              )}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col lg:flex-row lg:items-center gap-2">
+                          <div className="flex flex-col w-1/2">
+                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                              Order Type
+                            </label>
+                            {/* <Select
+                              placeholder="Select Order Type"
+                              className="react-select"
+                              classNamePrefix="select"
+                              options={orderTypeOptions}
+                              value={selectedOrderType}
+                           
+                              onChange={(selectedOption) => {
+    setSelectedOrderType(selectedOption);
+    setValueCreateOrder("ordertype", selectedOption.value, { shouldValidate: true });
+  }}
                               styles={selectStyles(theme, color)}
+                            /> */}
+                            <Controller
+                              name="ordertype"
+                              control={controlCreateOrder}
+                              rules={{ required: "Order type is required" }} // ✅ تأكد من أنه مطلوب
+                              render={({ field }) => (
+                                <Select
+                                  {...field}
+                                  options={orderTypeOptions}
+                                  placeholder="Select Order Type"
+                                  className="react-select"
+                                  classNamePrefix="select"
+                                  value={
+                                    orderTypeOptions.find(
+                                      (option) => option.value === field.value
+                                    ) || null
+                                  }
+                                  onChange={(selectedOption) => {
+                                    field.onChange(selectedOption.value); // ✅ تحديث قيمة الفورم
+                                    setSelectedOrderType(selectedOption); // ✅ تحديث state أيضاً
+                                  }}
+                                  styles={selectStyles(theme, color)}
+                                />
+                              )}
                             />
-                          )}
-                        />
-                        {errorsAddNewAddress.area && (
-                          <p className="text-red-500 text-sm">
-                            {errorsAddNewAddress.area.message}
-                          </p>
-                        )}
-                        <div className="flex gap-2 items- my-3">
-                          <div>
-                            <Input
-                              type="text"
-                              placeholder="Street"
-                              {...registerAddNewAddress("street")}
-                              className={`${
-                                registerAddNewAddress.street ? "mb-1" : "mb-4"
-                              }`}
-                            />
-                            {errorsAddNewAddress.street && (
-                              <p className="text-red-500 text-sm">
-                                {errorsAddNewAddress.street.message}
-                              </p>
-                            )}
                           </div>
 
-                          <Input
-                            type="text"
-                            placeholder="Building"
-                            {...registerAddNewAddress("building")}
-                          />
-                        </div>
-                        <div className="flex gap-2 items- my-3">
-                          <Input
-                            type="text"
-                            placeholder="Floor"
-                            {...registerAddNewAddress("floor")}
-                            // className="mb-4"
-                            // className={`${
-                            //   registerAddNewAddress.floor ? "mb-1" : "mb-4"
-                            // }`}
-                          />
+                          <div className="flex flex-col w-1/2">
+                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                              Branches
+                            </label>
 
-                          <Input
-                            type="text"
-                            placeholder="Apt"
-                            {...registerAddNewAddress("apt")}
-                            className="mb-4"
-                          />
+                            {/* <Controller
+                                name="branches"
+                                control={controlCreateOrder}
+                                rules={{
+                                  required: "Branches is required",
+                                }}
+                                render={({ field }) => (
+                                  <Select
+                                    {...field}
+                                    className="react-select w-full"
+                                    classNamePrefix="select"
+                                    options={branchOptions}
+                                    onChange={(selectedOption) => {
+                                      const branchId = Number(
+                                        selectedOption?.value
+                                      ); // ✅ تحويل القيمة إلى رقم
+                                      field.onChange(branchId); // ✅ تحديث القيمة داخل react-hook-form
+                                      setSelectedBranchIdCreateOrder(branchId); // ✅ تحديث الـ state
+                                      setSelectedBranchPriceList(
+                                        selectedOption?.priceList
+                                      );
+                                    }}
+                                    value={
+                                      branchOptions.find(
+                                        (option) => option.value === field.value
+                                      ) || null
+                                    }
+                                    placeholder="Branches"
+                                    styles={selectStyles(theme, color)}
+                                  />
+                                )}
+                              /> */}
+                            <Controller
+                              name="branches"
+                              control={controlCreateOrder}
+                              defaultValue={selectedBranch?.id || ""}
+                              render={({ field }) => {
+                                // console.log(
+                                //   "Selected Branch Value:",
+                                //   field.value
+                                // ); // ✅ تأكيد القيمة
+                                return (
+                                  <Select
+                                    {...field}
+                                    className="react-select w-full"
+                                    classNamePrefix="select"
+                                    options={branchOptions}
+                                    onChange={(selectedOption) => {
+                                      if (!selectedOption) return;
+
+                                      const branchId = Number(
+                                        selectedOption.value
+                                      );
+                                      console.log(
+                                        "Selected Branch ID Before Storing:",
+                                        branchId
+                                      );
+
+                                      field.onChange(branchId);
+                                      setSelectedBranchIdCreateOrder(branchId);
+                                      setSelectedBranchPriceList(
+                                        selectedOption.priceList
+                                      );
+                                      setValueCreateOrder(
+                                        "branches",
+                                        branchId,
+                                        { shouldValidate: true }
+                                      );
+
+                                      // console.log(
+                                      //   "Stored Branch ID in Form setValueCreateOrder:",
+                                      //   getValueCreateOrder("branches")
+                                      // ); // ✅ تأكيد التخزين
+                                    }}
+                                    value={
+                                      branchOptions.find(
+                                        (option) => option.value === field.value
+                                      ) || null
+                                    }
+                                    placeholder="Branches"
+                                    styles={selectStyles(theme, color)}
+                                  />
+                                );
+                              }}
+                            />
+                          </div>
                         </div>
-                        <Input
-                          type="text"
-                          placeholder="Land mark"
-                          {...registerAddNewAddress("additionalInfo")}
-                          className="mb-4"
-                        />
-                        <Input
-                          type="text"
-                          placeholder="Address name"
-                          {...registerAddNewAddress("name")}
-                          // className="mb-4"
-                          className={`${
-                            errorsAddNewAddress.name ? "mb-1" : "mb-4"
-                          }`}
-                        />
-                        {errorsAddNewAddress.name && (
-                          <p className="text-red-500 text-sm">
-                            {errorsAddNewAddress.name.message}
-                          </p>
-                        )}
-                        <DialogFooter className="mt-8">
-                          <DialogClose asChild>
-                            <Button
-                              variant="outline"
-                              onClick={() => setCancelOrderDialogOpen(false)}
+
+                        <div className="flex flex-col gap-4 my-3">
+                          {/* ✅ Checkbox للتحكم في ظهور الـ Inputs */}
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="toggleDateTime"
+                              checked={showDateTime}
+                              onChange={() => setShowDateTime(!showDateTime)}
+                              className="w-5 h-5 accent-blue-500 cursor-pointer"
+                            />
+                            <label
+                              htmlFor="toggleDateTime"
+                              className="text-gray-700 dark:text-gray-200 font-medium cursor-pointer"
                             >
-                              Close
-                            </Button>
-                          </DialogClose>
-                          <Button type="submit">submit</Button>
-                        </DialogFooter>
+                              Date & Time
+                            </label>
+                          </div>
+
+                          {showDateTime && (
+                            <div className="flex gap-4">
+                              {/* Start Date */}
+
+                              <div className="flex flex-col  w-1/2">
+                                <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                                  Start Date
+                                </label>
+                                <Controller
+                                  name="startDate"
+                                  control={controlCreateOrder}
+                                  rules={{ required: "Start date is required" }}
+                                  render={({ field }) => (
+                                    <Input
+                                      {...field}
+                                      type="date"
+                                      className="border -gray-300 rounded-md p-2 w-full"
+                                      min="1900-01-01"
+                                      max="2099-12-31"
+                                    />
+                                  )}
+                                />
+                              </div>
+                              {/* Start Time */}
+                              <div className="flex flex-col  w-1/2">
+                                <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                                  Start Time
+                                </label>
+                                <Controller
+                                  name="startTime"
+                                  control={controlCreateOrder}
+                                  rules={{ required: "Start time is required" }}
+                                  render={({ field }) => (
+                                    <Input
+                                      {...field}
+                                      type="time"
+                                      className="border -gray-300 rounded-md p-2 w-full"
+                                    />
+                                  )}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-col lg:flex-row lg:items-center gap-2 mt-3">
+                          <div className="flex flex-col w-1/2">
+                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                              Insert coupon
+                            </label>
+
+                            <Input
+                              type="text"
+                              placeholder="insert Coupon"
+                              {...registerCreateOrder("insertcoupon")}
+                              // className="w-full"
+                            />
+                          </div>
+                          <div className="flex flex-col w-1/2 ">
+                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                              Insert Points
+                            </label>
+                            <div className="flex gap-2">
+                              <Input
+                                type="number"
+                                placeholder="Insert Points"
+                                className="border p-2 text-"
+                                {...registerCreateOrder("insertpoints", {
+                                  setValueAs: (v) => (v === "" ? 0 : Number(v)),
+                                })}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col lg:flex-row lg:items-center gap-2 mt-2">
+                          {/* ✅ قسم الخصم */}
+                          <div className="flex flex-col w-1/2">
+                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                              Discount
+                            </label>
+                            <div className="flex gap-2 items-center">
+                              <div className="flex items-center border rounded overflow-hidden">
+                                <Input
+                                  type="number"
+                                  value={discountValue}
+                                  onChange={handleDiscountValueChange}
+                                  className="border-0 p-2 w-20 text-center"
+                                />
+                                <span className="px-3 bg-gray- border-l h-[36px] flex items-center justify-center">
+                                  L.E
+                                </span>
+                              </div>
+
+                              <div className="flex items-center border rounded overflow-hidden">
+                                <Input
+                                  type="number"
+                                  value={discountPercentage}
+                                  onChange={handleDiscountPercentageChange}
+                                  className="border-0 p-2 w-20 text-center"
+                                />
+                                <span className="px-3 bg-gray-200 border-l h-[36px] flex items-center justify-center">
+                                  %
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* ✅ ملاحظات الطلب */}
+                          <div className="flex flex-col h-full flex-1">
+                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                              Order notes
+                            </label>
+                            <div className="flex-1 w-full">
+                              <Textarea
+                                type="text"
+                                placeholder="Order notes"
+                                className="border p-2  h-full resize-none !w-full"
+                                {...registerCreateOrder("notes")}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-5">
+                          {/* Total Order على اليسار */}
+                          <div className="text-sm font-medium text-[#]">
+                            <span className="text-[#fff]">
+                              {/* Total Order : {totalAmount.toFixed(2)} EGP */}
+                              Total Order : {finalTotal.toFixed(2)} EGP
+                            </span>
+                          </div>
+
+                          {/* Select في المنتصف */}
+                          <div className="w-1/3 flex justify-center">
+                            <Controller
+                              name="orderstatus"
+                              control={controlCreateOrder}
+                              rules={{
+                                required: "Order status is required",
+                              }}
+                              render={({ field }) => (
+                                <Select
+                                  {...field}
+                                  options={orderStatusOptions || []}
+                                  placeholder="Select Order status"
+                                  className="react-select w-full"
+                                  classNamePrefix="select"
+                                  value={
+                                    orderStatusOptions.find(
+                                      (option) => option.value === field.value
+                                    ) || null
+                                  }
+                                  onChange={(selectedOption) => {
+                                    field.onChange(selectedOption.value);
+                                    setValueCreateOrder(
+                                      "orderstatus",
+                                      selectedOption.value
+                                    );
+                                  }}
+                                  styles={selectStyles(theme, color)}
+                                />
+                              )}
+                            />
+                          </div>
+
+                          {/* الزرار على اليمين */}
+                          <DialogFooter>
+                            <DialogClose asChild></DialogClose>
+                            <Button type="submit">Submit</Button>
+                          </DialogFooter>
+                        </div>
                       </form>
                     </div>
                   </DialogContent>
@@ -2548,9 +3145,40 @@ function CreateOrder() {
                 >
                   Pay
                 </Button>
-                <Button className="w-1/2" color="destructive">
-                  Cancel
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button className="w-1/2" color="destructive">
+                      Cancel
+                    </Button>
+                  </AlertDialogTrigger>
+
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you absolutely sure?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action will reset everything and start the process
+                        from the beginning.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel
+                        type="button"
+                        variant="outline"
+                        color="info"
+                      >
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive hover:bg-destructive/80"
+                        onClick={handleCacelOrder}
+                      >
+                        Ok
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </>
           )}

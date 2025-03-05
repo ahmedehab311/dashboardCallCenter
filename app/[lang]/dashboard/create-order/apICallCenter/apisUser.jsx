@@ -3,7 +3,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import apiInstance from "@/api/axiosInstance";
 import { toast } from "react-hot-toast";
-
+import { Buffer } from "buffer";
 const token = Cookies.get("token");
 
 export const fetchUserByPhone = async (phone) => {
@@ -40,46 +40,6 @@ export const createUser = async (name, phone) => {
     return response?.data?.user?.id;
   } catch (error) {
     console.error("Error creating user:", error);
-    throw error;
-  }
-};
-
-export const createAddress = async (
-  userId,
-  area,
-  street,
-  building,
-  floor,
-  apt,
-  additionalInfo,
-  name
-) => {
-  try {
-    const response = await apiInstance.post(
-      `/callcenter/user/address/add?api_token=${token}`,
-      null,
-      {
-        params: {
-          user_id: userId,
-          area,
-          street,
-          address_name: name,
-
-          country: 1,
-          city: 1,
-          ...(building && { building }),
-          ...(floor && { floor }),
-          ...(apt && { apt }),
-          ...(additionalInfo && { additional_info: additionalInfo }),
-        },
-      }
-    );
-
-    console.log("Address created successfully:", response.data);
-    return response.data;
-    // return response?.data?.messages[0];
-  } catch (error) {
-    console.error("Error creating address:", error);
     throw error;
   }
 };
@@ -158,6 +118,309 @@ export const deleteAddress = async (id) => {
     return response.data;
   } catch (error) {
     toast.error(`Failed to delete : ${error}`);
+    throw error;
+  }
+};
+
+// export const createOrder = async ({ apiToken, lookupId, address, area, items, notes, source }) => {
+//   try {
+//     const url = `/callcenter/order/create`;
+
+//     const params = {
+//       api_token: apiToken,
+//       lookup_id: lookupId,
+//       address,
+//       area,
+//       notes: notes || "",
+//       items:items,
+//       source: source || "call center",
+//     };
+
+//     const response = await apiInstance.post(url, null, { params });
+
+//     console.log("✅ الطلب تم إنشاؤه بنجاح:", response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error("❌ خطأ في إنشاء الطلب:", error);
+//     throw error;
+//   }
+// };
+
+// export const createOrder = async ({
+//   apiToken,
+//   lookupId,
+//   address,
+//   area,
+//   items,
+//   notes,
+//   source,
+//   status,
+//   insertcoupon,
+//   payment,
+//   delivery_type,
+//   branch
+// }) => {
+//   try {
+//     const url = `/api/callcenter/order/create?api_token=${token}`;
+
+//     let params = {
+
+//       api_token: apiToken,
+//       lookup_id: lookupId,
+//       delivery_type,
+//       payment,
+//       lat: 0,
+//       lng: 0,
+//       address,
+//       area,
+//       items: JSON.stringify({ items }), // ✅ تحويل `items` إلى JSON
+//       notes,
+//       time: "",
+//       status:status,
+//       coins: insertcoupon || "00.00",
+//       source: source ,
+//       branch:branch
+//     };
+
+//     // ✅ حذف القيم الفارغة أو undefined
+//     Object.keys(params).forEach((key) => {
+//       if (params[key] === "" || params[key] === undefined) {
+//         delete params[key];
+//       }
+//     });
+
+//     const fullUrl = `${url}?${new URLSearchParams(params).toString()}`;
+//     console.log("🔗 رابط الـ API:", fullUrl); // ✅ عرض الرابط النهائي
+
+//     const response = await axios.post(url, null, { params });
+
+//     console.log("✅ الطلب تم إنشاؤه بنجاح:", response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error("❌ خطأ في إنشاء الطلب:", error);
+//     throw error;
+//   }
+// };
+export const createAddress = async (
+  userId,
+  area,
+  street,
+  building,
+  floor,
+  apt,
+
+  additionalInfo,
+  name
+) => {
+  try {
+    const response = await apiInstance.post(
+      `/callcenter/user/address/add?api_token=${token}`,
+      null,
+      {
+        params: {
+          user_id: userId,
+          area,
+          street,
+          address_name: name,
+
+          country: 1,
+          city: 1,
+          ...(building && { building }),
+          ...(floor && { floor }),
+          ...(apt && { apt }),
+          ...(additionalInfo && { additional_info: additionalInfo }),
+        },
+      }
+    );
+
+    console.log("Address created successfully:", response.data);
+    return response.data;
+    // return response?.data?.messages[0];
+  } catch (error) {
+    console.error("Error creating address:", error);
+    throw error;
+  }
+};
+// export const createOrder = async ({
+//   lookupId,
+//   address,
+//   area,
+
+//   notes,
+//   source,
+//   status,
+//   insertcoupon,
+//   insertpoints,
+//   payment,
+//   delivery_type,
+//   branch,
+// }) => {
+//   try {
+//     const response = await apiInstance.post(
+//       `/callcenter/order/create?api_token=${token}`,
+//       null, // لا يوجد body، نرسل البيانات عبر params
+//       {
+//         params: {
+//           ...(lookupId && { lookup_id: lookupId }),
+//           ...(address && { address }),
+//           ...(area && { area }),
+//           notes: notes !== undefined ? notes : "",
+//           ...(status && { status }),
+//           ...(source && { source }),
+//           ...(branch && { branch }),
+//           ...(delivery_type && { delivery_type }),
+//           ...(payment && { payment }),
+//           coins: insertpoints || "00.00", // ✅ قيمة افتراضية
+//           lat: "0",
+//           lng: "0",
+//           time: "",
+//         },
+//       }
+//     );
+
+//     console.log("✅ الطلب تم إنشاؤه بنجاح:", response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error("❌ خطأ في إنشاء الطلب:", error);
+//     throw error;
+//   }
+// };
+
+// export const createOrder = async ({
+//   lookupId,
+//   address,
+//   area,
+//   notes,
+//   source,
+//   status,
+//   insertcoupon,
+//   insertpoints,
+//   payment,
+//   delivery_type,
+//   branch,
+//   items, // ✅ استقبال `items`
+// }) => {
+//   try {
+
+//     const response = await apiInstance.post(
+//       `/callcenter/order/create?api_token=${token}`,
+//       {
+//         params: {
+//           lookup_id: lookupId,
+//           address: address,
+//           area: area,
+//           notes: notes || "",
+//           status: status,
+//           source: source,
+//           branch: branch,
+//           delivery_type: delivery_type,
+//           payment: payment,
+//           coins: insertpoints || "00.00", // ✅ قيمة افتراضية
+//           lat: "0",
+//           lng: "0",
+//           time: "",
+//         items: items,
+//         },
+//       }
+//     );
+
+//     console.log("✅ الطلب تم إنشاؤه بنجاح:", response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error("❌ خطأ في إنشاء الطلب:", error);
+//     throw error;
+//   }
+// };
+
+// export const createOrder = async ({
+//   lookupId,
+//   address,
+//   area,
+//   notes,
+//   source,
+//   status,
+//   insertcoupon,
+//   insertpoints,
+//   payment,
+//   delivery_type,
+//   branch,
+//   finalItems,
+// }) => {
+
+//   // تحويل البيانات إلى JSON وترميزها بشكل صحيح
+//   const finalURL = `/callcenter/order/create?api_token=${token}&items=${encodedItems}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes || ""}&source=${source}&delivery_type=${delivery_type}&payment=${payment}&branch=${branch}&status=${status}&coins=${insertpoints || "00.00"}&lat=0&lng=0&time=`;
+
+//   console.log("🔍 Final URL:", decodeURIComponent(finalURL));
+
+//   try {
+//     const response = await apiInstance.post(finalURL, null);
+//     console.log("✅ الطلب تم إنشاؤه بنجاح:", response?.data);
+//     console.log("🛒 finalItems:", finalItems);
+//     console.log("🛒 Request Params:", response?.config?.params);
+//     console.log("✅ الطلب تم إنشاؤه بنجاح:", response?.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error("❌ خطأ في إنشاء الطلب:", error);
+//     throw error;
+//   }
+// };
+export const createOrder = async ({
+  lookupId,
+  address,
+  area,
+  notes,
+  source,
+  status,
+  insertcoupon,
+  insertpoints,
+  payment,
+  delivery_type,
+  branch,
+  items,
+  lng,
+  lat,
+}) => {
+  const formattedItems = {
+    items: items.map((item) => ({
+      id: item.selectedIdSize,
+      choices: [],
+      options: [],
+      extras: [
+        ...(item.selectedMainExtrasIds || []),
+        ...(item.selectedExtrasIds || []),
+      ],
+      count: item.quantity,
+      special: item.note || "",
+    })),
+  };
+
+  try {
+    const response = await apiInstance.post(
+      `/callcenter/order/create?api_token=${token}`,
+      null,
+      {
+        params: {
+          lookup_id: lookupId,
+          address,
+          area,
+          items: JSON.stringify(formattedItems),
+          notes,
+          time: "",
+          source,
+          branch,
+          status,
+          payment,
+          lat,
+          lng,
+          delivery_type,
+        },
+      }
+    );
+
+    console.log("Order created successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating order:", error);
     throw error;
   }
 };
