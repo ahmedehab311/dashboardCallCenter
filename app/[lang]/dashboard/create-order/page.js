@@ -1041,7 +1041,8 @@ function CreateOrder() {
     try {
       // if (!userId) throw new Error("User ID not received");
       // console.log("userId from onSubmitAddUserData ", userId);
-      const nameValue = data.name.trim() === "" ? "home" : data.name;
+      // const nameValue = data.name.trim() === "" ? "home" : data.name;
+      const nameValue = typeof data.name === "string" && data.name.trim() !== "" ? data.name : "home";
       await createAddress(
         userId,
         data.area.value,
@@ -1069,7 +1070,8 @@ function CreateOrder() {
   };
 
   const onSubmitEditUserAddress = async (data) => {
-    const nameValue = data.name.trim() === "" ? "home" : data.name;
+    // const nameValue = data.name.trim() === "" ? "home" : data.name;
+    const nameValue = typeof data.name === "string" && data.name.trim() !== "" ? data.name : "home";
     const formattedData = {
       id: selectedEditAddress.id, // تأكيد إرسال ID صحيح
       area: data.area.value,
