@@ -1009,7 +1009,9 @@ function CreateOrder() {
 
       if (!userId) throw new Error("User ID not received");
       // console.log("userId from onSubmitAddUserData ", userId);
-      const nameValue = data.name.trim() === "" ? "home" : data.name;
+      // const nameValue = data?.name?.trim() === "" ? "home" : data?.name;
+      const nameValue = typeof data.name === "string" && data.name.trim() !== "" ? data.name : "home";
+
       await createAddress(
         userId,
         data.area.value,
@@ -1103,7 +1105,9 @@ function CreateOrder() {
     // console.log("id remove", id);
     try {
       const response = await deleteAddress(id);
-
+      
+      toast.success("Address deleted successfully");
+      queryClient.invalidateQueries(["userSearch", phone]);
       // console.log("Response onSubmit delete:", response);
     } catch (error) {
       console.error("Error updating user address:", error);
@@ -1884,7 +1888,7 @@ function CreateOrder() {
                                   {...field}
                                   options={areasOptions || []}
                                   placeholder="Area"
-                                  className="react-select w-full my-3"
+                                  className="react-select w-full my-3 mb-4"
                                   classNamePrefix="select"
                                   // onChange={handleChangeArea}
                                   onChange={(selectedOption) => {
@@ -1901,7 +1905,7 @@ function CreateOrder() {
                               </p>
                             )}
 
-                            <div className="flex gap-2 items-center my-3">
+                            <div className="flex gap-2 items-center my-3 mb-4">
                               <div className="flex-1">
                                 <Input
                                   type="text"
@@ -1933,7 +1937,7 @@ function CreateOrder() {
                               </div>
                             </div>
 
-                            <div className="flex gap-2 items- my-">
+                            <div className="flex gap-2 items- my- mb-4">
                               <Input
                                 type="text"
                                 placeholder="Floor"
@@ -1949,14 +1953,14 @@ function CreateOrder() {
                                 type="text"
                                 placeholder="Apt"
                                 {...registerAddNewAddress("apt")}
-                                className="mb-4  text-[#fff]"
+                                className="mb-  text-[#fff]"
                               />
                             </div>
                             <Input
                               type="text"
                               placeholder="Land mark"
                               {...registerAddNewAddress("additionalInfo")}
-                              className="mb-4  text-[#fff]"
+                              className="mb-  text-[#fff]"
                             />
                     
                               <div className="space-y-1">
