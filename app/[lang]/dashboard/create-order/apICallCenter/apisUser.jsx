@@ -83,7 +83,7 @@ export const updateUserData = async (userData) => {
 
   try {
     const response = await axios.put(url);
-    console.log("User updated:", response.data);
+    // console.log("User updated:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error updating user:", error);
@@ -113,7 +113,7 @@ export const deleteAddress = async (id) => {
     //   if (messages.length > 0) {
     //     toast.success(messages[0]);
     //   }
-    console.log(response.data);
+    // console.log(response.data);
 
     return response.data;
   } catch (error) {
@@ -208,10 +208,12 @@ export const createAddress = async (
   building,
   floor,
   apt,
-
   additionalInfo,
-  name
+  nameValue
 ) => {
+  // console.log("userId",userId)
+  // console.log("apt",apt)
+  // console.log("additionalInfo",additionalInfo)
   try {
     const response = await apiInstance.post(
       `/callcenter/user/address/add?api_token=${token}`,
@@ -221,8 +223,7 @@ export const createAddress = async (
           user_id: userId,
           area,
           street,
-          address_name: name,
-
+          address_name: nameValue,
           country: 1,
           city: 1,
           ...(building && { building }),
@@ -233,7 +234,7 @@ export const createAddress = async (
       }
     );
 
-    console.log("Address created successfully:", response.data);
+    // console.log("Address created successfully:", response.data);
     return response.data;
     // return response?.data?.messages[0];
   } catch (error) {
@@ -394,10 +395,10 @@ export const createOrder = async ({
       special: item.note || "",
     })),
   };
-  console.log("formattedItems:", formattedItems); 
-  const apiUrl = `/callcenter/order/create?api_token=${token}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${time}&source=${source}&branch=${branch}&status=${status}&payment=${payment}&coins=${insertpoints || "00.00"}&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}`;
+  // console.log("formattedItems:", formattedItems); 
+  // const apiUrl = `/callcenter/order/create?api_token=${token}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${time}&source=${source}&branch=${branch}&status=${status}&payment=${payment}&coins=${insertpoints || "00.00"}&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}`;
 
-console.log("Final API URL:", apiUrl); 
+// console.log("Final API URL:", apiUrl); 
 
   try {
     const response = await apiInstance.post(
@@ -422,7 +423,7 @@ console.log("Final API URL:", apiUrl);
       }
     );
 
-    console.log("Order created successfully:", response.data);
+    // console.log("Order created successfully:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error creating order:", error);

@@ -56,7 +56,7 @@ import {
   createAddress,
   updateUserAddress,
   deleteAddress,
-  createOrder ,
+  createOrder,
 } from "./apICallCenter/apisUser";
 import { BASE_URL_iamge } from "@/api/BaseUrl";
 import { z } from "zod";
@@ -86,12 +86,13 @@ const editUserDataSchema = z.object({
 const addUserSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   phone: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
+  phone2: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
   area: z.object(
     { value: z.number(), label: z.string() },
     { required_error: "Area is required" }
   ),
-  street: z.string().min(1, "Street name is required"),
-  name: z.string().min(1, " name is required"),
+  street: z.string().min(1, "Street is required"),
+  name: z.string().optional(),
 
   building: z.string().min(1, "Building number is required").or(z.literal("")),
   floor: z.string().optional(),
@@ -104,7 +105,8 @@ const addAddressSchema = z.object({
     { required_error: "Area is required" }
   ),
   street: z.string().min(1, "Street name is required"),
-  name: z.string().min(1, " name is required"),
+  name: z.string().optional(),
+
 
   building: z.string().min(1, "Building number is required").or(z.literal("")),
   floor: z.string().optional(),
@@ -117,10 +119,15 @@ const editUserAddressSchema = z.object({
     { required_error: "Area is required" }
   ),
   street: z.string().min(1, "Street name is required"),
-  name: z.string().min(1, " name is required"),
+  name: z.string().optional(),
   building: z.string().min(1, "Building number is required").or(z.literal("")),
-  floor: z.string().optional(),
-  apt: z.string().optional(),
+  // floor: z.string().optional(),
+  // apt: z.string().optional(),
+  // floor: z.string().default(""),  // ✅ الحل هنا
+  // apt: z.string().default(""),
+   building: z.string().min(1, "Building number is required").or(z.literal("")),
+  floor: z.union([z.string(), z.number()]).optional().transform((val) => val || ""), // ✅ يقبل كل القيم
+  apt: z.union([z.string(), z.number()]).optional().transform((val) => val || ""), 
   additionalInfo: z.string().optional(),
 });
 const createOrderSchema = z.object({
@@ -173,6 +180,7 @@ function CreateOrder() {
     resolver: zodResolver(editUserAddressSchema),
     mode: "onSubmit",
   });
+  // console.log("errorsEditAddressUser",errorsEditAddressUser)
   const {
     control: controlCreateOrder,
     register: registerCreateOrder,
@@ -185,11 +193,11 @@ function CreateOrder() {
     resolver: zodResolver(createOrderSchema),
     mode: "onSubmit",
     defaultValues: {
-      orderpayment: 1, // ✅ ضبط القيمة الافتراضية على "Cash"
-      ordersource: "", // أو أي قيمة افتراضية مناسبة
+      orderpayment: 1, 
+      ordersource: "", 
     },
   });
-  console.log("errorsCreateOrder", errorsCreateOrder);
+  // console.log("errorsCreateOrder", errorsCreateOrder);
 
   const { theme } = useTheme();
   const queryClient = useQueryClient();
@@ -475,8 +483,8 @@ function CreateOrder() {
       setSelectedBranch(firstBranch);
     }
   }, [selectedAddress]);
-  console.log("SelectedBranch",selectedBranch);
-  
+  // console.log("SelectedBranch", selectedBranch);
+
   // console.log("selectedBranch", selectedBranch);
   // console.log("price_list", selectedBranch?.price_list);
 
@@ -564,17 +572,16 @@ function CreateOrder() {
 
   // useEffect(() => {
   //   if (deliveryMethod === "pickup") {
-  //     const currentSelectedBranchId = getValueCreateOrder("branches"); 
+  //     const currentSelectedBranchId = getValueCreateOrder("branches");
   //     if (selectedBranchId && selectedBranchId !== currentSelectedBranchId) {
   //       setValueCreateOrder("branches", selectedBranchId, { shouldValidate: true });
   //     }
   //   }
   //   console.log("currentSelectedBranchId",getValueCreateOrder("branches"));
   //   console.log("selectedBranchId",selectedBranchId);
-    
+
   // }, [selectedBranchId, deliveryMethod, setValueCreateOrder]);
 
-  
   // console.log("SelectedAddressArray", selectedAddressArray);
   // console.log("SelectedAddress", selectedAddress);
   // console.log("selectedEditAddress", selectedEditAddress);
@@ -681,7 +688,6 @@ function CreateOrder() {
     setIsItemDialogOpen(false);
   };
 
-
   const handleNoteChange = (e, itemId) => {
     const newNote = e.target.value;
 
@@ -721,6 +727,7 @@ function CreateOrder() {
     // setSelectedBranchPriceList(null);
     refetchBranches();
     setCartItems([]);
+    setActiveSection("all");
   };
   // banches
 
@@ -730,7 +737,6 @@ function CreateOrder() {
     refetchMenu();
   };
 
-
   const [showDateTime, setShowDateTime] = useState(false);
 
   const handleSelectChangeBranchesCreateOrder = (selectedOption) => {
@@ -739,7 +745,7 @@ function CreateOrder() {
       setSelectedBranchIdCreateOrder(branchId);
       setSelectedBranchPriceList(selectedOption.priceList);
       setValueCreateOrder("branches", branchId); // ✅ تسجيلها كرقم
-      console.log("SelectedBranchIdCreateOrder", branchId); // تحقق من القيمة
+      // console.log("SelectedBranchIdCreateOrder", branchId); // تحقق من القيمة
     }
   };
 
@@ -784,23 +790,25 @@ function CreateOrder() {
     if (orderTypeOptions.length > 0) {
       const defaultValue =
         deliveryMethod === "pickup" ? orderTypeOptions[1] : orderTypeOptions[0];
-  
+
       setSelectedOrderType(defaultValue);
       setValueCreateOrder("ordertype", defaultValue.value);
-  
+
       // console.log("🚀 selectedOrderType Updated:", defaultValue);
     }
   }, [deliveryMethod]);
-  
+
   useEffect(() => {
-    const currentSelectedBranchId = getValueCreateOrder("branches"); 
-    const deliveryBranch = selectedAddress?.branch?.[0]?.id || null; 
-    
+    const currentSelectedBranchId = getValueCreateOrder("branches");
+    const deliveryBranch = selectedAddress?.branch?.[0]?.id || null;
+
     if (deliveryMethod === "pickup") {
       if (selectedBranchId && selectedBranchId !== currentSelectedBranchId) {
-        setValueCreateOrder("branches", selectedBranchId, { shouldValidate: true });
+        setValueCreateOrder("branches", selectedBranchId, {
+          shouldValidate: true,
+        });
       }
-    } 
+    }
     // else if (deliveryMethod === "delivery") {
     //   if (deliveryBranch && deliveryBranch !== currentSelectedBranchId) {
     //     setSelectedBranchId(deliveryBranch);
@@ -809,16 +817,18 @@ function CreateOrder() {
     // }
     if (deliveryMethod === "delivery") {
       if (deliveryBranch && deliveryBranch !== currentSelectedBranchId) {
-        setValueCreateOrder("branches", deliveryBranch, { shouldValidate: true });
+        setValueCreateOrder("branches", deliveryBranch, {
+          shouldValidate: true,
+        });
         setSelectedBranchId(deliveryBranch); // تحديث السيلكت الداخلي فقط
       }
     }
-  
-    console.log("currentSelectedBranchId:", getValueCreateOrder("branches"));
-    console.log("selectedBranchId:", selectedBranchId);
-    console.log("deliveryBranch:", deliveryBranch);
+
+    // console.log("currentSelectedBranchId:", getValueCreateOrder("branches"));
+    // console.log("selectedBranchId:", selectedBranchId);
+    // console.log("deliveryBranch:", deliveryBranch);
   }, [selectedBranchId, deliveryMethod, selectedAddress, setValueCreateOrder]);
-  
+
   const [selectedOrderPaymeny, setSelectedOrderPaymeny] = useState(null);
   const orderPaymenyOptions = [{ value: 1, label: "Cash" }];
 
@@ -871,7 +881,15 @@ function CreateOrder() {
       );
 
       setValueEditAddressUser("area", selectedAreaOption);
-      setValueEditAddressUser("name", selectedEditAddress.address_name);
+      // setValueEditAddressUser("name", selectedEditAddress.address_name);
+      if (["home", "work"].includes(selectedEditAddress.address_name)) {
+        seEditAddressType(selectedEditAddress.address_name);
+        setCustomAddressName(""); // إخفاء الإدخال
+      } else {
+        seEditAddressType("other");
+        setCustomAddressName(selectedEditAddress.address_name); // إدخال الاسم المخصص
+      }
+  
       setValueEditAddressUser("street", selectedEditAddress.street);
       setValueEditAddressUser("building", selectedEditAddress.building || "");
       setValueEditAddressUser("floor", selectedEditAddress.floor || "");
@@ -882,6 +900,17 @@ function CreateOrder() {
       );
     }
   }, [selectedEditAddress, setValueEditAddressUser]);
+  const handleEditAddressTypeChange = (type) => {
+    seEditAddressType(type);
+  
+    if (type === "other") {
+      setCustomAddressName("");
+      setValueEditAddressUser("name", "");
+    } else {
+      setCustomAddressName(""); // إخفاء الإدخال
+      setValueEditAddressUser("name", type);
+    }
+  };
   const [totalExtrasPrice, setTotalExtrasPrice] = useState(0);
   // console.log("totalExtrasPrice", totalExtrasPrice);
   const [lodaingEditUserData, setLodaingEditUserData] = useState(false);
@@ -930,24 +959,57 @@ function CreateOrder() {
   // console.log("set slected ", selectedAddress);
   const [loading, setLoading] = useState(false);
   const [selectedAddressType, setSelectedAddressType] = useState("home");
+  const [addAddressType, setaddAddressType] = useState("home");
+  const [editAddressType, seEditAddressType] = useState("home");
+  const [customAddressName, setCustomAddressName] = useState("");
+
+  useEffect(() => {
+    if (selectedAddressType !== "other") {
+      setValueAddNewUser("name", selectedAddressType);
+    } else {
+      setValueAddNewUser("name", "");
+    }
+    trigger("name");
+  }, [selectedAddressType]);
 
   const handleAddressTypeChange = (type) => {
     setSelectedAddressType(type);
     if (type !== "other") {
-      setValueAddNewUser("name", type); // تعيين القيمة تلقائيًا
-      trigger("name");
+      setValueAddNewUser("name", type);
     } else {
-      setValueAddNewUser("name", ""); // إعادة تعيين إذا كان "Other"
+      setValueAddNewUser("name", "");
     }
+    trigger("name");
   };
+
+  useEffect(() => {
+    if (selectedAddressType !== "other") {
+      setValueAddNewAddress("name", selectedAddressType);
+    } else {
+      setValueAddNewAddress("name", "");
+    }
+    trigger("name");
+  }, [selectedAddressType]);
+
+  const handleAddressTypeAdd = (type) => {
+    setaddAddressType(type);
+    if (type !== "other") {
+      setValueAddNewAddress("name", type);
+    } else {
+      setValueAddNewAddress("name", "");
+    }
+    trigger("name");
+  };
+
   const onSubmitAddUserData = async (data) => {
     // console.log("data", data);
     setLoading(true);
     try {
-      const userId = await createUser(data.username, data.phone);
+      const userId = await createUser(data.username, data.phone, data.phone2);
 
-      // if (!userId) throw new Error("User ID not received");
+      if (!userId) throw new Error("User ID not received");
       // console.log("userId from onSubmitAddUserData ", userId);
+      const nameValue = data.name.trim() === "" ? "home" : data.name;
       await createAddress(
         userId,
         data.area.value,
@@ -956,27 +1018,28 @@ function CreateOrder() {
         data.floor,
         data.apt,
         data.additionalInfo,
-        data.name
+        // data.name
+        nameValue
       );
-
-      toast.success("user added");
+      setIsNewUserDialogOpen(false);
+      resetAddNewUser();
+      toast.success("User added successfully");
     } catch (error) {
       const errorMessage = error.message || "Unexpected error";
       console.error(error);
       // toast.error(errorMessage);
     } finally {
-      setIsNewUserDialogOpen(false);
-      resetAddNewUser();
       setLoading(false);
     }
   };
   const onSubmitAddAddress = async (data) => {
-    console.log("data", data);
+    // console.log("data", data);
     setLoading(true);
     const userId = selectedUser?.id;
     try {
       // if (!userId) throw new Error("User ID not received");
-      console.log("userId from onSubmitAddUserData ", userId);
+      // console.log("userId from onSubmitAddUserData ", userId);
+      const nameValue = data.name.trim() === "" ? "home" : data.name;
       await createAddress(
         userId,
         data.area.value,
@@ -985,34 +1048,26 @@ function CreateOrder() {
         data.floor,
         data.apt,
         data.additionalInfo,
-        data.name
+        // data.name
+        nameValue
       );
 
-      toast.success("address added successfully");
       queryClient.invalidateQueries(["userSearch", phone]);
       setIsNewAddressDialogOpen(false);
+      toast.success("Address added successfully");
+      resetAddNewAddress();
+      setaddAddressType("home")
     } catch (error) {
       const errorMessage = error.message || "Unexpected error";
       console.error(error);
       // toast.error(errorMessage);
     } finally {
       setLoading(false);
-      setIsNewAddressDialogOpen(false);
-      resetAddNewAddress();
     }
   };
 
   const onSubmitEditUserAddress = async (data) => {
-    if (!selectedEditAddress?.id) {
-      toast.error("No address selected for editing.");
-      return;
-    }
-
-    if (!data?.area?.value) {
-      toast.error("Area is required.");
-      return;
-    }
-
+    const nameValue = data.name.trim() === "" ? "home" : data.name;
     const formattedData = {
       id: selectedEditAddress.id, // تأكيد إرسال ID صحيح
       area: data.area.value,
@@ -1021,10 +1076,10 @@ function CreateOrder() {
       floor: data.floor || "",
       apt: data.apt || "",
       additional_info: data.additionalInfo || "",
-      address_name: data.name || "",
+      address_name: nameValue,
     };
 
-    console.log("Formatted Data to Send:", formattedData); // تحقق من البيانات
+    // console.log("Formatted Data to Send:", formattedData); // تحقق من البيانات
 
     try {
       const response = await updateUserAddress(formattedData);
@@ -1038,24 +1093,18 @@ function CreateOrder() {
         toast.error("Something went wrong");
       }
 
-      console.log("Response onSubmit:", response);
+      // console.log("Response onSubmit:", response);
     } catch (error) {
       console.error("Error updating user address:", error);
       toast.error("Failed to update address. Please try again.");
     }
   };
-
-  const handleEditAddress = (address) => {
-    setSelectedEditAddress(address);
-    setOpenEditAddressDialog(true);
-  };
-
   const handleDeleteAddress = async (id) => {
     // console.log("id remove", id);
     try {
       const response = await deleteAddress(id);
 
-      console.log("Response onSubmit delete:", response);
+      // console.log("Response onSubmit delete:", response);
     } catch (error) {
       console.error("Error updating user address:", error);
       toast.error("Failed to update address. Please try again.");
@@ -1072,17 +1121,11 @@ function CreateOrder() {
     }
   };
 
-  // console.log("📦 selectedAddress الطلب:", selectedAddress);
-  // console.log("📦 selectedUser الطلب:", selectedUser);
-
-
   const onSubmithandleCreateOrder = async (data) => {
-    console.log("📦 بيانات الطلب:", data);
+    // console.log("📦 بيانات الطلب:", data);
     setLoading(true);
-  
-    try {
 
-  
+    try {
       await createOrder({
         lookupId: selectedUser?.id,
         address: selectedAddress?.id,
@@ -1092,23 +1135,18 @@ function CreateOrder() {
         status: data.orderstatus === 1 ? "pending" : "new",
         insertcoupon: data.insertcoupon,
         insertpoints: data.insertpoints,
-        time:data?.startTime,
+        time: data?.startTime,
         payment: 1,
         delivery_type: data.ordertype,
         items: cartItems,
-        lat:0,lng:0,
+        lat: 0,
+        lng: 0,
         branch: data.branches,
       });
-  
-      toast.success(" Order created successfully!");
+
+      toast.success("Order created successfully");
       setCancelOrderDialogOpen(false);
-    } catch (error) {
-      console.error("❌ خطأ في إنشاء الطلب:", error);
-      toast.error(error.message || "حدث خطأ غير متوقع!");
-    } finally {
-      setLoading(false);
-      setCancelOrderDialogOpen(false);
-  
+
       resetCreateOrder({
         ordertype: orderTypeOptions.length > 0 ? orderTypeOptions[0].value : "",
         ordersource:
@@ -1118,9 +1156,9 @@ function CreateOrder() {
         orderpayment:
           orderPaymenyOptions.length > 0 ? orderPaymenyOptions[0].value : "",
       });
-  
+
       setShowDateTime(false);
-  
+
       if (orderSourceOptions.length > 0) {
         setOrderSourceSelected(orderSourceOptions[0]);
       }
@@ -1129,8 +1167,19 @@ function CreateOrder() {
       }
       setDiscountValue("");
       setDiscountPercentage("");
+    } catch (error) {
+      console.error(" خطأ في إنشاء الطلب:", error);
+      toast.error(error.message || "حدث خطأ غير متوقع!");
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleEditAddress = (address) => {
+    setSelectedEditAddress(address);
+    setOpenEditAddressDialog(true);
+  };
+
   const grandTotal = cartItems.reduce((sum, item) => {
     // تأكد أن السعر والكمية أرقام عشرية صحيحة
     const itemPrice = parseFloat(item.price) || 0;
@@ -1158,53 +1207,49 @@ function CreateOrder() {
   const discount = 0;
 
   const Delivery =
-  selectedOrderType?.value === 2
-    ? 0
-    : parseFloat(selectedBranch?.delivery_fees) || 0;
+    selectedOrderType?.value === 2
+      ? 0
+      : parseFloat(selectedBranch?.delivery_fees) || 0;
 
-
-  const totalAmount = grandTotal + vatAmount + Delivery - discount; 
-
+  const totalAmount = grandTotal + vatAmount + Delivery - discount;
 
   const finalTotal = useMemo(() => {
-    let total = selectedOrderType?.value === 2 ? totalAmount - Delivery : totalAmount;
-    return total - discountValue; 
-  }, [totalAmount, selectedOrderType, Delivery, discountValue]); 
-  
-  
+    let total =
+      selectedOrderType?.value === 2 ? totalAmount - Delivery : totalAmount;
+    return total - discountValue;
+  }, [totalAmount, selectedOrderType, Delivery, discountValue]);
+
   const handleDiscountValueChange = (e) => {
     let value = parseFloat(e.target.value);
-  
+
     if (!isNaN(value)) {
       if (value > totalAmount) {
-        value = totalAmount; 
+        value = totalAmount;
       }
       setDiscountValue(value);
-  
+
       setDiscountPercentage(Number(((value / totalAmount) * 100).toFixed(3)));
     } else {
       setDiscountValue("");
       setDiscountPercentage("");
     }
   };
-  
-  
+
   const handleDiscountPercentageChange = (e) => {
     let value = parseFloat(e.target.value);
-  
+
     if (!isNaN(value)) {
       if (value > 100) {
-        value = 100; 
+        value = 100;
       }
       setDiscountPercentage(value);
-      
+
       setDiscountValue(Number(((value / 100) * totalAmount).toFixed(3)));
     } else {
       setDiscountPercentage("");
       setDiscountValue("");
     }
   };
-  
 
   const handleCacelOrder = () => {
     setSearch("");
@@ -1250,9 +1295,9 @@ function CreateOrder() {
                 <Input
                   type="text"
                   placeholder="Search"
-                  className="pl-7 w-full"
+                  className="pl-7 w-full text-[#fff] "
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)} // لا تغير القسم عند البحث
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
 
@@ -1329,7 +1374,7 @@ function CreateOrder() {
                             onClick={() =>
                               setCounter((prev) => (prev > 1 ? prev - 1 : 1))
                             }
-                            className="px-2 py-1 bg-red-500 text-white rounded-l-md hover:bg-red-600 transition-colors ml-4"
+                            className="px-2 py-1 bg-red-500 text-white rounded-[6px] hover:bg-red-600 transition-colors mr-1 ml-4"
                           >
                             <FaMinus />
                           </button>
@@ -1350,11 +1395,11 @@ function CreateOrder() {
                                 setCounter(value);
                               }
                             }}
-                            className="w-16 text-center border border-gray-300 rounded-[2px] focus:outline-none focus:ring-2 focus:-blue-500 focus:border-transparent"
+                            className="w-16 text-center border border-gray-300 rounded-[6px] focus:outline-none focus:ring-2 focus:-blue-500 focus:border-transparent "
                           />
                           <button
                             onClick={() => setCounter((prev) => prev + 1)}
-                            className="px-2 py-1 bg-green-500 text-white rounded-r-md hover:bg-green-600 transition-colors ml5"
+                            className="px-2 py-1 bg-green-500 text-white rounded-[6px] hover:bg-green-600 transition-colors ml5 mr-2 ml-1"
                           >
                             <FaPlus />
                           </button>
@@ -1385,9 +1430,9 @@ function CreateOrder() {
                                     return {
                                       ...prev,
                                       selectedInfo: size?.size_en,
-                                      itemExtras: newItemExtras, // تحديث الإضافات الخاصة بالحجم
-                                      extrasData: newExtrasData, // تحديث الاختيارات الخاصة بالحجم الجديد
-                                      selectedItemExtras: [], // مسح اختيارات الإضافات الخاصة بالحجم
+                                      itemExtras: newItemExtras, 
+                                      extrasData: newExtrasData, 
+                                      selectedItemExtras: [],
                                       price: size?.price?.price,
                                       selectedIdSize: size?.id,
                                     };
@@ -1528,14 +1573,14 @@ function CreateOrder() {
                                           0
                                         );
 
-                                      console.log(
-                                        "Selected Extras:",
-                                        updatedExtras
-                                      );
-                                      console.log(
-                                        "Total Price:",
-                                        newTotalPrice
-                                      );
+                                      // console.log(
+                                      //   "Selected Extras:",
+                                      //   updatedExtras
+                                      // );
+                                      // console.log(
+                                      //   "Total Price:",
+                                      //   newTotalPrice
+                                      // );
                                       setTotalExtrasPrice(newTotalPrice);
                                       return {
                                         ...prev,
@@ -1559,7 +1604,7 @@ function CreateOrder() {
                           onChange={(e) => setNote(e.target.value)}
                           type="text"
                           placeholder="Note"
-                          className="w-full"
+                          className="w-full text-[#fff]"
                         />
                       </div>
                       <div className="flex justify-end">
@@ -1628,14 +1673,14 @@ function CreateOrder() {
                               onSubmitAddUserData
                             )}
                           >
-                            <div className="flex gap-2 items-start">
+                            <div className="flex gap-2 items-start mb-4">
                               {/* Username Input */}
                               <div className="flex-1 flex flex-col">
                                 <Input
                                   type="text"
                                   placeholder="Username"
                                   {...registerAddNewUser("username")}
-                                  className="w-full"
+                                  className="w-full text-[#fff]"
                                 />
                                 {errorsAddNewUser.username && (
                                   <p className="text-red-500 text-sm h-[20px] mt-2">
@@ -1643,14 +1688,42 @@ function CreateOrder() {
                                   </p>
                                 )}
                               </div>
-
+                              <div className="flex-1 flex flex-col">
+                                <Controller
+                                  name="area"
+                                  control={control}
+                                  rules={{ required: "Area is required" }}
+                                  render={({ field }) => (
+                                    <Select
+                                      {...field}
+                                      options={areasOptions || []}
+                                      placeholder="Area"
+                                      className="react-select w-full mb"
+                                      classNamePrefix="select"
+                                      // onChange={handleChangeArea}
+                                      onChange={(selectedOption) => {
+                                        field.onChange(selectedOption);
+                                        handleChangeArea(selectedOption);
+                                      }}
+                                      styles={selectStyles(theme, color)}
+                                    />
+                                  )}
+                                />
+                                {errorsAddNewUser.area && (
+                                  <p className="text-red-500 text-sm h-[20px]">
+                                    {errorsAddNewUser.area.message}
+                                  </p>
+                                )}
+                              </div>
                               {/* Phone Input */}
+                            </div>
+                            <div className="flex gap-2 items-start mb-4" >
                               <div className="flex-1 flex flex-col">
                                 <Input
                                   type="number"
                                   placeholder="Phone"
                                   {...registerAddNewUser("phone")}
-                                  className="w-full"
+                                  className="w-full text-[#fff]"
                                 />
                                 {errorsAddNewUser.phone && (
                                   <p className="text-red-500 text-sm h-[20px] mt-2">
@@ -1658,41 +1731,29 @@ function CreateOrder() {
                                   </p>
                                 )}
                               </div>
+                              <div className="flex-1 flex flex-col">
+                                <Input
+                                  type="number"
+                                  placeholder="Phone 2"
+                                  {...registerAddNewUser("phone2")}
+                                  className="w-full text-[#fff]"
+                                />
+                                {errorsAddNewUser.phone2 && (
+                                  <p className="text-red-500 text-sm h-[20px] mt-2">
+                                    {errorsAddNewUser.phone2.message}
+                                  </p>
+                                )}
+                              </div>
                             </div>
 
-                            <Controller
-                              name="area"
-                              control={control}
-                              rules={{ required: "Area is required" }}
-                              render={({ field }) => (
-                                <Select
-                                  {...field}
-                                  options={areasOptions || []}
-                                  placeholder="Area"
-                                  className="react-select w-full my-3"
-                                  classNamePrefix="select"
-                                  // onChange={handleChangeArea}
-                                  onChange={(selectedOption) => {
-                                    field.onChange(selectedOption);
-                                    handleChangeArea(selectedOption);
-                                  }}
-                                  styles={selectStyles(theme, color)}
-                                />
-                              )}
-                            />
-                            {errorsAddNewUser.area && (
-                              <p className="text-red-500 text-sm">
-                                {errorsAddNewUser.area.message}
-                              </p>
-                            )}
-                            <div className="flex gap-2 items-center my-3">
+                            <div className="flex gap-2 items-center my-3 mb-4">
                               {/* Street Input */}
                               <div className="flex-1">
                                 <Input
                                   type="text"
                                   placeholder="Street"
                                   {...registerAddNewUser("street")}
-                                  className="w-full"
+                                  className="w-full text-[#fff]"
                                 />
                                 <p
                                   className={`text-red-500 text-sm mt-1 transition-all duration-200 ${
@@ -1711,7 +1772,7 @@ function CreateOrder() {
                                   type="text"
                                   placeholder="Building"
                                   {...registerAddNewUser("building")}
-                                  className="w-full"
+                                  className="w-full text-[#fff]"
                                 />
                                 {errorsAddNewUser.street && (
                                   <div className="h-[20px]"></div>
@@ -1719,7 +1780,7 @@ function CreateOrder() {
                               </div>
                             </div>
 
-                            <div className="flex gap-2 items- my-3">
+                            <div className="flex gap-2 items- my-3 mb-4">
                               <Input
                                 type="text"
                                 placeholder="Floor"
@@ -1728,46 +1789,36 @@ function CreateOrder() {
                                 // className={`${
                                 //   errorsAddNewUser.floor ? "mb-1" : "mb-4"
                                 // }`}
+                                className=" text-[#fff]"
+
                               />
 
                               <Input
                                 type="text"
                                 placeholder="Apt"
                                 {...registerAddNewUser("apt")}
-                                className="mb-1"
+                                className="mb-1 text-[#fff]"
                               />
                             </div>
                             <Input
                               type="text"
                               placeholder="Land mark"
                               {...registerAddNewUser("additionalInfo")}
-                              className="mb-4"
+                              className="mb-4 text-[#fff]"
                             />
-                            {/* <Input
-                              type="text"
-                              placeholder="Address name"
-                              {...registerAddNewUser("name")}
-                              // className="mb-4"
-                              className={`${
-                                errorsAddNewUser.name ? "mb-1" : "mb-4"
-                              }`}
-                            />
-                            {errorsAddNewUser.name && (
-                              <p className="text-red-500 text-sm">
-                                {errorsAddNewUser.name.message}
-                              </p>
-                            )} */}
+
                             <div className="space-y-1">
                               {/* Checkboxes */}
                               <div className="flex gap-4 items-center">
                                 {["home", "work", "other"].map((type) => (
                                   <label
                                     key={type}
-                                    className="flex items-center gap-2"
+                                    className="flex items-center gap-2 "
                                   >
                                     <Input
                                       type="checkbox"
                                       name="addressType"
+                                      className="mt-1"
                                       value={type}
                                       checked={selectedAddressType === type}
                                       onChange={() =>
@@ -1785,17 +1836,11 @@ function CreateOrder() {
                                   type="text"
                                   placeholder="Enter address name"
                                   {...registerAddNewUser("name")}
-                                  className={`${
-                                    errorsAddNewUser.name ? "mb-1" : "mb-"
-                                  }`}
+                                  className="text-[#fff]"
                                 />
                               )}
 
-                              {errorsAddNewUser.name && (
-                                <p className="text-red-500 text-sm">
-                                  {errorsAddNewUser.name.message}
-                                </p>
-                              )}
+                            
                             </div>
                             <DialogFooter className="mt-8">
                               <DialogClose asChild>
@@ -1844,7 +1889,7 @@ function CreateOrder() {
                                   // onChange={handleChangeArea}
                                   onChange={(selectedOption) => {
                                     field.onChange(selectedOption);
-                                    handleChangeArea(selectedOption); // تشغيل دالة التحديث الخاصة بك
+                                    handleChangeArea(selectedOption); 
                                   }}
                                   styles={selectStyles(theme, color)}
                                 />
@@ -1855,32 +1900,40 @@ function CreateOrder() {
                                 {errorsAddNewAddress.area.message}
                               </p>
                             )}
-                            <div className="flex gap-2 items- my-3">
-                              <div>
+
+                            <div className="flex gap-2 items-center my-3">
+                              <div className="flex-1">
                                 <Input
                                   type="text"
                                   placeholder="Street"
                                   {...registerAddNewAddress("street")}
-                                  className={`${
-                                    registerAddNewAddress.street
-                                      ? "mb-1"
-                                      : "mb-4"
-                                  }`}
+                                  className="w-full text-[#fff] "
                                 />
-                                {errorsAddNewAddress.street && (
-                                  <p className="text-red-500 text-sm">
-                                    {errorsAddNewAddress.street.message}
-                                  </p>
-                                )}
+                                <p
+                                  className={`text-red-500 text-sm mt-1 transition-all duration-200 ${
+                                    errorsAddNewAddress.street
+                                      ? "h-auto opacity-100"
+                                      : "h-0 opacity-0"
+                                  }`}
+                                >
+                                  {errorsAddNewAddress.street?.message}
+                                </p>
                               </div>
 
-                              <Input
-                                type="text"
-                                placeholder="Building"
-                                {...registerAddNewAddress("building")}
-                              />
+                              <div className="flex-1">
+                                <Input
+                                  type="text"
+                                  placeholder="Building"
+                                  {...registerAddNewAddress("building")}
+                                  className="w-full  text-[#fff]"
+                                />
+                                {errorsAddNewAddress.street && (
+                                  <div className="h-[20px]"></div>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex gap-2 items- my-3">
+
+                            <div className="flex gap-2 items- my-">
                               <Input
                                 type="text"
                                 placeholder="Floor"
@@ -1889,35 +1942,57 @@ function CreateOrder() {
                                 // className={`${
                                 //   registerAddNewAddress.floor ? "mb-1" : "mb-4"
                                 // }`}
+                                className=" text-[#fff]"
                               />
 
                               <Input
                                 type="text"
                                 placeholder="Apt"
                                 {...registerAddNewAddress("apt")}
-                                className="mb-4"
+                                className="mb-4  text-[#fff]"
                               />
                             </div>
                             <Input
                               type="text"
                               placeholder="Land mark"
                               {...registerAddNewAddress("additionalInfo")}
-                              className="mb-4"
+                              className="mb-4  text-[#fff]"
                             />
-                            <Input
-                              type="text"
-                              placeholder="Address name"
-                              {...registerAddNewAddress("name")}
-                              // className="mb-4"
-                              className={`${
-                                errorsAddNewAddress.name ? "mb-1" : "mb-4"
-                              }`}
-                            />
-                            {errorsAddNewAddress.name && (
-                              <p className="text-red-500 text-sm">
-                                {errorsAddNewAddress.name.message}
-                              </p>
-                            )}
+                    
+                              <div className="space-y-1">
+                                <div className="flex gap-4 items-center">
+                                  {["home", "work", "other"].map((type) => (
+                                    <label
+                                      key={type}
+                                      className="flex items-center gap-2"
+                                    >
+                                      <Input
+                                        type="checkbox"
+                                        name="addressType"
+                                        className="mt-1"
+                                        value={type}
+                                        checked={addAddressType === type}
+                                        onChange={() =>
+                                          handleAddressTypeAdd(type)
+                                        }
+                                      />
+                                      {type.charAt(0).toUpperCase() +
+                                        type.slice(1)}{" "}
+                                    </label>
+                                  ))}
+                                </div>
+
+                                {addAddressType === "other" && (
+                                  <Input
+                                    type="text"
+                                    placeholder="Enter address name"
+                                    {...registerAddNewAddress("name")}
+                                    className="text-[#fff]"
+                                  />
+                                )}
+
+                              
+                              </div>
                             <DialogFooter className="mt-8">
                               <DialogClose asChild>
                                 <Button
@@ -1953,7 +2028,7 @@ function CreateOrder() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyPress}
-                className="pl-7 pr-8 w-full"
+                className="pl-7 pr-8 w-full text-[#fff]"
               />
               {search && (
                 <button
@@ -1981,7 +2056,7 @@ function CreateOrder() {
                   Edit user data
                 </Button>
               </div>
-              <p>Phone: {selectedUser.phone}</p>
+              <p >Phone: {selectedUser.phone}</p>
               <p>Orders Count: {selectedUser.orders_count}</p>
               <p>Points: {selectedUser.user.points}</p>
 
@@ -1995,11 +2070,24 @@ function CreateOrder() {
                       onSubmit={handleSubmitEdit(onSubmitEditUserData)}
                       className="space-y-1"
                     >
+                      {/* Username */}
+                      {/* <label htmlFor="username" className="block text-sm font-medium text-[#fff]">
+    Username  
+  </label> */}
+                      <label
+                        htmlFor="username"
+                        className="block text-sm font-medium text-[#fff]"
+                      >
+                        Username
+                        {/* <span className="text-red-500">*</span> */}
+                      </label>
+
                       <Input
+                        id="username"
                         type="text"
                         placeholder="Username"
                         {...registerEdit("username")}
-                        className={` ${errorsEdit.username ? "mb-1" : "mb-4"}`}
+                        className={`${errorsEdit.username ? "mb-1" : "mb-4"} text-[#fff]`}
                       />
                       {errorsEdit.username && (
                         <p className="text-red-500 text-sm my-1">
@@ -2007,40 +2095,68 @@ function CreateOrder() {
                         </p>
                       )}
 
+                      {/* Phone */}
+                      <label
+                        htmlFor="phone"
+                        className="block text-sm font-medium text-[#fff]"
+                      >
+                        Phone
+                        {/* <span className="text-red-500">*</span>    */}
+                      </label>
                       <Input
+                        id="phone"
                         type="number"
                         placeholder="Phone"
                         {...registerEdit("phone")}
-                        className={`${errorsEdit.phone ? "mb-1" : "mb-4"}`}
+                        className={`${errorsEdit.phone ? "mb-1" : "mb-4"} text-[#fff]`}
                       />
                       {errorsEdit.phone && (
-                        <p className="text-red-500 text-sm  ">
+                        <p className="text-red-500 text-sm">
                           {errorsEdit.phone.message}
                         </p>
                       )}
 
+                      {/* Phone 2 */}
+                      <label
+                        htmlFor="phone2"
+                        className="block text-sm font-medium text-[#fff]"
+                      >
+                        Phone 2
+                      </label>
                       <Input
+                        id="phone2"
                         type="number"
                         placeholder="Phone 2"
                         {...registerEdit("phone2", { required: false })}
-                        className={` ${errorsEdit.phone2 ? "mb-1" : "mb-4"}`}
+                        className={`${errorsEdit.phone2 ? "mb-1" : "mb-4"} text-[#fff]`}
                       />
                       {errorsEdit.phone2 && (
                         <p className="text-red-500 text-sm mt-1">
                           {errorsEdit.phone2.message}
                         </p>
                       )}
+
+                      {/* Email */}
+                      <label
+                        htmlFor="email"
+                        className="block text-sm font-medium text-[#fff]"
+                      >
+                        Email
+                      </label>
                       <Input
+                        id="email"
                         type="text"
                         placeholder="Email"
                         {...registerEdit("email", { required: false })}
-                        className={` ${errorsEdit.email ? "mb-1" : "mb-4"}`}
+                        className={`${errorsEdit.email ? "mb-1" : "mb-4"} text-[#fff]`}
                       />
                       {errorsEdit.email && (
                         <p className="text-red-500 text-sm mt-1">
                           {errorsEdit.email.message}
                         </p>
                       )}
+
+                      {/* Buttons */}
                       <div className="mt-3">
                         <DialogFooter className="flex justify-between items-center mt-4">
                           <DialogClose asChild>
@@ -2065,20 +2181,20 @@ function CreateOrder() {
                 >
                   <DialogContent size="3xl">
                     <DialogHeader>
-                      <DialogTitle>Edit user address</DialogTitle>
+                      <DialogTitle>Edit User Address</DialogTitle>
                     </DialogHeader>
 
-                    <form
+                    {/* <form
                       onSubmit={handleEditAddressUser(onSubmitEditUserAddress)}
                       className="space-y-4"
                     >
-                      {/* Select Field */}
                       <Controller
                         name="area"
                         control={controlEditAddress}
                         rules={{ required: "Area is required" }}
                         render={({ field }) => (
-                          <Select
+                         <div>
+                           <Select
                             {...field}
                             options={areasOptions || []}
                             placeholder="Area"
@@ -2095,6 +2211,7 @@ function CreateOrder() {
                             }}
                             styles={selectStyles(theme, color)}
                           />
+                         </div>
                         )}
                       />
                       {errorsEditAddressUser.area && (
@@ -2103,7 +2220,6 @@ function CreateOrder() {
                         </p>
                       )}
 
-                      {/* Input Fields */}
 
                       <div className="flex gap-2 items-center my-3">
                         <Input
@@ -2155,7 +2271,6 @@ function CreateOrder() {
                         </p>
                       )}
 
-                      {/* Buttons */}
                       <DialogFooter className="flex justify-end gap-4">
                         <DialogClose asChild>
                           <Button
@@ -2167,7 +2282,117 @@ function CreateOrder() {
                         </DialogClose>
                         <Button type="submit">Save Changes</Button>
                       </DialogFooter>
-                    </form>
+                    </form> */}
+                    <form onSubmit={handleEditAddressUser(onSubmitEditUserAddress)} className="space-y-4">
+  {/* Select Field */}
+  <div>
+    <label className="block mb-1">Area</label>
+    <Controller
+      name="area"
+      control={controlEditAddress}
+      rules={{ required: "Area is required" }}
+      render={({ field }) => (
+        <Select
+          {...field}
+          options={areasOptions || []}
+          placeholder="Area"
+          className="react-select w-full"
+          classNamePrefix="select"
+          value={
+            areasOptions?.find(
+              (option) => option.value === field.value?.value
+            ) || null
+          }
+          onChange={(selectedOption) => {
+            field.onChange(selectedOption);
+            handleChangeArea(selectedOption);
+          }}
+          styles={selectStyles(theme, color)}
+        />
+      )}
+    />
+  </div>
+  {errorsEditAddressUser.area && (
+    <p className="text-red-500 text-sm">{errorsEditAddressUser.area.message}</p>
+  )}
+
+  {/* Input Fields */}
+  <div className="flex gap-2 items-center my-3">
+    <div className="flex-1">
+      <label className="block mb-1">Street</label>
+      <Input type="text" {...registerEditAddressUser("street")} className="w-full text-[#fff]" />
+    </div>
+    <div className="flex-1">
+      <label className="block mb-1">Building</label>
+      <Input type="text" {...registerEditAddressUser("building")} className="w-full text-[#fff]" />
+    </div>
+  </div>
+
+  <div className="flex gap-2 items-center my-3">
+    <div className="flex-1">
+      <label className="block mb-1">Floor</label>
+      <Input type="text" {...registerEditAddressUser("floor")} className="w-full text-[#fff]" />
+    </div>
+    <div className="flex-1">
+      <label className="block mb-1">Apt</label>
+      <Input type="text" {...registerEditAddressUser("apt")} className="w-full text-[#fff]" />
+    </div>
+  </div>
+
+  <div>
+    <label className="block mb-1">Landmark</label>
+    <Input type="text" {...registerEditAddressUser("additionalInfo")} className="w-full text-[#fff]" />
+  </div>
+
+  {/* <div>
+    <label className="block mb-1">Address Name</label>
+    <Input type="text" {...registerEditAddressUser("name")} className="w-full" />
+    {errorsEditAddressUser.name && (
+      <p className="text-red-500 text-sm">{errorsEditAddressUser.name.message}</p>
+    )}
+  </div> */}
+  <div className="space-y-1">
+  <div className="flex gap-4 items-center">
+    {["home", "work", "other"].map((type) => (
+      <label key={type} className="flex items-center gap-2">
+        <Input
+          type="checkbox"
+          name="addressType"
+          className="mt-1"
+          value={type}
+          checked={editAddressType === type}
+          onChange={() => handleEditAddressTypeChange(type)}
+        />
+        {type.charAt(0).toUpperCase() + type.slice(1)}
+      </label>
+    ))}
+  </div>
+
+  {editAddressType === "other" && (
+    <Input
+      type="text"
+      placeholder="Enter address name"
+      value={customAddressName}
+      onChange={(e) => {
+        setCustomAddressName(e.target.value);
+        setValueEditAddressUser("name", e.target.value);
+      }}
+      className="text-[#fff]"
+    />
+  )}
+</div>
+
+  {/* Buttons */}
+  <DialogFooter className="flex justify-end gap-4">
+    <DialogClose asChild>
+      <Button variant="outline" onClick={() => setOpenEditAddressDialog(false)}>
+        Close
+      </Button>
+    </DialogClose>
+    <Button type="submit">Save Changes</Button>
+  </DialogFooter>
+</form>
+
                   </DialogContent>
                 </Dialog>
               )}
@@ -2301,22 +2526,21 @@ function CreateOrder() {
                     styles={selectStyles(theme, color)}
                   /> */}
                   <Select
-  className="react-select w-full"
-  classNamePrefix="select"
-  options={branchOptions}
-  onChange={(selectedOption) => {
-    if (!selectedOption) return;
+                    className="react-select w-full"
+                    classNamePrefix="select"
+                    options={branchOptions}
+                    onChange={(selectedOption) => {
+                      if (!selectedOption) return;
 
-    const branchId = Number(selectedOption.value);
-    setSelectedBranchId(branchId);
-  }}
-  // value={
-  //   branchOptions.find((option) => option.value === selectedBranchId) || null
-  // }
-  placeholder="Branches"
-  styles={selectStyles(theme, color)}
-/>
-
+                      const branchId = Number(selectedOption.value);
+                      setSelectedBranchId(branchId);
+                    }}
+                    // value={
+                    //   branchOptions.find((option) => option.value === selectedBranchId) || null
+                    // }
+                    placeholder="Branches"
+                    styles={selectStyles(theme, color)}
+                  />
                 </div>
               )}
             </div>
@@ -2794,10 +3018,10 @@ function CreateOrder() {
                               control={controlCreateOrder}
                               defaultValue={selectedBranch?.id || ""}
                               render={({ field }) => {
-                                console.log(
-                                  "Selected Branch Value:",
-                                  field.value
-                                ); // ✅ تأكيد القيمة
+                                // console.log(
+                                //   "Selected Branch Value:",
+                                //   field.value
+                                // ); // ✅ تأكيد القيمة
                                 return (
                                   <Select
                                     {...field}
@@ -2810,10 +3034,10 @@ function CreateOrder() {
                                       const branchId = Number(
                                         selectedOption.value
                                       );
-                                      console.log(
-                                        "Selected Branch ID Before Storing:",
-                                        branchId
-                                      );
+                                      // console.log(
+                                      //   "Selected Branch ID Before Storing:",
+                                      //   branchId
+                                      // );
 
                                       field.onChange(branchId);
                                       setSelectedBranchIdCreateOrder(branchId);
