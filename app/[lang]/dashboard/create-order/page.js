@@ -541,6 +541,7 @@ function CreateOrder() {
     setAllUserData(null);
     setSelectedAddress(null);
     setSelectedAddressArray(null);
+    setCartItems([]);
   };
 
   useEffect(() => {
