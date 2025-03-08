@@ -1301,7 +1301,7 @@ function CreateOrder() {
                 <Input
                   type="text"
                   placeholder="Search"
-                  className="pl-7 w-full text-[#fff] "
+                  className="pl-7 w-full text-[#000] dark:text-[#fff] "
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -1610,7 +1610,7 @@ function CreateOrder() {
                           onChange={(e) => setNote(e.target.value)}
                           type="text"
                           placeholder="Note"
-                          className="w-full text-[#fff]"
+                          className="w-full text-[#000] dark:text-[#fff]"
                         />
                       </div>
                       <div className="flex justify-end">
@@ -1686,7 +1686,7 @@ function CreateOrder() {
                                   type="text"
                                   placeholder="Username"
                                   {...registerAddNewUser("username")}
-                                  className="w-full text-[#fff]"
+                                  className="w-full text-[#000] dark:text-[#fff]"
                                 />
                                 {errorsAddNewUser.username && (
                                   <p className="text-red-500 text-sm h-[20px] mt-2">
@@ -1729,7 +1729,7 @@ function CreateOrder() {
                                   type="number"
                                   placeholder="Phone"
                                   {...registerAddNewUser("phone")}
-                                  className="w-full text-[#fff]"
+                                  className="w-full  text-[#000] dark:text-[#fff]"
                                 />
                                 {errorsAddNewUser.phone && (
                                   <p className="text-red-500 text-sm h-[20px] mt-2">
@@ -1742,7 +1742,7 @@ function CreateOrder() {
                                   type="number"
                                   placeholder="Phone 2"
                                   {...registerAddNewUser("phone2")}
-                                  className="w-full text-[#fff]"
+                                  className="w-full text-[#000] dark:text-[#fff]"
                                 />
                                 {errorsAddNewUser.phone2 && (
                                   <p className="text-red-500 text-sm h-[20px] mt-2">
@@ -1759,7 +1759,7 @@ function CreateOrder() {
                                   type="text"
                                   placeholder="Street"
                                   {...registerAddNewUser("street")}
-                                  className="w-full text-[#fff]"
+                                  className="w-full text-[#000] dark:text-[#fff]"
                                 />
                                 <p
                                   className={`text-red-500 text-sm mt-1 transition-all duration-200 ${
@@ -1778,7 +1778,7 @@ function CreateOrder() {
                                   type="text"
                                   placeholder="Building"
                                   {...registerAddNewUser("building")}
-                                  className="w-full text-[#fff]"
+                                  className="w-full text-[#000] dark:text-[#fff]"
                                 />
                                 {errorsAddNewUser.street && (
                                   <div className="h-[20px]"></div>
@@ -1795,7 +1795,7 @@ function CreateOrder() {
                                 // className={`${
                                 //   errorsAddNewUser.floor ? "mb-1" : "mb-4"
                                 // }`}
-                                className=" text-[#fff]"
+                                className=" text-[#000] dark:text-[#fff]"
 
                               />
 
@@ -1803,14 +1803,14 @@ function CreateOrder() {
                                 type="text"
                                 placeholder="Apt"
                                 {...registerAddNewUser("apt")}
-                                className="mb-1 text-[#fff]"
+                                className="mb-1 text-[#000] dark:text-[#fff]"
                               />
                             </div>
                             <Input
                               type="text"
                               placeholder="Land mark"
                               {...registerAddNewUser("additionalInfo")}
-                              className="mb-4 text-[#fff]"
+                              className="mb-4 text-[#000] dark:text-[#fff]"
                             />
 
                             <div className="space-y-1">
@@ -1842,7 +1842,7 @@ function CreateOrder() {
                                   type="text"
                                   placeholder="Enter address name"
                                   {...registerAddNewUser("name")}
-                                  className="text-[#fff]"
+                                  className="text-[#000] dark:text-[#fff]"
                                 />
                               )}
 
@@ -1913,7 +1913,7 @@ function CreateOrder() {
                                   type="text"
                                   placeholder="Street"
                                   {...registerAddNewAddress("street")}
-                                  className="w-full text-[#fff] "
+                                  className="w-full text-[#000] dark:text-[#fff] "
                                 />
                                 <p
                                   className={`text-red-500 text-sm mt-1 transition-all duration-200 ${
@@ -1931,7 +1931,7 @@ function CreateOrder() {
                                   type="text"
                                   placeholder="Building"
                                   {...registerAddNewAddress("building")}
-                                  className="w-full  text-[#fff]"
+                                  className="w-full  text-[#000] dark:text-[#fff]"
                                 />
                                 {errorsAddNewAddress.street && (
                                   <div className="h-[20px]"></div>
@@ -1948,21 +1948,21 @@ function CreateOrder() {
                                 // className={`${
                                 //   registerAddNewAddress.floor ? "mb-1" : "mb-4"
                                 // }`}
-                                className=" text-[#fff]"
+                                className=" text-[#000] dark:text-[#fff]"
                               />
 
                               <Input
                                 type="text"
                                 placeholder="Apt"
                                 {...registerAddNewAddress("apt")}
-                                className="mb-  text-[#fff]"
+                                className="mb-  text-[#000] dark:text-[#fff]"
                               />
                             </div>
                             <Input
                               type="text"
                               placeholder="Land mark"
                               {...registerAddNewAddress("additionalInfo")}
-                              className="mb-  text-[#fff]"
+                              className="mb-  text-[#000] dark:text-[#fff]"
                             />
                     
                               <div className="space-y-1">
@@ -1993,7 +1993,7 @@ function CreateOrder() {
                                     type="text"
                                     placeholder="Enter address name"
                                     {...registerAddNewAddress("name")}
-                                    className="text-[#fff]"
+                                    className="text-[#000] dark:text-[#fff]"
                                   />
                                 )}
 
@@ -2034,7 +2034,7 @@ function CreateOrder() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyPress}
-                className="pl-7 pr-8 w-full text-[#fff]"
+                className="pl-7 pr-8 w-full text-[#000] dark:text-[#fff]"
               />
               {search && (
                 <button
@@ -2082,7 +2082,7 @@ function CreateOrder() {
   </label> */}
                       <label
                         htmlFor="username"
-                        className="block text-sm font-medium text-[#fff]"
+                        className="block text-sm font-medium text-[#000] dark:text-[#fff]"
                       >
                         Username
                         {/* <span className="text-red-500">*</span> */}
@@ -2093,7 +2093,7 @@ function CreateOrder() {
                         type="text"
                         placeholder="Username"
                         {...registerEdit("username")}
-                        className={`${errorsEdit.username ? "mb-1" : "mb-4"} text-[#fff]`}
+                        className={`${errorsEdit.username ? "mb-1" : "mb-4"} text-[#000] dark:text-[#fff]`}
                       />
                       {errorsEdit.username && (
                         <p className="text-red-500 text-sm my-1">
@@ -2104,7 +2104,7 @@ function CreateOrder() {
                       {/* Phone */}
                       <label
                         htmlFor="phone"
-                        className="block text-sm font-medium text-[#fff]"
+                        className="block text-sm font-medium text-[#000] dark:text-[#fff]"
                       >
                         Phone
                         {/* <span className="text-red-500">*</span>    */}
@@ -2114,7 +2114,7 @@ function CreateOrder() {
                         type="number"
                         placeholder="Phone"
                         {...registerEdit("phone")}
-                        className={`${errorsEdit.phone ? "mb-1" : "mb-4"} text-[#fff]`}
+                        className={`${errorsEdit.phone ? "mb-1" : "mb-4"} text-[#000] dark:text-[#fff]`}
                       />
                       {errorsEdit.phone && (
                         <p className="text-red-500 text-sm">
@@ -2125,7 +2125,7 @@ function CreateOrder() {
                       {/* Phone 2 */}
                       <label
                         htmlFor="phone2"
-                        className="block text-sm font-medium text-[#fff]"
+                        className="block text-sm font-medium text-[#000] dark:text-[#fff]"
                       >
                         Phone 2
                       </label>
@@ -2134,7 +2134,7 @@ function CreateOrder() {
                         type="number"
                         placeholder="Phone 2"
                         {...registerEdit("phone2", { required: false })}
-                        className={`${errorsEdit.phone2 ? "mb-1" : "mb-4"} text-[#fff]`}
+                        className={`${errorsEdit.phone2 ? "mb-1" : "mb-4"} text-[#000] dark:text-[#fff]`}
                       />
                       {errorsEdit.phone2 && (
                         <p className="text-red-500 text-sm mt-1">
@@ -2145,7 +2145,7 @@ function CreateOrder() {
                       {/* Email */}
                       <label
                         htmlFor="email"
-                        className="block text-sm font-medium text-[#fff]"
+                        className="block text-sm font-medium text-[#000] dark:text-[#fff]"
                       >
                         Email
                       </label>
@@ -2154,7 +2154,7 @@ function CreateOrder() {
                         type="text"
                         placeholder="Email"
                         {...registerEdit("email", { required: false })}
-                        className={`${errorsEdit.email ? "mb-1" : "mb-4"} text-[#fff]`}
+                        className={`${errorsEdit.email ? "mb-1" : "mb-4"} text-[#000] dark:text-[#fff]`}
                       />
                       {errorsEdit.email && (
                         <p className="text-red-500 text-sm mt-1">
@@ -2326,28 +2326,28 @@ function CreateOrder() {
   <div className="flex gap-2 items-center my-3">
     <div className="flex-1">
       <label className="block mb-1">Street</label>
-      <Input type="text" {...registerEditAddressUser("street")} className="w-full text-[#fff]" />
+      <Input type="text" {...registerEditAddressUser("street")} className="w-full text-[#000] dark:text-[#fff]" />
     </div>
     <div className="flex-1">
       <label className="block mb-1">Building</label>
-      <Input type="text" {...registerEditAddressUser("building")} className="w-full text-[#fff]" />
+      <Input type="text" {...registerEditAddressUser("building")} className="w-full text-[#000] dark:text-[#fff]" />
     </div>
   </div>
 
   <div className="flex gap-2 items-center my-3">
     <div className="flex-1">
       <label className="block mb-1">Floor</label>
-      <Input type="text" {...registerEditAddressUser("floor")} className="w-full text-[#fff]" />
+      <Input type="text" {...registerEditAddressUser("floor")} className="w-full text-[#000] dark:text-[#fff]" />
     </div>
     <div className="flex-1">
       <label className="block mb-1">Apt</label>
-      <Input type="text" {...registerEditAddressUser("apt")} className="w-full text-[#fff]" />
+      <Input type="text" {...registerEditAddressUser("apt")} className="w-full text-[#000] dark:text-[#fff]" />
     </div>
   </div>
 
   <div>
     <label className="block mb-1">Landmark</label>
-    <Input type="text" {...registerEditAddressUser("additionalInfo")} className="w-full text-[#fff]" />
+    <Input type="text" {...registerEditAddressUser("additionalInfo")} className="w-full text-[#000] dark:text-[#fff]" />
   </div>
 
   {/* <div>
@@ -2383,7 +2383,7 @@ function CreateOrder() {
         setCustomAddressName(e.target.value);
         setValueEditAddressUser("name", e.target.value);
       }}
-      className="text-[#fff]"
+      className="text-[#000] dark:text-[#fff]"
     />
   )}
 </div>
@@ -2782,7 +2782,7 @@ function CreateOrder() {
                   <TableBody>
                     <TableRow>
                       <TableCell>Subtotal</TableCell>
-                      <TableCell>{cartItems?.length}</TableCell>
+                      <TableCell className="text-[#000] dark:text-[#fff]">{cartItems?.length}</TableCell>
                       <TableCell>{grandTotal.toFixed(2)} EGP</TableCell>
                     </TableRow>
                     <TableRow>
@@ -3219,7 +3219,7 @@ function CreateOrder() {
                         <div className="flex items-center justify-between mt-5">
                           {/* Total Order على اليسار */}
                           <div className="text-sm font-medium text-[#]">
-                            <span className="text-[#fff]">
+                            <span className="text- text-[#000] dark:text-[#fff]">
                               {/* Total Order : {totalAmount.toFixed(2)} EGP */}
                               Total Order : {finalTotal.toFixed(2)} EGP
                             </span>
