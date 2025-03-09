@@ -340,12 +340,12 @@ function CreateOrder() {
   const [isBranchManuallySelected, setIsBranchManuallySelected] =
     useState(false);
 
-    console.log("massegeNotSerachPhone", massegeNotSerachPhone);
-    console.log(".............");
-    console.log(".............");
-    console.log("massegeNotSelectedBranch", massegeNotSelectedBranch);
-    console.log(".............");
-  console.log("isBranchManuallySelected", isBranchManuallySelected);
+  //   console.log("massegeNotSerachPhone", massegeNotSerachPhone);
+  //   console.log(".............");
+  //   console.log(".............");
+  //   console.log("massegeNotSelectedBranch", massegeNotSelectedBranch);
+  //   console.log(".............");
+  // console.log("isBranchManuallySelected", isBranchManuallySelected);
   const handleItemClick = async (item) => {
     setSelectedItem(item);
     setIsItemDialogOpen(true);
