@@ -181,11 +181,9 @@ const ProfileInfo = () => {
         <DropdownMenuSeparator className="mb-0 dark:bg-background" />
         <DropdownMenuItem
           onSelect={() => {
-            localStorage.removeItem("access_token");
-            localStorage.removeItem("hashValue");
-            localStorage.removeItem("user");
-            Cookies.remove("access_token");
-            Cookies.remove("domain");
+            localStorage.removeItem("token");
+
+            Cookies.remove("token");
             const currentLanguage =
               localStorage.getItem("language") || Cookies.get("language");
 

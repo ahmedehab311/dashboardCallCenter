@@ -23,8 +23,9 @@ export const fetchBranches = async (restaurantId) => {
     const response = await axios.get(
       `${BASE_URL}/callcenter/get/branches?api_token=${token}&restaurantId=${restaurantId}`
     );
-    // console.log("API Response branches:", response.data.messages.branches);
-    // console.log("API Response branches restaurantId:", restaurantId);
+    console.log("API Response branches:", response.data);
+    console.log("API Response branches:", response.data.messages.branches);
+    console.log("API Response branches restaurantId:", restaurantId);
     return response.data.messages.branches;
   } catch (error) {
     console.error("Error fetching branches:", error);

@@ -100,12 +100,12 @@ export const loginUser = async (credentials) => {
 
     if (response?.data?.data?.token) {
       Cookies.set("token", response?.data?.data?.token);
-      // Cookies.set("look_up",  response.data.data.userData.lookup_id);
-      Cookies.set("look_up", String(response.data.data.userData.lookup_id));
-
-      Cookies.remove("domain");
-      Cookies.remove("user");
-      Cookies.remove("access_token");
+      // Cookies.set("token", response?.data?.data?.token, {
+      //   path: "/",
+      //   domain: "myres.me", // استخدم الدومين الرئيسي فقط
+      // });
+      
+ 
       localStorage.setItem("user", JSON.stringify(response.data.data.user));
       return {
         user: response.data.data.user,

@@ -61,97 +61,97 @@ const LogInForm = ({ children }) => {
   }, [currentLang]);
   // console.log("trans from login", trans);
 
-  useEffect(() => {
-    localStorage.setItem("language", language);
-    Cookies.set("language", language);
-  }, [language]);
+  // useEffect(() => {
+  //   localStorage.setItem("language", language);
+  //   Cookies.set("language", language);
+  // }, [language]);
 
-  //  hash code
-  useEffect(() => {
-    const loadDictionary = async () => {
-      const dictionary = await getDictionary(currentLang);
-      setTrans(dictionary);
-    };
-    loadDictionary();
-  }, [currentLang]);
-  // console.log("trans from login", trans);
+  // //  hash code
+  // useEffect(() => {
+  //   const loadDictionary = async () => {
+  //     const dictionary = await getDictionary(currentLang);
+  //     setTrans(dictionary);
+  //   };
+  //   loadDictionary();
+  // }, [currentLang]);
+  // // console.log("trans from login", trans);
 
-  useEffect(() => {
-    localStorage.setItem("language", language);
-    Cookies.set("language", language);
-  }, [language]);
+  // useEffect(() => {
+  //   localStorage.setItem("language", language);
+  //   Cookies.set("language", language);
+  // }, [language]);
 
-  //  hash code
-  const SECRET_KEY = "039e9def-f418-4a13-b414-0dfaa2d79b79";
-  // const SECRET_KEY = "039e9def-f418-4a13-b413-0dfaa2d79b77";
-  // const SECRET_KEY =
-  //   process.env.NODE_ENV === "production"
-  //     ? "039e9def-f418-4a13-b414-0dfaa2d79b79"
-  //     : "039e9def-f420-4a13-b414-0dfaa2d79b77";
-  const { domain, systemToken, loading, error } = useSelector(
-    (state) => state.settings
-  );
+  // //  hash code
+  // const SECRET_KEY = "039e9def-f418-4a13-b414-0dfaa2d79b79";
+  // // const SECRET_KEY = "039e9def-f418-4a13-b413-0dfaa2d79b77";
+  // // const SECRET_KEY =
+  // //   process.env.NODE_ENV === "production"
+  // //     ? "039e9def-f418-4a13-b414-0dfaa2d79b79"
+  // //     : "039e9def-f420-4a13-b414-0dfaa2d79b77";
+  // const { domain, systemToken, loading, error } = useSelector(
+  //   (state) => state.settings
+  // );
 
-  useEffect(() => {
-    const fetchAndLogData = async () => {
-      const resultAction = await dispatch(fetchSettings());
-      if (fetchSettings.fulfilled.match(resultAction)) {
-        if (process.env.NODE_ENV === "development") {
-          console.log("Fetched Settings Data:", resultAction.payload);
-        }
-      } else {
-        console.error("Error fetching settings:", resultAction.error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchAndLogData = async () => {
+  //     const resultAction = await dispatch(fetchSettings());
+  //     if (fetchSettings.fulfilled.match(resultAction)) {
+  //       if (process.env.NODE_ENV === "development") {
+  //         console.log("Fetched Settings Data:", resultAction.payload);
+  //       }
+  //     } else {
+  //       console.error("Error fetching settings:", resultAction.error);
+  //     }
+  //   };
 
-    fetchAndLogData();
-  }, [dispatch]);
+  //   fetchAndLogData();
+  // }, [dispatch]);
 
-  // console.log("domain", domain);
-  // console.log("systemToken", systemToken);
+  // // console.log("domain", domain);
+  // // console.log("systemToken", systemToken);
 
-  const handleGenerateHash = async () => {
-    if (!domain || !systemToken || !SECRET_KEY) {
-      console.log("Loading...");
-      return "Loading...";
-    }
-    // const ip = "192.168.8.137";
-    const ip = "192.168.1.13";
-    try {
-      // const response = await fetch("https://api.ipify.org?format=json");
-      // const data = await response.json();
-      // const dynamicIP = data.ip;
+  // const handleGenerateHash = async () => {
+  //   if (!domain || !systemToken || !SECRET_KEY) {
+  //     console.log("Loading...");
+  //     return "Loading...";
+  //   }
+  //   // const ip = "192.168.8.137";
+  //   const ip = "192.168.1.13";
+  //   try {
+  //     // const response = await fetch("https://api.ipify.org?format=json");
+  //     // const data = await response.json();
+  //     // const dynamicIP = data.ip;
 
-      // const stringToHash = `${SECRET_KEY}&${domain}&${ip}&${systemToken}`;
-      const stringToHash = `${SECRET_KEY}&${domain}&${systemToken}`;
-      // console.log("IP Address:", dynamicIP);
-      if (process.env.NODE_ENV === "development") {
-        console.log("SECRET_KEY:", SECRET_KEY);
-        console.log("systemToken:", systemToken);
-        console.log("domain:", domain);
-      }
-      const hashed = crypto
-        .createHash("sha512")
-        .update(stringToHash)
-        .digest("hex");
-      localStorage.setItem("hashValue", hashed);
-      // localStorage.setItem("domain", domain);
-      localStorage.removeItem("domain");
-      Cookies.set("domain", domain);
+  //     // const stringToHash = `${SECRET_KEY}&${domain}&${ip}&${systemToken}`;
+  //     const stringToHash = `${SECRET_KEY}&${domain}&${systemToken}`;
+  //     // console.log("IP Address:", dynamicIP);
+  //     if (process.env.NODE_ENV === "development") {
+  //       console.log("SECRET_KEY:", SECRET_KEY);
+  //       console.log("systemToken:", systemToken);
+  //       console.log("domain:", domain);
+  //     }
+  //     const hashed = crypto
+  //       .createHash("sha512")
+  //       .update(stringToHash)
+  //       .digest("hex");
+  //     localStorage.setItem("hashValue", hashed);
+  //     // localStorage.setItem("domain", domain);
+  //     localStorage.removeItem("domain");
+  //     // Cookies.set("domain", domain);
 
-      console.log("Hashed String:", hashed);
+  //     console.log("Hashed String:", hashed);
 
-      return hashed;
-    } catch (error) {
-      console.error("Failed to retrieve IP address:", error);
-      return "Failed to retrieve IP address";
-    }
-  };
-  useEffect(() => {
-    if (domain && systemToken) {
-      handleGenerateHash();
-    }
-  }, [domain, systemToken]);
+  //     return hashed;
+  //   } catch (error) {
+  //     console.error("Failed to retrieve IP address:", error);
+  //     return "Failed to retrieve IP address";
+  //   }
+  // };
+  // useEffect(() => {
+  //   if (domain && systemToken) {
+  //     handleGenerateHash();
+  //   }
+  // }, [domain, systemToken]);
 
   const togglePasswordType = () => {
     if (passwordType === "text") {
@@ -161,6 +161,15 @@ const LogInForm = ({ children }) => {
     }
   };
 
+  useEffect(()=>{
+    Cookies.remove("token");
+    Cookies.remove("look_up");
+    Cookies.remove("language");
+    Cookies.remove("domain");
+    Cookies.remove("access_token");
+    // localStorage.removeItem("token");
+    
+  },[])
   // const onSubmit = async (data) => {
   //   setIsLoadings(true);
 
@@ -216,44 +225,44 @@ const LogInForm = ({ children }) => {
   //   setIsLoadings(false);
   //   reset();
   // };
-  const onSubmit = async (data) => {
-    setIsLoadings(true);
+    const onSubmit = async (data) => {
+      setIsLoadings(true);
 
-    const requestData = {
-      login: data.email,
-      password: data.password,
-    };
+      const requestData = {
+        login: data.email,
+        password: data.password,
+      };
 
-    console.log("🔹 Submitting login form with:", requestData);
+      console.log("🔹 Submitting login form with:", requestData);
 
-    try {
-      const resultAction = await dispatch(
-        loginUser({ credentials: requestData })
-      );
+      try {
+        const resultAction = await dispatch(
+          loginUser({ credentials: requestData })
+        );
 
-      if (loginUser.fulfilled.match(resultAction)) {
-        console.log("🎉 Login successful:", resultAction.payload);
+        if (loginUser.fulfilled.match(resultAction)) {
+          console.log("🎉 Login successful:", resultAction.payload);
 
-        toast.success("Login successful");
-        router.push(`/${language}/dashboard`);
+          toast.success("Login successful");
+          router.push(`/${language}/dashboard`);
 
-        const messages = resultAction.payload?.messages || [];
-        // messages.forEach((message) => toast.success(message));
-      } else {
-        console.error("Login failed:", resultAction);
+          const messages = resultAction.payload?.messages || [];
+          // messages.forEach((message) => toast.success(message));
+        } else {
+          console.error("Login failed:", resultAction);
 
-        const messages = resultAction.payload?.messages ||
-          resultAction.error?.messages || ["An unexpected error occurred"];
-          // .forEach((message) => toast.error(message));
+          const messages = resultAction.payload?.messages ||
+            resultAction.error?.messages || ["An unexpected error occurred"];
+            // .forEach((message) => toast.error(message));
+        }
+      } catch (error) {
+        console.error(" Unexpected error:", error);
+        toast.error("An unexpected error occurred");
       }
-    } catch (error) {
-      console.error(" Unexpected error:", error);
-      toast.error("An unexpected error occurred");
-    }
 
-    setIsLoadings(false);
-    reset();
-  };
+      setIsLoadings(false);
+      reset();
+    };
 
   return (
     <>

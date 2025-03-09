@@ -58,7 +58,7 @@ export default function HomePage() {
           <button
             onClick={() => {
               const currentLanguage =
-                Cookies.get("language") || defaultSystemLanguage || "en";
+                "en";
               router.push(`/${currentLanguage}/login`);
             }}
             style={{

@@ -531,7 +531,7 @@ function CreateOrder() {
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
-      handleSearch(); // استدعاء دالة البحث عند الضغط على إنتر
+      handleSearch(); 
     }
   };
 
@@ -1348,7 +1348,7 @@ function CreateOrder() {
                       <h3 className="text-sm text-muted-foreground mt-2">
                         {item?.name}
                       </h3>
-                      <p className=" text-sm">{item?.price?.toFixed(2)} EGP</p>
+                      <p className=" text-sm text-[#000] dark:text-[#fff] ">{item?.price?.toFixed(2)} EGP</p>
                     </div>
                   </Card>
                 ))}

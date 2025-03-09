@@ -77,31 +77,7 @@ const Language = () => {
     }
   }, [languages, defaultSystemLanguage, dispatch, setRtl]);
 
-  // const handleSelected = (langCode) => {
-  //   const langObj = languages.find((l) => l.code === langName);
-  //   if (langObj) {
-  //     dispatch(setLanguage(langCode));
-  //     localStorage.setItem("language", langName);
-  //     Cookies.set("language", langName);
-  //     setRtl(langObj.dir === "rtl");
 
-  //     const newPathname = `/${langCode}${pathname.substring(3)}`;
-  //     router.push(newPathname);
-  //   }
-  // };
-  // const handleSelected = (langName) => {
-  //   const langObj = languages.find((l) => l.name === langName); // البحث باستخدام الاسم
-  //   if (langObj) {
-  //     dispatch(setLanguage(langObj.code)); // تحديث اللغة في Redux باستخدام الكود المرتبط بالاسم
-  //     localStorage.setItem("language", langName); // حفظ الاسم في LocalStorage
-  //     Cookies.set("language", langName); // حفظ الاسم في Cookies
-  //     setRtl(langObj.dir === "rtl"); // تحديد الاتجاه بناءً على اللغة
-
-  //     // تحديث الـ Pathname (إذا كان يدعم تغيير الـ URL بناءً على اللغة)
-  //     const newPathname = `/${langObj.code}${pathname.substring(3)}`;
-  //     router.push(newPathname);
-  //   }
-  // };
   const handleSelected = (langName) => {
     const langObj = languages.find((l) => l.name === langName); // البحث باستخدام الاسم
     if (langObj) {
