@@ -3,7 +3,8 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 // axiosInstance
-const token = Cookies.get("token");
+// const token = Cookies.get("token");
+ const token =  localStorage.getItem("token") || Cookies.get("token") 
 
 export const fetchRestaurantsList = async () => {
   try {

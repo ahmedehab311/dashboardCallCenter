@@ -4,7 +4,8 @@ import Cookies from "js-cookie";
 import apiInstance from "@/api/axiosInstance";
 import { toast } from "react-hot-toast";
 import { Buffer } from "buffer";
-const token = Cookies.get("token");
+// const token = Cookies.get("token");
+ const token =  localStorage.getItem("token") || Cookies.get("token") 
 
 export const fetchUserByPhone = async (phone) => {
   try {

@@ -99,6 +99,8 @@ export const loginUser = async (credentials) => {
     const { messages } = response;
 
     if (response?.data?.data?.token) {
+      localStorage.setItem("token",response?.data?.data?.token)
+     
       Cookies.set("token", response?.data?.data?.token);
       // Cookies.set("token", response?.data?.data?.token, {
       //   path: "/",

@@ -20,7 +20,8 @@ export default function HomePage() {
   useEffect(() => {
   
 
-    const token = Cookies.get("token");
+    // const token = Cookies.get("token");
+     const token =  localStorage.getItem("token") || Cookies.get("token") 
     const currentLanguage = Cookies.get("language") 
 
 

@@ -167,7 +167,7 @@ const LogInForm = ({ children }) => {
     Cookies.remove("language");
     Cookies.remove("domain");
     Cookies.remove("access_token");
-    // localStorage.removeItem("token");
+    localStorage.removeItem("token");
     
   },[])
   // const onSubmit = async (data) => {

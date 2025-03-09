@@ -9,7 +9,9 @@ const apiInstance = axios.create({
 
 apiInstance.interceptors.request.use(
   (config) => {
-    const token = Cookies.get("token");
+    // const token = Cookies.get("token");
+    const token =  localStorage.getItem("token") || Cookies.get("token") 
+
     const language = Cookies.get("language");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
