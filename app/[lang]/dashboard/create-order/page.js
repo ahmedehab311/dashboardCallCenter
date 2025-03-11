@@ -693,10 +693,14 @@ function CreateOrder() {
           total: counter * selectedItem.price,
           // mainExtras: [...selectedItem.mainExtras],
           mainExtras: Array.isArray(selectedItem.mainExtras) ? [...selectedItem.mainExtras] : [],
+          selectedMainExtras: Array.isArray(selectedItem.selectedMainExtras) ? [...selectedItem.selectedMainExtras] : [],
+          selectedExtras: Array.isArray(selectedItem.selectedExtras) ? [...selectedItem.selectedExtras] : [],
+          selectedIdSize: Array.isArray(selectedItem.selectedIdSize) ? [...selectedItem.selectedIdSize] : [],
+          // selectedInfo: Array.isArray(selectedItem.selectedInfo) ? [...selectedItem.selectedInfo] : [],
 
-          selectedMainExtras: [...selectedItem.selectedMainExtras],
-          selectedExtras: [...selectedItem.selectedExtras],
-          selectedIdSize: selectedItem.selectedIdSize,
+          // selectedMainExtras: [...selectedItem.selectedMainExtras],
+          // // selectedExtras: [...selectedItem.selectedExtras],
+          // selectedIdSize: selectedItem.selectedIdSize,
           selectedInfo: selectedItem.selectedInfo,
           note: note,
         };
@@ -712,10 +716,14 @@ function CreateOrder() {
             // mainExtras: [...selectedItem.mainExtras],
             mainExtras: Array.isArray(selectedItem.mainExtras) ? [...selectedItem.mainExtras] : [],
 
-            selectedMainExtras: [...selectedItem.selectedMainExtras],
-            selectedExtras: [...selectedItem.selectedExtras],
-            selectedIdSize: selectedItem.selectedIdSize,
+            // selectedMainExtras: [...selectedItem.selectedMainExtras],
+            // selectedExtras: [...selectedItem.selectedExtras],
+            // selectedIdSize: selectedItem.selectedIdSize,
             selectedInfo: selectedItem.selectedInfo,
+            selectedMainExtras: Array.isArray(selectedItem.selectedMainExtras) ? [...selectedItem.selectedMainExtras] : [],
+          selectedExtras: Array.isArray(selectedItem.selectedExtras) ? [...selectedItem.selectedExtras] : [],
+          selectedIdSize: Array.isArray(selectedItem.selectedIdSize) ? [...selectedItem.selectedIdSize] : [],
+          // selectedInfo: Array.isArray(selectedItem.selectedInfo) ? [...selectedItem.selectedInfo] : [],
             note: note,
           },
         ];
@@ -1410,6 +1418,8 @@ useEffect(() => {
     setSelectedAddress(null);
     setSelectedAddressArray(null);
     setCartItems([]);
+    setIsOpenUserData(true)
+    setSelectedBranchPriceList(1)
   };
 
   console.log(">>>>>>:");
