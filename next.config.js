@@ -37,7 +37,11 @@ const nextConfig = {
     ];
   },
 
-  reactStrictMode: true,
+  // reactStrictMode: true,
+  reactStrictMode: false, 
+  experimental: {
+    reactRefresh: false, 
+  },
   swcMinify: true,
 
   // reactStrictMode: true,

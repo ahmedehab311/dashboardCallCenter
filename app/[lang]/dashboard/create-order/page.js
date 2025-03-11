@@ -62,10 +62,13 @@ import { BASE_URL_iamge } from "@/api/BaseUrl";
 import { z } from "zod";
 import { useForm, Controller, set } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaMinus, FaPlus } from "react-icons/fa";
+import { FiSearch } from "react-icons/fi";
+import { Admin } from "@/components/icons/index";
 import { Textarea } from "@/components/ui/textarea";
-
+import { useSidebar } from "@/store/index";
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   phone: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
@@ -205,6 +208,8 @@ function CreateOrder() {
   // console.log("errorsCreateOrder", errorsCreateOrder);
 
   const { theme } = useTheme();
+  const setCollapsed = useSidebar((state) => state.setCollapsed);
+
   const queryClient = useQueryClient();
   const [color, setColor] = useState("");
   const [phone, setPhone] = useState("");
@@ -343,9 +348,9 @@ function CreateOrder() {
   //   console.log("massegeNotSerachPhone", massegeNotSerachPhone);
   //   console.log(".............");
   //   console.log(".............");
-  //   console.log("massegeNotSelectedBranch", massegeNotSelectedBranch);
-  //   console.log(".............");
-  // console.log("isBranchManuallySelected", isBranchManuallySelected);
+    console.log("massegeNotSelectedBranch", massegeNotSelectedBranch);
+    console.log(".............");
+  console.log("isBranchManuallySelected", isBranchManuallySelected);
   const handleItemClick = async (item) => {
     setSelectedItem(item);
     setIsItemDialogOpen(true);
@@ -396,16 +401,16 @@ function CreateOrder() {
       console.error("Error fetching item details:", error);
     }
   };
-  // console.log("selectedIdSize", selectedItem?.selectedIdSize);
-  // console.log("info", selectedItem?.info);
-  // console.log("selectedIdSize", selectedItem?.selectedIdSize);
-  // console.log("mainExtras", selectedItem?.mainExtras);
-  // console.log("itemExtras", selectedItem?.itemExtras);
-  // console.log("info", selectedItem?.info);
-  // console.log("extrasData", selectedItem?.extrasData);
-  // console.log("selectedExtras", selectedItem?.selectedExtras);
+  console.log("selectedIdSize", selectedItem?.selectedIdSize);
+  console.log("info", selectedItem?.info);
+  console.log("selectedIdSize", selectedItem?.selectedIdSize);
+  console.log("mainExtras", selectedItem?.mainExtras);
+  console.log("itemExtras", selectedItem?.itemExtras);
+  console.log("info", selectedItem?.info);
+  console.log("extrasData", selectedItem?.extrasData);
+  console.log("selectedExtras", selectedItem?.selectedExtras);
   // console.log("selectedExtrasIds", selectedItem?.selectedExtrasIds);
-  // console.log("selectedMainExtras", selectedItem?.selectedMainExtras);
+  console.log("selectedMainExtras", selectedItem?.selectedMainExtras);
   // console.log("selectedMainExtrasIds", selectedItem?.selectedMainExtrasIds);
 
   const handleEditItem = (item) => {
@@ -417,7 +422,9 @@ function CreateOrder() {
     setCounter(item.quantity);
     setIsItemDialogOpen(true);
   };
-
+  useEffect(() => {
+    setCollapsed(true); 
+  }, []);
   useEffect(() => {
     if (!selectedItem) return;
 
@@ -476,6 +483,8 @@ function CreateOrder() {
   const handleDecrease = () => setCounter((prev) => (prev > 1 ? prev - 1 : 1));
 
   const [searchQuery, setSearchQuery] = useState("");
+  const handleClearSearch = () => setSearchQuery("");
+
   const displayedItems = useMemo(() => {
     return items.filter((item) => {
       const matchesSearch = item.name
@@ -523,32 +532,26 @@ function CreateOrder() {
   // console.log("selectedBranch", selectedBranch);
   // console.log("price_list", selectedBranch?.price_list);
 
-  // useEffect(() => {
-  //   const handleBeforeUnload = (event) => {
-  //     if (search) {
-  //       // إذا كان هناك شيء مكتوب في حقل البحث
-  //       const message =
-  //         "Are you sure you want to leave? Your search data will be lost.";
-  //       event.returnValue = message; // هذا سيعرض رسالة التحذير في بعض المتصفحات
-  //       return message; // بعض المتصفحات الأخرى تتطلب هذه السطر لعرض الرسالة
-  //     }
-  //   };
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if (search) {
+        // إذا كان هناك شيء مكتوب في حقل البحث
+        const message =
+          "Are you sure you want to leave? Your search data will be lost.";
+        event.returnValue = message; // هذا سيعرض رسالة التحذير في بعض المتصفحات
+        return message; // بعض المتصفحات الأخرى تتطلب هذه السطر لعرض الرسالة
+      }
+    };
 
-  //   // إضافة مستمع لحدث beforeunload
-  //   window.addEventListener("beforeunload", handleBeforeUnload);
+    // إضافة مستمع لحدث beforeunload
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
-  //   // تنظيف المستمع عند الخروج من الصفحة أو عند تغيير الكومبوننت
-  //   return () => {
-  //     window.removeEventListener("beforeunload", handleBeforeUnload);
-  //   };
-  // }, [search]);
-  // const handleSearch = () => {
-  //   if (search) {
-  //     setPhone(search);
-  //     setErrorSearchUser("");
-  //   }
-  //   setErrorSearchUser("");
-  // };
+    // تنظيف المستمع عند الخروج من الصفحة أو عند تغيير الكومبوننت
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [search]);
+
   const handleSearch = () => {
     if (search) {
       setPhone(search);
@@ -678,7 +681,6 @@ function CreateOrder() {
 
   const handleAddToCart = () => {
     setCartItems((prevItems) => {
-      // ✅ التحقق مما إذا كان العنصر موجودًا بالفعل في `cart`
       const existingItemIndex = prevItems.findIndex(
         (item) => item.id === selectedItem.id
       );
@@ -688,9 +690,10 @@ function CreateOrder() {
         updatedItems[existingItemIndex] = {
           ...selectedItem,
           quantity: counter,
-          // idBasic:selectedItem?.id,
           total: counter * selectedItem.price,
-          mainExtras: [...selectedItem.mainExtras],
+          // mainExtras: [...selectedItem.mainExtras],
+          mainExtras: Array.isArray(selectedItem.mainExtras) ? [...selectedItem.mainExtras] : [],
+
           selectedMainExtras: [...selectedItem.selectedMainExtras],
           selectedExtras: [...selectedItem.selectedExtras],
           selectedIdSize: selectedItem.selectedIdSize,
@@ -699,17 +702,16 @@ function CreateOrder() {
         };
         return updatedItems;
       } else {
-        // ✅ إضافة العنصر كعنصر جديد إذا لم يكن موجودًا
         return [
           ...prevItems,
           {
             ...selectedItem,
-            // idBasic:selectedItem?.id,
-
             id: `${selectedItem.id}-${Date.now()}`,
             quantity: counter,
             total: counter * selectedItem.price,
-            mainExtras: [...selectedItem.mainExtras],
+            // mainExtras: [...selectedItem.mainExtras],
+            mainExtras: Array.isArray(selectedItem.mainExtras) ? [...selectedItem.mainExtras] : [],
+
             selectedMainExtras: [...selectedItem.selectedMainExtras],
             selectedExtras: [...selectedItem.selectedExtras],
             selectedIdSize: selectedItem.selectedIdSize,
@@ -757,53 +759,124 @@ function CreateOrder() {
     }
   }, [selectedRestaurantId, SelectedBranchPriceist]);
 
-  const handleRestaurantChange = (selectedOption) => {
-    setSelectedRestaurantId(selectedOption.value);
-    setSelectedBranchId(null);
-    // setSelectedBranchPriceList(null);
-    refetchBranches();
-    setCartItems([]);
-    setActiveSection("all");
-  };
-  // banches
-  // const handleSelectChangeBranches = (selectedOption) => {
-  //   setSelectedBranchId(selectedOption?.value);
-  //   setSelectedBranchPriceList(selectedOption?.priceList);
-  //   refetchMenu();
-  // };
-  // const handleSelectChangeBranches = (selectedOption) => {
-  //   if (!selectedOption) {
+  const [showRestaurantChangeAlert, setShowRestaurantChangeAlert] =
+    useState(false);
+  const [pendingRestaurant, setPendingRestaurant] = useState(null);
+
+  // const handleRestaurantChange = (selectedOption) => {
+  //   if(cartItems.length >0 ) {
+  //     setPendingRestaurant(selectedOption);
+  //     setShowRestaurantChangeAlert(true);
+  //   }else{
+  //     setSelectedRestaurantId(selectedOption.value);
   //     setSelectedBranchId(null);
-  //     setSelectedBranchPriceList(null);
-  //     setIsBranchManuallySelected(false);
-  //     return;
+  //     // setSelectedBranchPriceList(null);
+  //     refetchBranches();
+  //     setCartItems([]);
+  //     setActiveSection("all");
   //   }
 
-  //   setSelectedBranchId(selectedOption.value);
-  //   setSelectedBranchPriceList(selectedOption.priceList);
-  //   setIsBranchManuallySelected(true);
-  //   refetchMenu();
   // };
-  const handleSelectChangeBranches = (selectedOption) => {
-    if (!selectedOption) {
+  const handleRestaurantChange = (selectedOption) => {
+    if (cartItems.length > 0) {
+      // لو السلة فيها عناصر، احفظ المطعم مؤقتًا واظهر التنبيه
+      setPendingRestaurant(selectedOption);
+      setShowRestaurantChangeAlert(true);
+    } else {
+      // لو السلة فاضية، غير المطعم مباشرة
+      setSelectedRestaurantId(selectedOption.value);
       setSelectedBranchId(null);
-      setSelectedBranchPriceList(null);
-      setIsBranchManuallySelected(false);
-      return;
+      refetchBranches();
+      setCartItems([]);
+      setActiveSection("all");
+      setIsBranchManuallySelected(!!selectedBranchId);
+      setSelectedBranchName("");
+      setSelectedBranchInSelected(null);
     }
-  
-    setSelectedBranchId(selectedOption.value);
-    setSelectedBranchPriceList(selectedOption.priceList);
-    setIsBranchManuallySelected(true);
-  
-    // ✅ عند اختيار فرع، نخفي الرسالة
-    if (isBranchManuallySelected) {
-      setMassegeNotSelectedBranch(""); 
-    }
-  
-    refetchMenu();
   };
-  
+
+  const confirmRestaurantChange = () => {
+    if (pendingRestaurant) {
+      setSelectedRestaurantId(pendingRestaurant.value);
+      setSelectedBranchId(null);
+      refetchBranches();
+      setCartItems([]);
+      setActiveSection("all");
+      setShowRestaurantChangeAlert(false);
+      setPendingRestaurant(null);
+      setIsBranchManuallySelected(!!selectedBranchId);
+      setSelectedBranchName("");
+      setSelectedBranchInSelected(null);
+    }
+  };
+
+  // banches
+  const [selectedBranchName, setSelectedBranchName] = useState("");
+  const [selectedBranchInSelected, setSelectedBranchInSelected] = useState(null);
+  const [savedBranch, setSavedBranch] = useState(null);
+//   const handleSelectChangeBranches = (selectedOption) => {
+//     if (!selectedOption) {
+//       setSelectedBranchInSelected(null)
+//       setSelectedBranchId(null);
+//       setSavedBranch(null)
+//       setSelectedBranchPriceList(null);
+//       setIsBranchManuallySelected(false);
+//       setMassegeNotSelectedBranch("Please select branch first");
+//       return;
+//     }
+//     setSelectedBranchInSelected(selectedOption)
+//     setSavedBranch(null)
+// setSelectedBranchName(selectedOption.label)
+//     setSelectedBranchId(selectedOption.value);
+//     setSelectedBranchPriceList(selectedOption.priceList);
+//     setIsBranchManuallySelected(true);
+
+//     setMassegeNotSelectedBranch(null);
+
+//     refetchMenu();
+//   };
+const handleSelectChangeBranches = (selectedOption) => {
+  if (!selectedOption) {
+    setSelectedBranchInSelected(null);
+    setSelectedBranchId(null);
+    setSavedBranch(null);
+    setSelectedBranchPriceList(null);
+    setIsBranchManuallySelected(false);
+    setMassegeNotSelectedBranch("Please select branch first");
+    return;
+  }
+
+  setSelectedBranchInSelected(selectedOption);
+  setSavedBranch(null);
+  setSelectedBranchName(selectedOption.label);
+  setSelectedBranchId(selectedOption.value);
+  setSelectedBranchPriceList(selectedOption.priceList);
+  setIsBranchManuallySelected(true);
+  setMassegeNotSelectedBranch(null);
+
+  refetchMenu();
+};
+useEffect(() => {
+  if (deliveryMethod !== "pickup") {
+    setSelectedBranch(null);
+    setSelectedBranchName("");
+    setSelectedBranchInSelected(null);
+    setSelectedBranchId(null);
+  }
+}, [deliveryMethod]);
+useEffect(() => {
+  setDeliveryMethod("delivery"); 
+  setSelectedBranch(null);
+  setSelectedBranchName("");
+  setSelectedBranchInSelected(null);
+  setSelectedBranchId(null);
+  setCartItems([]);
+}, [selectedUser]);
+useEffect(() => {
+  setIsBranchManuallySelected(!!selectedBranchId); // ✅ True إذا كان هناك فرع مختار
+}, [selectedBranchId]);   
+// console.log("selectedBranchId",selectedBranchId);
+
   const [showDateTime, setShowDateTime] = useState(false);
 
   const handleSelectChangeBranchesCreateOrder = (selectedOption) => {
@@ -876,24 +949,20 @@ function CreateOrder() {
         });
       }
     }
-    // else if (deliveryMethod === "delivery") {
-    //   if (deliveryBranch && deliveryBranch !== currentSelectedBranchId) {
-    //     setSelectedBranchId(deliveryBranch);
-    //     setValueCreateOrder("branches", deliveryBranch, { shouldValidate: true });
-    //   }
-    // }
+
     if (deliveryMethod === "delivery") {
       if (deliveryBranch && deliveryBranch !== currentSelectedBranchId) {
         setValueCreateOrder("branches", deliveryBranch, {
           shouldValidate: true,
         });
-        setSelectedBranchId(deliveryBranch); // تحديث السيلكت الداخلي فقط
+        setSelectedBranchId(deliveryBranch); 
+        setSelectedBranch(null);
+        setSelectedBranchName("");
+        setSelectedBranchInSelected(null);
+        setSelectedBranchId(null);
       }
     }
 
-    // console.log("currentSelectedBranchId:", getValueCreateOrder("branches"));
-    // console.log("selectedBranchId:", selectedBranchId);
-    // console.log("deliveryBranch:", deliveryBranch);
   }, [selectedBranchId, deliveryMethod, selectedAddress, setValueCreateOrder]);
 
   const [selectedOrderPaymeny, setSelectedOrderPaymeny] = useState(null);
@@ -909,7 +978,7 @@ function CreateOrder() {
   const [selectedOrderStatus, setSelectedOrderStatus] = useState(null);
   const orderStatusOptions = [
     { value: 1, label: "Pending" },
-    { value: 2, label: "new" },
+    { value: 2, label: "New" },
   ];
 
   useEffect(() => {
@@ -1029,7 +1098,11 @@ function CreateOrder() {
   const [addAddressType, setaddAddressType] = useState("home");
   const [editAddressType, seEditAddressType] = useState("home");
   const [customAddressName, setCustomAddressName] = useState("");
-
+  const [isOpenAddress, setIsOpenAddress] = useState(false);
+  const [isOpenUserData, setIsOpenUserData] = useState(true);
+  
+  const toggleOpenAddress = () => setIsOpenAddress((prev) => !prev);
+  const toggleOpenUserData = () => setIsOpenUserData((prev) => !prev);
   useEffect(() => {
     if (selectedAddressType !== "other") {
       setValueAddNewUser("name", selectedAddressType);
@@ -1151,7 +1224,7 @@ function CreateOrder() {
     const formattedData = {
       id: selectedEditAddress.id, // تأكيد إرسال ID صحيح
       area: data.area.value,
-      street: data.street || "", // تأكيد إرسال قيمة فارغة بدل `undefined`
+      street: data.street || "", // تأكيد إرسال قيمة فارغة   `undefined`
       building: data.building || "",
       floor: data.floor || "",
       apt: data.apt || "",
@@ -1214,7 +1287,7 @@ function CreateOrder() {
         area: selectedAddress?.area,
         notes: data.notes || "",
         source: data.ordersource,
-        status: data.orderstatus === 1 ? "pending" : "new",
+        status: data.orderstatus === 1 ? "pending" : "New",
         insertcoupon: data.insertcoupon,
         insertpoints: data.insertpoints,
         time: data?.startTime,
@@ -1263,18 +1336,15 @@ function CreateOrder() {
   };
 
   const grandTotal = cartItems.reduce((sum, item) => {
-    // تأكد أن السعر والكمية أرقام عشرية صحيحة
     const itemPrice = parseFloat(item.price) || 0;
-    const itemQuantity = parseFloat(item.quantity) || 0; // استخدم parseFloat بدل parseInt
+    const itemQuantity = parseFloat(item.quantity) || 0; 
 
-    // حساب مجموع سعر الإضافات لهذا العنصر فقط
     const extrasTotal =
       item.selectedMainExtras?.reduce(
         (acc, extra) => acc + (parseFloat(extra.price_en) || 0),
         0
       ) || 0;
 
-    // حساب السعر النهائي لهذا العنصر
     const itemTotal = itemPrice * itemQuantity + extrasTotal;
 
     return sum + itemTotal;
@@ -1341,6 +1411,13 @@ function CreateOrder() {
     setSelectedAddressArray(null);
     setCartItems([]);
   };
+
+  console.log(">>>>>>:");
+  // console.log("extrasData:", selectedItem?.extrasData);
+  // console.log("extrasData:", selectedItem?.selectedItem?.itemExtras);
+  // console.log("selectedExtras:", selectedItem?.selectedExtras);
+  // console.log("selectedItem?.mainExtras:", selectedItem?.mainExtras);
+  // console.log("selectedItem?.info?.:", selectedItem?.info);
   if (isLoadingBranchs) return <p>Loading branches...</p>;
   if (errorBranchs) return <p>Error loading branches: {error.message}</p>;
   return (
@@ -1359,9 +1436,39 @@ function CreateOrder() {
           styles={selectStyles(theme, color)}
         />
       </div>
+      <AlertDialog
+        open={showRestaurantChangeAlert}
+        onOpenChange={setShowRestaurantChangeAlert}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Changing the restaurant will clear your cart. Do you want to
+              proceed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              type="button"
+              variant="outline"
+              color="info"
+              onClick={() => setShowRestaurantChangeAlert(false)}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/80"
+              onClick={confirmRestaurantChange}
+            >
+              Ok
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* الكارتات */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_550px] gap-4 m">
+      <div className="grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-4">
         {/* الكارت الكبير (على الشمال) */}
 
         <div className="lg:col-span p-4 shadow-md rounded-lg">
@@ -1373,7 +1480,6 @@ function CreateOrder() {
                 <span className="absolute top-1/2 -translate-y-1/2 left-2">
                   <Search className="w-4 h-4 text-gray-500" />
                 </span>
-
                 <Input
                   type="text"
                   placeholder="Search"
@@ -1381,6 +1487,15 @@ function CreateOrder() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
+
+                {searchQuery && (
+                  <button
+                    onClick={handleClearSearch}
+                    className="absolute top-1/2 right-2 -translate-y-1/2 text-[#000] dark:text-[#fff] text-xs font-bold"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
 
               {/*  التابات */}
@@ -1437,7 +1552,7 @@ function CreateOrder() {
                   >
                     <DialogContent size="3xl">
                       <DialogHeader>
-                        <DialogTitle className="text-base font-medium text-default-">
+                        <DialogTitle className="text-xl font-semibold ">
                           {selectedItem?.name}
                         </DialogTitle>
                       </DialogHeader>
@@ -1530,156 +1645,161 @@ function CreateOrder() {
                           ))}
                         </div>
                       </div>
+
                       <hr className="my-2" />
-                      <div className="border rounded-lg overflow-hidden shadow-md mt-3">
-                        <div
-                          className="p-3 bg-gray- cursor-pointer flex justify-between items-center"
-                          onClick={toggleExtras}
-                        >
-                          <h3 className="font-bold text-[16px]">
-                            {selectedItem?.itemExtras?.category_ar} (Choose up
-                            to {selectedItem?.extrasData?.length} Items)
-                          </h3>
-                          <span className="text-gray-600">
-                            {isOpen ? "▲" : "▼"}
-                          </span>
-                        </div>
-
-                        {/* العناصر المختارة */}
-                        {selectedItem?.selectedExtras?.length > 0 && (
-                          <div className="p-3 bg-gray- border-t">
-                            <span className="text-gray-700 font-medium">
-                              {selectedItem.selectedExtras
-                                .map((extra) => extra.name_en)
-                                .join(", ")}
+                      {selectedItem?.extrasData?.length > 0 && (
+                        <div className="border rounded-lg overflow-hidden shadow-md mt-3">
+                          <div
+                            className="p-3 bg-gray- cursor-pointer flex justify-between items-center"
+                            onClick={toggleExtras}
+                          >
+                            <h3 className="font-bold text-[16px]">
+                              {selectedItem?.itemExtras?.category_ar} (Choose up
+                              to {selectedItem?.extrasData?.length} Items)
+                            </h3>
+                            <span className="text-gray-600">
+                              {isOpen ? "▲" : "▼"}
                             </span>
                           </div>
-                        )}
 
-                        {/* الاختيارات */}
-                        <div
-                          className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                            isOpen ? "max-h-96" : "max-h-0"
-                          }`}
-                        >
-                          <div className="p-3 flex flex- flex-wrap gap-2">
-                            {selectedItem?.extrasData?.map((extra, index) => (
-                              <label
-                                key={index}
-                                className="flex items-center space-x-2"
-                              >
-                                <input
-                                  type="radio"
-                                  value={extra.name_en}
-                                  checked={
-                                    selectedItem.selectedExtras.length > 0 &&
-                                    selectedItem.selectedExtras[0].id ===
-                                      extra.id
-                                  }
-                                  onChange={() => {
-                                    setSelectedItem((prev) => ({
-                                      ...prev,
-                                      selectedExtras: [extra], // السماح باختيار واحد فقط
-                                      selectedExtrasIds: [extra.id], // تحديث قائمة الـ IDs
-                                    }));
-                                    setIsOpen(false); // إغلاق القائمة بعد الاختيار
-                                  }}
-                                />
-                                <span>{extra.name_en}</span>
-                              </label>
-                            ))}
+                          {/* العناصر المختارة */}
+                          {selectedItem?.selectedExtras?.length > 0 && (
+                            <div className="p-3 bg-gray- border-t">
+                              <span className="text-gray-700 font-medium">
+                                {selectedItem.selectedExtras
+                                  .map((extra) => extra.name_en)
+                                  .join(", ")}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* الاختيارات */}
+                          <div
+                            className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                              isOpen ? "max-h-96" : "max-h-0"
+                            }`}
+                          >
+                            <div className="p-3 flex flex- flex-wrap gap-2">
+                              {selectedItem?.extrasData?.map((extra, index) => (
+                                <label
+                                  key={index}
+                                  className="flex items-center space-x-2"
+                                >
+                                  <input
+                                    type="radio"
+                                    value={extra.name_en}
+                                    checked={
+                                      selectedItem.selectedExtras.length > 0 &&
+                                      selectedItem.selectedExtras[0].id ===
+                                        extra.id
+                                    }
+                                    onChange={() => {
+                                      setSelectedItem((prev) => ({
+                                        ...prev,
+                                        selectedExtras: [extra], // السماح باختيار واحد فقط
+                                        selectedExtrasIds: [extra.id], // تحديث قائمة الـ IDs
+                                      }));
+                                      setIsOpen(false); // إغلاق القائمة بعد الاختيار
+                                    }}
+                                  />
+                                  <span>{extra.name_en}</span>
+                                </label>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
 
-                      <div className="border rounded-lg overflow-hidden shadow-md">
-                        <div
-                          className="p-3 bg-gray- cursor-pointer flex justify-between items-center"
-                          onClick={toggleExtrasMainExtra}
-                        >
-                          <h3 className="font-bold text-[16px] ">
-                            {selectedItem?.mainExtras?.category_ar} (Choose up
-                            to {selectedItem?.mainExtras?.length} Items)
-                          </h3>
-                          <span className="text-gray-600">
-                            {isOpenMainExtra ? "▲" : "▼"}
-                          </span>
-                        </div>
-
-                        {/* العناصر المختارة */}
-                        {selectedItem?.selectedMainExtras?.length > 0 && (
-                          <div className="p-3 bg-gray- border-t">
-                            <span className="text-gray-300 font-medium">
-                              {selectedItem.selectedMainExtras
-                                .map((extra) => extra.name_en)
-                                .join(", ")}
+                      {selectedItem?.mainExtras?.length > 0 && (
+                        <div className="border rounded-lg overflow-hidden shadow-md">
+                          <div
+                            className="p-3 bg-gray- cursor-pointer flex justify-between items-center"
+                            onClick={toggleExtrasMainExtra}
+                          >
+                            <h3 className="font-bold text-[16px] ">
+                              {selectedItem?.mainExtras?.category_ar} (Choose up
+                              to {selectedItem?.mainExtras?.length} Items)
+                            </h3>
+                            <span className="text-gray-600">
+                              {isOpenMainExtra ? "▲" : "▼"}
                             </span>
                           </div>
-                        )}
 
-                        {/* الاختيارات */}
-                        <div
-                          className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                            isOpenMainExtra ? "max-h-96" : "max-h-0"
-                          }`}
-                        >
-                          <div className="p-3 flex flex- flex-wrap gap-2">
-                            {selectedItem?.mainExtras?.map((extra, index) => (
-                              <label
-                                key={index}
-                                className="flex items-center space-x-2"
-                              >
-                                <input
-                                  type="checkbox"
-                                  value={extra.name_en}
-                                  checked={selectedItem.selectedMainExtras.some(
-                                    (ex) => ex.id === extra.id
-                                  )}
-                                  onChange={(e) => {
-                                    const checked = e.target.checked;
-                                    setSelectedItem((prev) => {
-                                      let updatedExtras = checked
-                                        ? [...prev.selectedMainExtras, extra]
-                                        : prev.selectedMainExtras.filter(
-                                            (ex) => ex.id !== extra.id
+                          {/* العناصر المختارة */}
+                          {selectedItem?.selectedMainExtras?.length > 0 && (
+                            <div className="p-3 bg-gray- border-t">
+                              <span className="text-gray-300 font-medium">
+                                {selectedItem.selectedMainExtras
+                                  .map((extra) => extra.name_en)
+                                  .join(", ")}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* الاختيارات */}
+                          <div
+                            className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                              isOpenMainExtra ? "max-h-96" : "max-h-0"
+                            }`}
+                          >
+                            <div className="p-3 flex flex- flex-wrap gap-2">
+                              {selectedItem?.mainExtras?.map((extra, index) => (
+                                <label
+                                  key={index}
+                                  className="flex items-center space-x-2"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    value={extra.name_en}
+                                    checked={selectedItem.selectedMainExtras.some(
+                                      (ex) => ex.id === extra.id
+                                    )}
+                                    onChange={(e) => {
+                                      const checked = e.target.checked;
+                                      setSelectedItem((prev) => {
+                                        let updatedExtras = checked
+                                          ? [...prev.selectedMainExtras, extra]
+                                          : prev.selectedMainExtras.filter(
+                                              (ex) => ex.id !== extra.id
+                                            );
+
+                                        let updatedExtrasIds =
+                                          updatedExtras.map((ex) => ex.id); // تخزين الـ ID فقط
+
+                                        // حساب السعر الإجمالي الجديد
+                                        const newTotalPrice =
+                                          updatedExtras.reduce(
+                                            (acc, curr) =>
+                                              acc +
+                                              parseFloat(curr.price_en || "0"), // تحويل السعر إلى رقم مع معالجة القيم الفارغة
+                                            0
                                           );
 
-                                      let updatedExtrasIds = updatedExtras.map(
-                                        (ex) => ex.id
-                                      ); // تخزين الـ ID فقط
-
-                                      // حساب السعر الإجمالي الجديد
-                                      const newTotalPrice =
-                                        updatedExtras.reduce(
-                                          (acc, curr) =>
-                                            acc +
-                                            parseFloat(curr.price_en || "0"), // تحويل السعر إلى رقم مع معالجة القيم الفارغة
-                                          0
-                                        );
-
-                                      // console.log(
-                                      //   "Selected Extras:",
-                                      //   updatedExtras
-                                      // );
-                                      // console.log(
-                                      //   "Total Price:",
-                                      //   newTotalPrice
-                                      // );
-                                      setTotalExtrasPrice(newTotalPrice);
-                                      return {
-                                        ...prev,
-                                        selectedMainExtras: updatedExtras,
-                                        selectedMainExtrasIds: updatedExtrasIds, // تحديث قائمة الـ IDs
-                                      };
-                                    });
-                                  }}
-                                />
-                                <span>{extra.name_en}</span>
-                              </label>
-                            ))}
+                                        // console.log(
+                                        //   "Selected Extras:",
+                                        //   updatedExtras
+                                        // );
+                                        // console.log(
+                                        //   "Total Price:",
+                                        //   newTotalPrice
+                                        // );
+                                        setTotalExtrasPrice(newTotalPrice);
+                                        return {
+                                          ...prev,
+                                          selectedMainExtras: updatedExtras,
+                                          selectedMainExtrasIds:
+                                            updatedExtrasIds, // تحديث قائمة الـ IDs
+                                        };
+                                      });
+                                    }}
+                                  />
+                                  <span>{extra.name_en}</span>
+                                </label>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
 
                       <div className="flex flex-col lg:flex-row lg:items-center gap-2 m-4">
                         <Label className="lg:min-w-[100px]">Note:</Label>
@@ -1724,38 +1844,29 @@ function CreateOrder() {
                             {selectedUser ? massegeNotSerachPhone : ""} 
                             </p> */}
                             {!selectedUser && massegeNotSerachPhone && (
-  <p className="text-sm font-semibold mr-1">
-    {massegeNotSerachPhone}
-  </p>
-)}
+                              <p className="text-sm font-semibold mr-1">
+                                {massegeNotSerachPhone}
+                              </p>
+                            )}
 
-                            {/* <p className="text-sm font-semibold mr-1 ">
-                             {" "}
-                              {deliveryMethod === "pickup"
+                            <p className="text-sm font-semibold mr-1 ">
+                              {deliveryMethod === "pickup" &&
+                              !isBranchManuallySelected
                                 ? massegeNotSelectedBranch
-                                : ""}{" "}
+                                : ""}
                             </p>
 
                             <Button
                               type="submit"
                               onClick={handleAddToCart}
-                              disabled={!selectedUser && !isBranchManuallySelected}
-
+                              disabled={
+                                !selectedUser ||
+                                (deliveryMethod === "pickup" &&
+                                  !isBranchManuallySelected)
+                              }
                             >
                               Add to Cart
-                            </Button> */}
-                            <p className="text-sm font-semibold mr-1 ">
-  {deliveryMethod === "pickup" && !isBranchManuallySelected ? massegeNotSelectedBranch : ""}
-</p>
-
-<Button
-  type="submit"
-  onClick={handleAddToCart}
-  disabled={!selectedUser || (!isBranchManuallySelected && !!massegeNotSelectedBranch)} // ✅ تأكد من تعطيل الزر فقط إذا لم يتم اختيار فرع
->
-  Add to Cart
-</Button>
-
+                            </Button>
                           </div>
                         </DialogFooter>
                       </div>
@@ -2104,6 +2215,7 @@ function CreateOrder() {
                                   Close
                                 </Button>
                               </DialogClose>
+
                               <Button type="submit">Add address</Button>
                             </DialogFooter>
                           </form>
@@ -2116,438 +2228,129 @@ function CreateOrder() {
             </Card>
           </div>
         </div>
-
-        <Card className="p-4 shadow-md rounded-lg w-full">
+        <div className="flex flex-col gap-4 mt-[15px]">
+          <Card className="p-4 shadow-md rounded-lg w-full">
+          <div
+      className="flex justify-between items-center cursor-pointer p-2"
+      onClick={() => setIsOpenUserData(!isOpenUserData)}
+    >
+      <span className="font-semibold mb-5">User Data</span>
+      <span className="ml-auto mb-5">
+        {isOpenUserData ? <FaChevronUp  /> : <FaChevronDown  />}
+      </span>
+    </div>
+         {isOpenUserData && (
           <div className="flex gap-1 items-center justify-between mb-3">
-            <div className="relative flex-grow">
-              <span className="absolute top-1/2 left-2 -translate-y-1/2">
-                <Search className="w-4 h-4 text-gray-500" />
-              </span>
+              <div className="relative flex-grow">
+                <span className="absolute top-1/2 left-2 -translate-y-1/2">
+                  <Search className="w-4 h-4 text-gray-500" />
+                </span>
 
-              <Input
-                type="text"
-                placeholder="Enter phone number"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={handleKeyPress}
-                className="pl-7 pr-8 w-full text-[#000] dark:text-[#fff]"
-              />
-              {search && (
-                <button
-                  onClick={handleClear}
-                  className="absolute top-1/2 right-2 -translate-y-1/2 text-red-500 text-xs font-bold"
+                <Input
+                  type="text"
+                  placeholder="Enter phone number"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  className="pl-7 pr-8 w-full text-[#000] dark:text-[#fff]"
+                />
+                {search && (
+                  <button
+                    onClick={handleClear}
+                    className="absolute top-1/2 right-2 -translate-y-1/2 text-[#000] dark:text-[#fff] text-xs font-bold"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleSearch}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "8px",
+                    borderRadius: "4px",
+                    border: "none",
+                    backgroundColor: "#007bff",
+                    color: "#fff",
+                    cursor: "pointer",
+                    transition: "background-color 0.3s",
+                  }}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#0056b3")
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#007bff")
+                  }
                 >
-                  ✕
-                </button>
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <Button onClick={handleSearch}>Search</Button>
-              <Button onClick={handleNewUserClick}>New user</Button>
-            </div>
-          </div>
-
-          {selectedUser && (
-            <div className="mt-4 p-4 border rounded-md">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">
-                  {selectedUser.user_name}
-                </h3>
-                <Button className="my3" onClick={() => setOpenEditDialog(true)}>
-                  Edit user data
+                  <FiSearch className="w-4 h-4" />
+                </Button>
+                <Button
+                  onClick={handleNewUserClick}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    border: "none",
+                    backgroundColor: "#007bff",
+                    color: "#fff",
+                    cursor: "pointer",
+                    transition: "background-color 0.3s",
+                  }}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#0056b3")
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#007bff")
+                  }
+                >
+                  <Admin />
                 </Button>
               </div>
-              <p>Phone: {selectedUser.phone}</p>
-              <p>Orders Count: {selectedUser.orders_count}</p>
-              <p>Points: {selectedUser.user.points}</p>
-
-              {openEditDialog && selectedUser && (
-                <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
-                  <DialogContent size="3xl">
-                    <DialogHeader>
-                      <DialogTitle>Edit User</DialogTitle>
-                    </DialogHeader>
-                    <form
-                      onSubmit={handleSubmitEdit(onSubmitEditUserData)}
-                      className="space-y-1"
-                    >
-                      {/* Username */}
-                      {/* <label htmlFor="username" className="block text-sm font-medium text-[#fff]">
-    Username  
-  </label> */}
-                      <label
-                        htmlFor="username"
-                        className="block text-sm font-medium text-[#000] dark:text-[#fff]"
-                      >
-                        Username
-                        {/* <span className="text-red-500">*</span> */}
-                      </label>
-
-                      <Input
-                        id="username"
-                        type="text"
-                        placeholder="Username"
-                        {...registerEdit("username")}
-                        className={`${
-                          errorsEdit.username ? "mb-1" : "mb-4"
-                        } text-[#000] dark:text-[#fff]`}
-                      />
-                      {errorsEdit.username && (
-                        <p className="text-red-500 text-sm my-1">
-                          {errorsEdit.username.message}
-                        </p>
-                      )}
-
-                      {/* Phone */}
-                      <label
-                        htmlFor="phone"
-                        className="block text-sm font-medium text-[#000] dark:text-[#fff]"
-                      >
-                        Phone
-                        {/* <span className="text-red-500">*</span>    */}
-                      </label>
-                      <Input
-                        id="phone"
-                        type="number"
-                        placeholder="Phone"
-                        {...registerEdit("phone")}
-                        className={`${
-                          errorsEdit.phone ? "mb-1" : "mb-4"
-                        } text-[#000] dark:text-[#fff]`}
-                      />
-                      {errorsEdit.phone && (
-                        <p className="text-red-500 text-sm">
-                          {errorsEdit.phone.message}
-                        </p>
-                      )}
-
-                      {/* Phone 2 */}
-                      <label
-                        htmlFor="phone2"
-                        className="block text-sm font-medium text-[#000] dark:text-[#fff]"
-                      >
-                        Phone 2
-                      </label>
-                      <Input
-                        id="phone2"
-                        type="number"
-                        placeholder="Phone 2"
-                        {...registerEdit("phone2", { required: false })}
-                        className={`${
-                          errorsEdit.phone2 ? "mb-1" : "mb-4"
-                        } text-[#000] dark:text-[#fff]`}
-                      />
-                      {errorsEdit.phone2 && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errorsEdit.phone2.message}
-                        </p>
-                      )}
-
-                      {/* Email */}
-                      <label
-                        htmlFor="email"
-                        className="block text-sm font-medium text-[#000] dark:text-[#fff]"
-                      >
-                        Email
-                      </label>
-                      <Input
-                        id="email"
-                        type="text"
-                        placeholder="Email"
-                        {...registerEdit("email", { required: false })}
-                        className={`${
-                          errorsEdit.email ? "mb-1" : "mb-4"
-                        } text-[#000] dark:text-[#fff]`}
-                      />
-                      {errorsEdit.email && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errorsEdit.email.message}
-                        </p>
-                      )}
-
-                      {/* Buttons */}
-                      <div className="mt-3">
-                        <DialogFooter className="flex justify-between items-center mt-4">
-                          <DialogClose asChild>
-                            <Button
-                              variant="outline"
-                              onClick={() => setOpenEditDialog(false)}
-                            >
-                              Close
-                            </Button>
-                          </DialogClose>
-                          <Button type="submit">Save Changes</Button>
-                        </DialogFooter>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              )}
-              {openEditAddressDialog && selectedEditAddress && (
-                <Dialog
-                  open={openEditAddressDialog}
-                  onOpenChange={setOpenEditAddressDialog}
-                >
-                  <DialogContent size="3xl">
-                    <DialogHeader>
-                      <DialogTitle>Edit User Address</DialogTitle>
-                    </DialogHeader>
-
-                    {/* <form
-                      onSubmit={handleEditAddressUser(onSubmitEditUserAddress)}
-                      className="space-y-4"
-                    >
-                      <Controller
-                        name="area"
-                        control={controlEditAddress}
-                        rules={{ required: "Area is required" }}
-                        render={({ field }) => (
-                         <div>
-                           <Select
-                            {...field}
-                            options={areasOptions || []}
-                            placeholder="Area"
-                            className="react-select w-full"
-                            classNamePrefix="select"
-                            value={
-                              areasOptions?.find(
-                                (option) => option.value === field.value?.value
-                              ) || null
-                            }
-                            onChange={(selectedOption) => {
-                              field.onChange(selectedOption);
-                              handleChangeArea(selectedOption);
-                            }}
-                            styles={selectStyles(theme, color)}
-                          />
-                         </div>
-                        )}
-                      />
-                      {errorsEditAddressUser.area && (
-                        <p className="text-red-500 text-sm">
-                          {errorsEditAddressUser.area.message}
-                        </p>
-                      )}
-
-
-                      <div className="flex gap-2 items-center my-3">
-                        <Input
-                          type="text"
-                          {...registerEditAddressUser("street")}
-                          placeholder="Street"
-                          className="w-full"
-                        />
-
-                        <Input
-                          type="text"
-                          {...registerEditAddressUser("building")}
-                          placeholder="Building"
-                          className="w-full"
-                        />
-                      </div>
-                      <div className="flex gap-2 items-center my-3">
-                        <Input
-                          type="text"
-                          {...registerEditAddressUser("floor")}
-                          placeholder="Floor"
-                          className="w-full"
-                        />
-
-                        <Input
-                          type="text"
-                          {...registerEditAddressUser("apt")}
-                          placeholder="Apt"
-                          className="w-full"
-                        />
-                      </div>
-
-                      <Input
-                        type="text"
-                        {...registerEditAddressUser("additionalInfo")}
-                        placeholder="Land mark"
-                        className="w-full"
-                      />
-
-                      <Input
-                        type="text"
-                        {...registerEditAddressUser("name")}
-                        placeholder="Address Name"
-                        className="w-full"
-                      />
-                      {errorsEditAddressUser.name && (
-                        <p className="text-red-500 text-sm">
-                          {errorsEditAddressUser.name.message}
-                        </p>
-                      )}
-
-                      <DialogFooter className="flex justify-end gap-4">
-                        <DialogClose asChild>
-                          <Button
-                            variant="outline"
-                            onClick={() => setOpenEditAddressDialog(false)}
-                          >
-                            Close
-                          </Button>
-                        </DialogClose>
-                        <Button type="submit">Save Changes</Button>
-                      </DialogFooter>
-                    </form> */}
-                    <form
-                      onSubmit={handleEditAddressUser(onSubmitEditUserAddress)}
-                      className="space-y-4"
-                    >
-                      {/* Select Field */}
-                      <div>
-                        <label className="block mb-1">Area</label>
-                        <Controller
-                          name="area"
-                          control={controlEditAddress}
-                          rules={{ required: "Area is required" }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              options={areasOptions || []}
-                              placeholder="Area"
-                              className="react-select w-full"
-                              classNamePrefix="select"
-                              value={
-                                areasOptions?.find(
-                                  (option) =>
-                                    option.value === field.value?.value
-                                ) || null
-                              }
-                              onChange={(selectedOption) => {
-                                field.onChange(selectedOption);
-                                handleChangeArea(selectedOption);
-                              }}
-                              styles={selectStyles(theme, color)}
-                            />
-                          )}
-                        />
-                      </div>
-                      {errorsEditAddressUser.area && (
-                        <p className="text-red-500 text-sm">
-                          {errorsEditAddressUser.area.message}
-                        </p>
-                      )}
-
-                      {/* Input Fields */}
-                      <div className="flex gap-2 items-center my-3">
-                        <div className="flex-1">
-                          <label className="block mb-1">Street</label>
-                          <Input
-                            type="text"
-                            {...registerEditAddressUser("street")}
-                            className="w-full text-[#000] dark:text-[#fff]"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <label className="block mb-1">Building</label>
-                          <Input
-                            type="text"
-                            {...registerEditAddressUser("building")}
-                            className="w-full text-[#000] dark:text-[#fff]"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2 items-center my-3">
-                        <div className="flex-1">
-                          <label className="block mb-1">Floor</label>
-                          <Input
-                            type="text"
-                            {...registerEditAddressUser("floor")}
-                            className="w-full text-[#000] dark:text-[#fff]"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <label className="block mb-1">Apt</label>
-                          <Input
-                            type="text"
-                            {...registerEditAddressUser("apt")}
-                            className="w-full text-[#000] dark:text-[#fff]"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block mb-1">Landmark</label>
-                        <Input
-                          type="text"
-                          {...registerEditAddressUser("additionalInfo")}
-                          className="w-full text-[#000] dark:text-[#fff]"
-                        />
-                      </div>
-
-                      {/* <div>
-    <label className="block mb-1">Address Name</label>
-    <Input type="text" {...registerEditAddressUser("name")} className="w-full" />
-    {errorsEditAddressUser.name && (
-      <p className="text-red-500 text-sm">{errorsEditAddressUser.name.message}</p>
-    )}
-  </div> */}
-                      <div className="space-y-1">
-                        <div className="flex gap-4 items-center">
-                          {["home", "work", "other"].map((type) => (
-                            <label
-                              key={type}
-                              className="flex items-center gap-2"
-                            >
-                              <Input
-                                type="checkbox"
-                                name="addressType"
-                                className="mt-1"
-                                value={type}
-                                checked={editAddressType === type}
-                                onChange={() =>
-                                  handleEditAddressTypeChange(type)
-                                }
-                              />
-                              {type.charAt(0).toUpperCase() + type.slice(1)}
-                            </label>
-                          ))}
-                        </div>
-
-                        {editAddressType === "other" && (
-                          <Input
-                            type="text"
-                            placeholder="Enter address name"
-                            value={customAddressName}
-                            onChange={(e) => {
-                              setCustomAddressName(e.target.value);
-                              setValueEditAddressUser("name", e.target.value);
-                            }}
-                            className="text-[#000] dark:text-[#fff]"
-                          />
-                        )}
-                      </div>
-
-                      {/* Buttons */}
-                      <DialogFooter className="flex justify-end gap-4">
-                        <DialogClose asChild>
-                          <Button
-                            variant="outline"
-                            onClick={() => setOpenEditAddressDialog(false)}
-                          >
-                            Close
-                          </Button>
-                        </DialogClose>
-                        <Button type="submit">Save Changes</Button>
-                      </DialogFooter>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              )}
             </div>
-          )}
-          {selectedUser && (
+         )}
+
+            {selectedUser && isOpenUserData && (
+              <div className="mt-4 p-4 border rounded-md">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">
+                    {selectedUser.user_name}
+                  </h3>
+                  <Button
+                    className="my3"
+                    onClick={() => setOpenEditDialog(true)}
+                  >
+                    <FiEdit className="mr-1 " /> Edit user data
+                  </Button>
+                </div>
+                <div className="mt-2 flex items-center">
+                  <p className="mb-2 flex">Phone: {selectedUser.phone}</p>
+
+                  {selectedUser?.phone2 && (
+                    <p>Phone2: {selectedUser?.phone2 || ""} </p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-4 mt-2">
+                  <p>Orders Count: {selectedUser.orders_count}</p>
+                  <p>Points: {selectedUser.user.points}</p>
+                </div>
+              </div>
+            )}
+          </Card>
+          {/* <Card className="p-4 shadow-md rounded-lg w-full">
+{selectedUser && (
             <div className="mt-4 p-4 border rounded-md">
               <div className="flex item-center justify-between gap-4 mb-4 ">
                 <div className="flex items-center gap-2">
                   <div className="flex item-center gap-1">
                     <input
-                      type="checkbox"
+                      type="radio"
                       id="delivery"
                       checked={deliveryMethod === "delivery"}
                       onChange={() => setDeliveryMethod("delivery")}
@@ -2556,7 +2359,7 @@ function CreateOrder() {
                   </div>
                   <div className="flex item-center gap-1 ">
                     <input
-                      type="checkbox"
+                      type="radio"
                       id="pickup"
                       checked={deliveryMethod === "pickup"}
                       onChange={() => setDeliveryMethod("pickup")}
@@ -2569,7 +2372,7 @@ function CreateOrder() {
                   className="my3"
                   onClick={() => setIsNewAddressDialogOpen(true)}
                 >
-                  Add address
+                   <FaPlus className="mr-1 text-xs"/> Add address
                 </Button>
               </div>
 
@@ -2581,10 +2384,9 @@ function CreateOrder() {
                       key={address.id}
                       className="flex items-center justify-between gap-2"
                     >
-                      {/* ✅ Checkbox واسم العنوان على الشمال */}
                       <div className="flex items-center gap-2 mb-3">
                         <input
-                          type="checkbox"
+                          type="radio"
                           id={address.id}
                           checked={selectedAddress?.id === address.id}
                           onChange={() => setSelectedAddress(address)}
@@ -2657,12 +2459,7 @@ function CreateOrder() {
                     className="react-select w-full"
                     classNamePrefix="select"
                     options={branchOptions}
-                    // onChange={(selectedOption) => {
-                    //   if (!selectedOption) return;
-
-                    //   const branchId = Number(selectedOption.value);
-                    //   setSelectedBranchId(branchId);
-                    // }}
+              
                     onChange={handleSelectChangeBranches}
                     // value={
                     //   branchOptions.find((option) => option.value === selectedBranchId) || null
@@ -2673,446 +2470,566 @@ function CreateOrder() {
                 </div>
               )}
             </div>
+          )}</Card> */}
+          {selectedAddressArray?.length > 0 && (
+            <>
+            <h3 className="text-lg font-semibold ">Address:</h3>
+            <Card className="p-4 shadow-md rounded-lg w-full mt-0">
+              <div
+                className="flex justify-between items-center cursor-pointer"
+                onClick={() => setIsOpenAddress(!isOpenAddress)}
+              >
+                {deliveryMethod === "delivery" && selectedAddress && (
+                  <div className="mt- ">
+                    <p className="text-sm">{selectedAddress?.address1}</p>
+                  </div>
+                )}
+                {deliveryMethod === "pickup" && selectedAddress && (
+                  <div>
+                    <p className="text-sm">
+                    Pickup {selectedBranchName ? `- ${selectedBranchName}` : ""}</p>
+                    
+                  </div>
+                )}
+<span className="ml-auto">
+{isOpenAddress ? <FaChevronUp /> : <FaChevronDown />}
+
+</span>
+              </div>
+
+              {isOpenAddress && selectedUser && (
+                <div className="mt-4 p-4 border rounded-md">
+                  <div className="flex items-center justify-between gap-4 mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="radio"
+                          id="delivery"
+                          checked={deliveryMethod === "delivery"}
+                          onChange={() => setDeliveryMethod("delivery")}
+                        />
+                        <label htmlFor="delivery">Delivery</label>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="radio"
+                          id="pickup"
+                          checked={deliveryMethod === "pickup"}
+                          onChange={() => setDeliveryMethod("pickup")}
+                        />
+                        <label htmlFor="pickup">Pickup</label>
+                      </div>
+                    </div>
+
+                    <Button
+                      className="my3"
+                      onClick={() => setIsNewAddressDialogOpen(true)}
+                    >
+                      <FaPlus className="mr-1 text-xs" /> Add address
+                    </Button>
+                  </div>
+
+                  {deliveryMethod === "delivery" && (
+                    <div className="my-3">
+                      <h4 className="font-medium my-3">Address:</h4>
+                      {selectedAddressArray.map((address) => (
+                        <div
+                          key={address.id}
+                          className="flex items-center justify-between gap-2"
+                        >
+                          <div className="flex items-center gap-2 mb-3">
+                            <input
+                              type="radio"
+                              id={address.id}
+                              checked={selectedAddress?.id === address.id}
+                              onChange={() => setSelectedAddress(address)}
+                            />
+                            <label htmlFor={address.id}>
+                              {address.address_name}
+                            </label>
+                          </div>
+
+                          <div className="flex gap-3 ml-auto mb-3">
+                            <button
+                              size="icon"
+                              onClick={() => handleEditAddress(address)}
+                            >
+                              <FiEdit className="mr-1 text-xs" />
+                            </button>
+
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <button className="flex items-center text-red-500 gap-[2px]">
+                                  <FiTrash2 className="text-xs" />
+                                </button>
+                              </AlertDialogTrigger>
+
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Are you absolutely sure?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will
+                                    permanently delete this address.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel
+                                    type="button"
+                                    variant="outline"
+                                    color="info"
+                                  >
+                                    Cancel
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="bg-destructive hover:bg-destructive/80"
+                                    onClick={() =>
+                                      handleDeleteAddress(address.id)
+                                    }
+                                  >
+                                    Ok
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+
+                  {deliveryMethod === "pickup" && (
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-2">
+                      <Select
+                        className="react-select w-full"
+                        classNamePrefix="select"
+                        options={branchOptions}
+                        onChange={handleSelectChangeBranches}
+                        placeholder="Branches"
+                        styles={selectStyles(theme, color)}
+                        value={selectedBranchInSelected}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </Card>
+            </>
           )}
-          <Card title="Bordered Tables w-full">
-            {cartItems.length > 0 && (
-              <>
-                <h3 className="text-2xl my-5">Products</h3>
-                <Table className="border border-default-300">
-                  <TableHeader>
-                    <TableRow className="bg-gray-200 dark:bg-gray-800">
-                      <TableHead className="text-gray-800 dark:text-white">
-                        Item
-                      </TableHead>
-                      <TableHead className="text-gray-800 dark:text-white">
-                        Quantity
-                      </TableHead>
-                      <TableHead className="text-gray-800 dark:text-white">
-                        Actions
-                      </TableHead>
-                      <TableHead className="text-gray-800 dark:text-white">
-                        {/* Unit Price */}
-                        <span className="inline-flex items-center gap-1">
-                          Unit
-                          <span>Price</span>
-                        </span>
-                      </TableHead>
-                      <TableHead className="text-gray-800 dark:text-white">
-                        Total
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
+          {cartItems.length > 0 && (
+               <>
+               <h3 className="text-lg font-semibold">Products:</h3>
+            <Card
+              title="Bordered Tables"
+              className="w-full p-4 shadow-md rounded-lg mt-0"
+            >
+              {cartItems.length > 0 && (
+                <div>
+                  <Table className="border border-default-300">
+                    <TableHeader>
+                      <TableRow className="bg-gray-200 dark:bg-gray-800">
+                        <TableHead className="text-gray-800 dark:text-white">
+                          Item
+                        </TableHead>
+                        <TableHead className="text-gray-800 dark:text-white">
+                          Quantity
+                        </TableHead>
+                        <TableHead className="text-gray-800 dark:text-white">
+                          Actions
+                        </TableHead>
+                        <TableHead className="text-gray-800 dark:text-white">
+                          {/* Unit Price */}
+                          <span className="inline-flex items-center gap-1">
+                            Unit
+                            <span>Price</span>
+                          </span>
+                        </TableHead>
+                        <TableHead className="text-gray-800 dark:text-white">
+                          Total
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
 
-                  <TableBody>
-                    {cartItems.map((item) => {
-                      // حساب مجموع أسعار الإضافات
-                      {
-                        /* const extrasTotal =
-                        item.selectedMainExtras?.reduce(
-                          (sum, extra) => sum + extra.price_en,
-                          0
-                        ) || 0;
+                    <TableBody>
+                      {cartItems.map((item) => {
+                        const extrasTotal =
+                          item.selectedMainExtras?.reduce(
+                            (sum, extra) =>
+                              sum + parseFloat(extra?.price_en || 0), // تأكد أن القيمة رقمية
+                            0
+                          ) || 0;
 
-                      // حساب السعر الكلي للعنصر (السعر الأساسي + الإضافات) مضروبًا في الكمية
-                      const total = item.price * item.quantity;
-                      const itemTotal = total + extrasTotal; */
-                      }
-                      const extrasTotal =
-                        item.selectedMainExtras?.reduce(
-                          (sum, extra) =>
-                            sum + parseFloat(extra?.price_en || 0), // تأكد أن القيمة رقمية
-                          0
-                        ) || 0;
+                        const itemPrice = parseFloat(item?.price || 0);
+                        const itemQuantity = parseFloat(item?.quantity || 0);
 
-                      const itemPrice = parseFloat(item?.price || 0);
-                      const itemQuantity = parseFloat(item?.quantity || 0);
+                        const total = itemPrice * itemQuantity;
+                        const itemTotal = total + extrasTotal;
 
-                      const total = itemPrice * itemQuantity;
-                      const itemTotal = total + extrasTotal;
-
-                      // الآن itemTotal رقم حقيقي ويمكن استخدام toFixed(2)
-                      {
-                        /* console.log("itemTotal:", itemTotal); */
-                      }
-                      return (
-                        <React.Fragment key={item.id}>
-                          {/* الصف الأساسي للعنصر */}
-                          <TableRow className="bg-white dark:bg-gray-600">
-                            <TableCell className="text-gray-800 dark:text-gray-200">
-                              <div className="flex flex-col gap-1 mb-2 ">
-                                <span className="text-center">
-                                  {item.selectedInfo}
-                                </span>
-                              </div>
-                              <div>
-                                <Input
-                                  type="text"
-                                  value={item.note || ""}
-                                  onChange={(e) => handleNoteChange(e, item.id)} // ✅ تحديث النوت لكل عنصر
-                                  placeholder="No note added"
-                                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
-                                />
-                              </div>
-                            </TableCell>
-
-                            <TableCell>
-                              <div className="flex items-center">
-                                <button
-                                  onClick={() => handleDecreaseTable(item.id)}
-                                  className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
-                                >
-                                  -
-                                </button>
-                                <span className="mx-4 text-gray-800 dark:text-gray-200">
-                                  {item.quantity}
-                                </span>
-                                <button
-                                  onClick={() => handleIncreaseTable(item.id)}
-                                  className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-3 ml-auto ">
-                                <button
-                                  size="icon"
-                                  onClick={() => handleEditItem(item)}
-                                  className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
-                                >
-                                  <FiEdit className="mr-1 text-xs" />
-                                </button>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <button className="flex items-center text-red-500 hover:text-red-400 gap-[2px]">
-                                      <FiTrash2 className="text-xs" />
-                                    </button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200">
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle className="text-gray-800 dark:text-gray-200">
-                                        Are you absolutely sure?
-                                      </AlertDialogTitle>
-                                      <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
-                                        This action cannot be undone. This will
-                                        permanently delete this item from your
-                                        saved items.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel
-                                        type="button"
-                                        variant="outline"
-                                        className="text-gray-800 dark:text-gray-200 border-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                      >
-                                        Cancel
-                                      </AlertDialogCancel>
-                                      <AlertDialogAction
-                                        className="bg-red-600 hover:bg-red-500 text-white"
-                                        onClick={() =>
-                                          handleRemoveItem(item.id)
-                                        }
-                                      >
-                                        Ok
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-gray-800 dark:text-gray-200">
-                              <span className="inline-flex items-center gap-1">
-                                {item.price.toFixed(2)}
-                                <span>EGP</span>
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-gray-800 dark:text-gray-200">
-                              {itemTotal.toFixed(2)} EGP
-                            </TableCell>
-                          </TableRow>
-
-                          {/* عرض الإضافات الخاصة بالعنصر */}
-                          {item.selectedMainExtras?.map((extra) => (
-                            <TableRow
-                              key={extra.id}
-                              className="bg-gray-100 dark:bg-gray-700"
-                            >
-                              <TableCell className="pl-6 text-gray-800 dark:text-gray-200">
-                                {extra.name_en}
-                              </TableCell>
-                              <TableCell colSpan={3}></TableCell>
+                        return (
+                          <React.Fragment key={item.id}>
+                            {/* الصف الأساسي للعنصر */}
+                            <TableRow className="bg-white dark:bg-gray-600">
                               <TableCell className="text-gray-800 dark:text-gray-200">
-                                {extra.price_en} EGP
+                                <div className="flex flex-col gap-1 mb-2 ">
+                                  <span className="text-center break-words whitespace-nowrap overflow-hidden text-[14px] font-semibold">
+                                    {item.selectedInfo}
+                                  </span>
+                                </div>
+                                <div>
+                                  <Input
+                                    type="text"
+                                    value={item.note || ""}
+                                    onChange={(e) =>
+                                      handleNoteChange(e, item.id)
+                                    }
+                                    placeholder="No note added"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
+                                  />
+                                </div>
                               </TableCell>
-                            </TableRow>
-                          ))}
-                          {item.selectedExtras?.map((extra) => (
-                            <TableRow
-                              key={extra.id}
-                              className="bg-gray-100 dark:bg-gray-700"
-                            >
-                              <TableCell className="pl-6 text-gray-800 dark:text-gray-200">
-                                {extra.name_en}
+
+                              <TableCell>
+                                <div className="flex items-center">
+                                  <button
+                                    onClick={() => handleDecreaseTable(item.id)}
+                                    className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
+                                  >
+                                    -
+                                  </button>
+                                  <span className="mx-4 text-gray-800 dark:text-gray-200">
+                                    {item.quantity}
+                                  </span>
+                                  <button
+                                    onClick={() => handleIncreaseTable(item.id)}
+                                    className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
+                                  >
+                                    +
+                                  </button>
+                                </div>
                               </TableCell>
-                              <TableCell colSpan={3}></TableCell>
-                              {/* <TableCell >
-                                EGP
-                              </TableCell> */}
+                              <TableCell>
+                                <div className="flex gap-3 ml-auto ">
+                                  <button
+                                    size="icon"
+                                    onClick={() => handleEditItem(item)}
+                                    className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
+                                  >
+                                    <FiEdit className="mr-1 text-xs" />
+                                  </button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <button className="flex items-center text-red-500 hover:text-red-400 gap-[2px]">
+                                        <FiTrash2 className="text-xs" />
+                                      </button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200">
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle className="text-gray-800 dark:text-gray-200">
+                                          Are you absolutely sure?
+                                        </AlertDialogTitle>
+                                        <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+                                          This action cannot be undone. This
+                                          will permanently delete this item from
+                                          your saved items.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel
+                                          type="button"
+                                          variant="outline"
+                                          className="text-gray-800 dark:text-gray-200 border-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                        >
+                                          Cancel
+                                        </AlertDialogCancel>
+                                        <AlertDialogAction
+                                          className="bg-red-600 hover:bg-red-500 text-white"
+                                          onClick={() =>
+                                            handleRemoveItem(item.id)
+                                          }
+                                        >
+                                          Ok
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              </TableCell>
                               <TableCell className="text-gray-800 dark:text-gray-200">
                                 <span className="inline-flex items-center gap-1">
-                                  {extra.price_en}
+                                  {item.price.toFixed(2)}
                                   <span>EGP</span>
                                 </span>
                               </TableCell>
+                              <TableCell className="text-gray-800 dark:text-gray-200">
+                                {itemTotal.toFixed(2)} EGP
+                              </TableCell>
                             </TableRow>
-                          ))}
-                        </React.Fragment>
-                      );
-                    })}
-                  </TableBody>
-                  <tfoot>
-                    <TableRow className="bg-gray-300 dark:bg-gray-900">
-                      <TableCell
-                        colSpan={4}
-                        className="font-bold text-gray-900 dark:text-gray-100 text-left"
-                      >
-                        Grand Total:
-                      </TableCell>
-                      <TableCell className="font-bold text-gray-900 dark:text-gray-100">
-                        <span className="inline-flex items-center gap-1">
-                          {grandTotal.toFixed(2)}
-                          <span>EGP</span>
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  </tfoot>
-                </Table>
-              </>
-            )}
-          </Card>
-          {cartItems.length > 0 && (
-            <>
-              <Card title="Bordered Tables">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Details</TableHead>
-                      <TableHead>Amount</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>Subtotal</TableCell>
-                      <TableCell className="text-[#000] dark:text-[#fff]">
-                        {cartItems?.length}
-                      </TableCell>
-                      <TableCell>{grandTotal.toFixed(2)} EGP</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>VAT</TableCell>
-                      <TableCell>{Tax}%</TableCell>
-                      <TableCell>
-                        {(grandTotal * (Tax / 100)).toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Delivery</TableCell>
-                      <TableCell></TableCell>
-                      <TableCell>{Delivery || 0} EGP</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Discount</TableCell>
-                      <TableCell>0%</TableCell>
-                      <TableCell>0</TableCell>
-                    </TableRow>
-                  </TableBody>
-                  <TableFooter className="bg-default-100 border-t border-default-300">
-                    <TableRow>
-                      <TableCell
-                        colSpan="2"
-                        className="text-sm text-default-600 font-semibold"
-                      >
-                        Total
-                      </TableCell>
-                      <TableCell className="text-sm text-default-600 font-semibold text-right">
-                        {totalAmount.toFixed(2)} EGP
-                      </TableCell>
-                    </TableRow>
-                  </TableFooter>
-                </Table>
-              </Card>
 
-              {cancelOrderDialogOpen && (
-                <Dialog
-                  open={cancelOrderDialogOpen}
-                  onOpenChange={setCancelOrderDialogOpen}
-                >
-                  <DialogContent size="3xl">
-                    <DialogHeader>
-                      <DialogTitle className="text-base font-medium text-default-700">
-                        Payment Process
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="text-sm text-default-500 space-y-4">
-                      <form
-                        onSubmit={handleCreateOrder(onSubmithandleCreateOrder)}
-                      >
-                        <div className="flex gap-4 my-3">
-                          <div className="flex flex-col w-1/2">
-                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
-                              payment
-                            </label>
+                            {/* عرض الإضافات الخاصة بالعنصر */}
+                            {item.selectedMainExtras?.map((extra) => (
+                              <TableRow
+                                key={extra.id}
+                                className="bg-gray-100 dark:bg-gray-700"
+                              >
+                                <TableCell className="pl-6 text-gray-800 dark:text-gray-200 whitespace-nowrap overflow-hidden text-ellipsis">
+                                  {extra.name_en}
+                                </TableCell>
 
-                            <Controller
-                              name="orderpayment"
-                              control={controlCreateOrder}
-                              rules={{
-                                required: "Order payment is required",
-                              }}
-                              render={({ field }) => (
-                                <Select
-                                  {...field}
-                                  options={orderPaymenyOptions}
-                                  placeholder="Select Order Payment"
-                                  className="react-select"
-                                  classNamePrefix="select"
-                                  value={
-                                    orderPaymenyOptions.find(
-                                      (option) => option.value === field.value
-                                    ) || null
-                                  } // ✅ تصحيح القيمة
-                                  onChange={(selectedOption) => {
-                                    field.onChange(selectedOption.value);
-                                    setValueCreateOrder(
-                                      "orderpayment",
-                                      selectedOption.value
-                                    );
+                                <TableCell colSpan={3}></TableCell>
+                                <TableCell className="text-gray-800 dark:text-gray-200">
+                                  {extra.price_en} EGP
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                            {item.selectedExtras?.map((extra) => (
+                              <TableRow
+                                key={extra.id}
+                                className="bg-gray-100 dark:bg-gray-700"
+                              >
+                                <TableCell className="pl-6 text-gray-800 dark:text-gray-200">
+                                  {extra.name_en}
+                                </TableCell>
+                                <TableCell colSpan={3}></TableCell>
+                                {/* <TableCell >
+                                  EGP
+                                </TableCell> */}
+                                <TableCell className="text-gray-800 dark:text-gray-200">
+                                  <span className="inline-flex items-center gap-1">
+                                    {extra.price_en}
+                                    <span>EGP</span>
+                                  </span>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </React.Fragment>
+                        );
+                      })}
+                    </TableBody>
+                    <tfoot>
+                      <TableRow className="bg-gray-300 dark:bg-gray-900">
+                        <TableCell
+                          colSpan={4}
+                          className="font-bold text-gray-900 dark:text-gray-100 text-left"
+                        >
+                          Grand Total:
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-900 dark:text-gray-100">
+                          <span className="inline-flex items-center gap-1">
+                            {grandTotal.toFixed(2)}
+                            <span>EGP</span>
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    </tfoot>
+                  </Table>
+                </div>
+              )}
+              {cartItems.length > 0 && (
+                <>
+                  <Card title="Bordered Tables">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Details</TableHead>
+                          <TableHead>Amount</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell className="text-[#000] dark:text-[#fff]">
+                            Subtotal
+                          </TableCell>
+                          <TableCell className="text-[#000] dark:text-[#fff] ml-">
+                            {cartItems?.length}
+                          </TableCell>
+                          <TableCell className="text-[#000] dark:text-[#fff]">
+                            {grandTotal.toFixed(2)} EGP
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-[#000] dark:text-[#fff]">
+                            VAT
+                          </TableCell>
+                          <TableCell className="text-[#000] dark:text-[#fff]">
+                            {Tax}%
+                          </TableCell>
+                          <TableCell className="text-[#000] dark:text-[#fff]">
+                            {(grandTotal * (Tax / 100)).toFixed(2)}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-[#000] dark:text-[#fff]">
+                            Delivery
+                          </TableCell>
+                          <TableCell></TableCell>
+                          <TableCell className="text-[#000] dark:text-[#fff]">
+                            {Delivery || 0} EGP
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-[#000] dark:text-[#fff]">
+                            Discount
+                          </TableCell>
+                          <TableCell className="text-[#000] dark:text-[#fff]">
+                            0%
+                          </TableCell>
+                          <TableCell className="text-[#000] dark:text-[#fff]">
+                            0
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                      <TableFooter className="bg-default-100 border-t border-default-300">
+                        <TableRow>
+                          <TableCell
+                            colSpan="2"
+                            className="text-sm  font-semibold text-[#000] dark:text-[#fff]"
+                          >
+                            Total
+                          </TableCell>
+                          <TableCell className="text-sm  font-semibold text-right text-[#000] dark:text-[#fff]">
+                            {totalAmount.toFixed(2)} EGP
+                          </TableCell>
+                        </TableRow>
+                      </TableFooter>
+                    </Table>
+                  </Card>
+
+                  {cancelOrderDialogOpen && (
+                    <Dialog
+                      open={cancelOrderDialogOpen}
+                      onOpenChange={setCancelOrderDialogOpen}
+                    >
+                      <DialogContent size="3xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-base font-medium text-default-700">
+                            Payment Process
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="text-sm text-default-500 space-y-4">
+                          <form
+                            onSubmit={handleCreateOrder(
+                              onSubmithandleCreateOrder
+                            )}
+                          >
+                            <div className="flex gap-4 my-3">
+                              <div className="flex flex-col w-1/2">
+                                <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                                  payment
+                                </label>
+
+                                <Controller
+                                  name="orderpayment"
+                                  control={controlCreateOrder}
+                                  rules={{
+                                    required: "Order payment is required",
                                   }}
-                                  styles={selectStyles(theme, color)}
+                                  render={({ field }) => (
+                                    <Select
+                                      {...field}
+                                      options={orderPaymenyOptions}
+                                      placeholder="Select Order Payment"
+                                      className="react-select"
+                                      classNamePrefix="select"
+                                      value={
+                                        orderPaymenyOptions.find(
+                                          (option) =>
+                                            option.value === field.value
+                                        ) || null
+                                      } // ✅ تصحيح القيمة
+                                      onChange={(selectedOption) => {
+                                        field.onChange(selectedOption.value);
+                                        setValueCreateOrder(
+                                          "orderpayment",
+                                          selectedOption.value
+                                        );
+                                      }}
+                                      styles={selectStyles(theme, color)}
+                                    />
+                                  )}
                                 />
-                              )}
-                            />
-                          </div>
-                          <div className="flex flex-col w-1/2">
-                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
-                              Channal
-                            </label>
-                            {/* <Controller
-                              name="ordersource"
-                              control={controlCreateOrder}
-                              rules={{
-                                required: "Order source is required",
-                              }}
-                              render={({ field }) => (
-                                <Select
-                                  {...field}
-                                  options={orderSourceOptions}
-                                  placeholder="Select Order Source"
-                                  className="react-select"
-                                  classNamePrefix="select"
-                                  value={
-                                    orderSourceOptions.find(
-                                      (option) => option.label === field.value
-                                    ) || null
-                                  } // ✅ تصحيح القيمة
-                                  onChange={(selectedOption) => {
-                                    field.onChange(selectedOption.value);
-                                    setValueCreateOrder(
-                                      "ordersource",
-                                      selectedOption.value
-                                    );
-                                  }}
-                                  styles={selectStyles(theme, color)}
-                                />
-                              )}
-                              
-                            /> */}
-                            <Controller
-                              name="ordersource"
-                              control={controlCreateOrder}
-                              rules={{
-                                required: "Order source is required",
-                              }}
-                              render={({ field }) => (
-                                <Select
-                                  {...field}
-                                  options={orderSourceOptions}
-                                  placeholder="Select Order Source"
-                                  className="react-select"
-                                  classNamePrefix="select"
-                                  value={
-                                    orderSourceOptions.find(
-                                      (option) => option.label === field.value
-                                    ) || null
-                                  }
-                                  onChange={(selectedOption) => {
-                                    field.onChange(selectedOption.label); // ✅ تخزين label فقط
-                                    setValueCreateOrder(
-                                      "ordersource",
-                                      selectedOption.label,
-                                      { shouldValidate: true }
-                                    );
-                                    setOrderSourceSelected(selectedOption); // ✅ تحديث useState
-                                  }}
-                                  styles={selectStyles(theme, color)}
-                                />
-                              )}
-                            />
-                          </div>
-                        </div>
+                              </div>
+                              <div className="flex flex-col w-1/2">
+                                <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                                  Channal
+                                </label>
 
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-2">
-                          <div className="flex flex-col w-1/2">
-                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
-                              Order Type
-                            </label>
-                            {/* <Select
-                              placeholder="Select Order Type"
-                              className="react-select"
-                              classNamePrefix="select"
-                              options={orderTypeOptions}
-                              value={selectedOrderType}
-                           
-                              onChange={(selectedOption) => {
-    setSelectedOrderType(selectedOption);
-    setValueCreateOrder("ordertype", selectedOption.value, { shouldValidate: true });
-  }}
-                              styles={selectStyles(theme, color)}
-                            /> */}
-                            <Controller
-                              name="ordertype"
-                              control={controlCreateOrder}
-                              rules={{ required: "Order type is required" }} // ✅ تأكد من أنه مطلوب
-                              render={({ field }) => (
-                                <Select
-                                  {...field}
-                                  options={orderTypeOptions}
-                                  placeholder="Select Order Type"
-                                  className="react-select"
-                                  classNamePrefix="select"
-                                  value={
-                                    orderTypeOptions.find(
-                                      (option) => option.value === field.value
-                                    ) || null
-                                  }
-                                  onChange={(selectedOption) => {
-                                    field.onChange(selectedOption.value); // ✅ تحديث قيمة الفورم
-                                    setSelectedOrderType(selectedOption); // ✅ تحديث state أيضاً
+                                <Controller
+                                  name="ordersource"
+                                  control={controlCreateOrder}
+                                  rules={{
+                                    required: "Order source is required",
                                   }}
-                                  styles={selectStyles(theme, color)}
+                                  render={({ field }) => (
+                                    <Select
+                                      {...field}
+                                      options={orderSourceOptions}
+                                      placeholder="Select Order Source"
+                                      className="react-select"
+                                      classNamePrefix="select"
+                                      value={
+                                        orderSourceOptions.find(
+                                          (option) =>
+                                            option.label === field.value
+                                        ) || null
+                                      }
+                                      onChange={(selectedOption) => {
+                                        field.onChange(selectedOption.label); // ✅ تخزين label فقط
+                                        setValueCreateOrder(
+                                          "ordersource",
+                                          selectedOption.label,
+                                          { shouldValidate: true }
+                                        );
+                                        setOrderSourceSelected(selectedOption); // ✅ تحديث useState
+                                      }}
+                                      styles={selectStyles(theme, color)}
+                                    />
+                                  )}
                                 />
-                              )}
-                            />
-                          </div>
+                              </div>
+                            </div>
 
-                          <div className="flex flex-col w-1/2">
-                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
-                              Branches
-                            </label>
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-2">
+                              <div className="flex flex-col w-1/2">
+                                <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                                  Order Type
+                                </label>
 
-                            {/* <Controller
+                                <Controller
+                                  name="ordertype"
+                                  control={controlCreateOrder}
+                                  rules={{ required: "Order type is required" }} // ✅ تأكد من أنه مطلوب
+                                  render={({ field }) => (
+                                    <Select
+                                      {...field}
+                                      options={orderTypeOptions}
+                                      placeholder="Select Order Type"
+                                      className="react-select"
+                                      classNamePrefix="select"
+                                      value={
+                                        orderTypeOptions.find(
+                                          (option) =>
+                                            option.value === field.value
+                                        ) || null
+                                      }
+                                      onChange={(selectedOption) => {
+                                        field.onChange(selectedOption.value); // ✅ تحديث قيمة الفورم
+                                        setSelectedOrderType(selectedOption); // ✅ تحديث state أيضاً
+                                      }}
+                                      styles={selectStyles(theme, color)}
+                                    />
+                                  )}
+                                />
+                              </div>
+
+                              <div className="flex flex-col w-1/2">
+                                <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                                  Branches
+                                </label>
+
+                                {/* <Controller
                                 name="branches"
                                 control={controlCreateOrder}
                                 rules={{
@@ -3144,307 +3061,581 @@ function CreateOrder() {
                                   />
                                 )}
                               /> */}
-                            <Controller
-                              name="branches"
-                              control={controlCreateOrder}
-                              defaultValue={selectedBranch?.id || ""}
-                              render={({ field }) => {
-                                // console.log(
-                                //   "Selected Branch Value:",
-                                //   field.value
-                                // ); // ✅ تأكيد القيمة
-                                return (
-                                  <Select
-                                    {...field}
-                                    className="react-select w-full"
-                                    classNamePrefix="select"
-                                    options={branchOptions}
-                                    onChange={(selectedOption) => {
-                                      if (!selectedOption) return;
-
-                                      const branchId = Number(
-                                        selectedOption.value
-                                      );
-                                      // console.log(
-                                      //   "Selected Branch ID Before Storing:",
-                                      //   branchId
-                                      // );
-
-                                      field.onChange(branchId);
-                                      setSelectedBranchIdCreateOrder(branchId);
-                                      setSelectedBranchPriceList(
-                                        selectedOption.priceList
-                                      );
-                                      setValueCreateOrder(
-                                        "branches",
-                                        branchId,
-                                        { shouldValidate: true }
-                                      );
-
-                                      // console.log(
-                                      //   "Stored Branch ID in Form setValueCreateOrder:",
-                                      //   getValueCreateOrder("branches")
-                                      // ); // ✅ تأكيد التخزين
-                                    }}
-                                    value={
-                                      branchOptions.find(
-                                        (option) => option.value === field.value
-                                      ) || null
-                                    }
-                                    placeholder="Branches"
-                                    styles={selectStyles(theme, color)}
-                                  />
-                                );
-                              }}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col gap-4 my-3">
-                          {/* ✅ Checkbox للتحكم في ظهور الـ Inputs */}
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              id="toggleDateTime"
-                              checked={showDateTime}
-                              onChange={() => setShowDateTime(!showDateTime)}
-                              className="w-5 h-5 accent-blue-500 cursor-pointer"
-                            />
-                            <label
-                              htmlFor="toggleDateTime"
-                              className="text-gray-700 dark:text-gray-200 font-medium cursor-pointer"
-                            >
-                              Date & Time
-                            </label>
-                          </div>
-
-                          {showDateTime && (
-                            <div className="flex gap-4">
-                              {/* Start Date */}
-
-                              <div className="flex flex-col  w-1/2">
-                                <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
-                                  Start Date
-                                </label>
                                 <Controller
-                                  name="startDate"
+                                  name="branches"
                                   control={controlCreateOrder}
-                                  rules={{ required: "Start date is required" }}
-                                  render={({ field }) => (
-                                    <Input
-                                      {...field}
-                                      type="date"
-                                      className="border -gray-300 rounded-md p-2 w-full"
-                                      min="1900-01-01"
-                                      max="2099-12-31"
-                                    />
-                                  )}
-                                />
-                              </div>
-                              {/* Start Time */}
-                              <div className="flex flex-col  w-1/2">
-                                <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
-                                  Start Time
-                                </label>
-                                <Controller
-                                  name="startTime"
-                                  control={controlCreateOrder}
-                                  rules={{ required: "Start time is required" }}
-                                  render={({ field }) => (
-                                    <Input
-                                      {...field}
-                                      type="time"
-                                      className="border -gray-300 rounded-md p-2 w-full"
-                                    />
-                                  )}
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-2 mt-3">
-                          <div className="flex flex-col w-1/2">
-                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
-                              Insert coupon
-                            </label>
+                                  defaultValue={selectedBranch?.id || ""}
+                                  render={({ field }) => {
+                                    // console.log(
+                                    //   "Selected Branch Value:",
+                                    //   field.value
+                                    // ); // ✅ تأكيد القيمة
+                                    return (
+                                      <Select
+                                        {...field}
+                                        className="react-select w-full"
+                                        classNamePrefix="select"
+                                        options={branchOptions}
+                                        onChange={(selectedOption) => {
+                                          if (!selectedOption) return;
 
-                            <Input
-                              type="text"
-                              placeholder="insert Coupon"
-                              {...registerCreateOrder("insertcoupon")}
-                              // className="w-full"
-                            />
-                          </div>
-                          <div className="flex flex-col w-1/2 ">
-                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
-                              Insert Points
-                            </label>
-                            <div className="flex gap-2">
-                              <Input
-                                type="number"
-                                placeholder="Insert Points"
-                                className="border p-2 text-"
-                                {...registerCreateOrder("insertpoints", {
-                                  setValueAs: (v) => (v === "" ? 0 : Number(v)),
-                                })}
-                              />
-                            </div>
-                          </div>
-                        </div>
+                                          const branchId = Number(
+                                            selectedOption.value
+                                          );
+                                          // console.log(
+                                          //   "Selected Branch ID Before Storing:",
+                                          //   branchId
+                                          // );
 
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-2 mt-2">
-                          {/* ✅ قسم الخصم */}
-                          <div className="flex flex-col w-1/2">
-                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
-                              Discount
-                            </label>
-                            <div className="flex gap-2 items-center">
-                              <div className="flex items-center border rounded overflow-hidden">
-                                <Input
-                                  type="number"
-                                  value={discountValue}
-                                  onChange={handleDiscountValueChange}
-                                  className="border-0 p-2 w-20 text-center"
-                                />
-                                <span className="px-3 bg-gray- border-l h-[36px] flex items-center justify-center">
-                                  L.E
-                                </span>
-                              </div>
+                                          field.onChange(branchId);
+                                          setSelectedBranchIdCreateOrder(
+                                            branchId
+                                          );
+                                          setSelectedBranchPriceList(
+                                            selectedOption.priceList
+                                          );
+                                          setValueCreateOrder(
+                                            "branches",
+                                            branchId,
+                                            { shouldValidate: true }
+                                          );
 
-                              <div className="flex items-center border rounded overflow-hidden">
-                                <Input
-                                  type="number"
-                                  value={discountPercentage}
-                                  onChange={handleDiscountPercentageChange}
-                                  className="border-0 p-2 w-20 text-center"
-                                />
-                                <span className="px-3 bg-gray- border-l h-[36px] flex items-center justify-center">
-                                  %
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* ✅ ملاحظات الطلب */}
-                          <div className="flex flex-col h-full flex-1">
-                            <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
-                              Order notes
-                            </label>
-                            <div className="flex-1 w-full">
-                              <Textarea
-                                type="text"
-                                placeholder="Order notes"
-                                className="border p-2  h-full resize-none !w-full"
-                                {...registerCreateOrder("notes")}
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between mt-5">
-                          {/* Total Order على اليسار */}
-                          <div className="text-sm font-medium text-[#]">
-                            <span className="text- text-[#000] dark:text-[#fff]">
-                              {/* Total Order : {totalAmount.toFixed(2)} EGP */}
-                              Total Order : {finalTotal.toFixed(2)} EGP
-                            </span>
-                          </div>
-
-                          {/* Select في المنتصف */}
-                          <div className="w-1/3 flex justify-center">
-                            <Controller
-                              name="orderstatus"
-                              control={controlCreateOrder}
-                              rules={{
-                                required: "Order status is required",
-                              }}
-                              render={({ field }) => (
-                                <Select
-                                  {...field}
-                                  options={orderStatusOptions || []}
-                                  placeholder="Select Order status"
-                                  className="react-select w-full"
-                                  classNamePrefix="select"
-                                  value={
-                                    orderStatusOptions.find(
-                                      (option) => option.value === field.value
-                                    ) || null
-                                  }
-                                  onChange={(selectedOption) => {
-                                    field.onChange(selectedOption.value);
-                                    setValueCreateOrder(
-                                      "orderstatus",
-                                      selectedOption.value
+                                          // console.log(
+                                          //   "Stored Branch ID in Form setValueCreateOrder:",
+                                          //   getValueCreateOrder("branches")
+                                          // ); // ✅ تأكيد التخزين
+                                        }}
+                                        value={
+                                          branchOptions.find(
+                                            (option) =>
+                                              option.value === field.value
+                                          ) || null
+                                        }
+                                        placeholder="Branches"
+                                        styles={selectStyles(theme, color)}
+                                      />
                                     );
                                   }}
-                                  styles={selectStyles(theme, color)}
                                 />
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col gap-4 my-3">
+                              {/* ✅ Checkbox للتحكم في ظهور الـ Inputs */}
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  id="toggleDateTime"
+                                  checked={showDateTime}
+                                  onChange={() =>
+                                    setShowDateTime(!showDateTime)
+                                  }
+                                  className="w-5 h-5 accent-blue-500 cursor-pointer"
+                                />
+                                <label
+                                  htmlFor="toggleDateTime"
+                                  className="text-gray-700 dark:text-gray-200 font-medium cursor-pointer"
+                                >
+                                  Schedule
+                                </label>
+                              </div>
+
+                              {showDateTime && (
+                                <div className="flex gap-4">
+                                  {/* Start Date */}
+
+                                  <div className="flex flex-col  w-1/2">
+                                    <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                                      Start Date
+                                    </label>
+                                    <Controller
+                                      name="startDate"
+                                      control={controlCreateOrder}
+                                      rules={{
+                                        required: "Start date is required",
+                                      }}
+                                      render={({ field }) => (
+                                        <Input
+                                          {...field}
+                                          type="date"
+                                          className="border -gray-300 rounded-md p-2 w-full"
+                                          min="1900-01-01"
+                                          max="2099-12-31"
+                                        />
+                                      )}
+                                    />
+                                  </div>
+                                  {/* Start Time */}
+                                  <div className="flex flex-col  w-1/2">
+                                    <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                                      Start Time
+                                    </label>
+                                    <Controller
+                                      name="startTime"
+                                      control={controlCreateOrder}
+                                      rules={{
+                                        required: "Start time is required",
+                                      }}
+                                      render={({ field }) => (
+                                        <Input
+                                          {...field}
+                                          type="time"
+                                          className="border -gray-300 rounded-md p-2 w-full"
+                                        />
+                                      )}
+                                    />
+                                  </div>
+                                </div>
                               )}
-                            />
-                          </div>
+                            </div>
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-2 mt-3">
+                              <div className="flex flex-col w-1/2">
+                                <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                                  Insert coupon
+                                </label>
 
-                          {/* الزرار على اليمين */}
-                          <DialogFooter>
-                            <DialogClose asChild></DialogClose>
-                            <Button type="submit">Submit</Button>
-                          </DialogFooter>
+                                <Input
+                                  type="text"
+                                  placeholder="insert Coupon"
+                                  {...registerCreateOrder("insertcoupon")}
+                                  // className="w-full"
+                                />
+                              </div>
+                              <div className="flex flex-col w-1/2 ">
+                                <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                                  Insert Points
+                                </label>
+                                <div className="flex gap-2">
+                                  <Input
+                                    type="number"
+                                    placeholder="Insert Points"
+                                    className="border p-2 text-"
+                                    {...registerCreateOrder("insertpoints", {
+                                      setValueAs: (v) =>
+                                        v === "" ? 0 : Number(v),
+                                    })}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-2 mt-2">
+                              {/* ✅ قسم الخصم */}
+                              <div className="flex flex-col w-1/2">
+                                <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                                  Discount
+                                </label>
+                                <div className="flex gap-2 items-center">
+                                  <div className="flex items-center border rounded overflow-hidden">
+                                    <Input
+                                      type="number"
+                                      value={discountValue}
+                                      onChange={handleDiscountValueChange}
+                                      className="border-0 p-2 w-20 text-center"
+                                    />
+                                    <span className="px-3 bg-gray- border-l h-[36px] flex items-center justify-center">
+                                      L.E
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center border rounded overflow-hidden">
+                                    <Input
+                                      type="number"
+                                      value={discountPercentage}
+                                      onChange={handleDiscountPercentageChange}
+                                      className="border-0 p-2 w-20 text-center"
+                                    />
+                                    <span className="px-3 bg-gray- border-l h-[36px] flex items-center justify-center">
+                                      %
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* ✅ ملاحظات الطلب */}
+                              <div className="flex flex-col h-full flex-1">
+                                <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                                  Order notes
+                                </label>
+                                <div className="flex-1 w-full">
+                                  <Textarea
+                                    type="text"
+                                    placeholder="Order notes"
+                                    className="border p-2  h-full resize-none !w-full"
+                                    {...registerCreateOrder("notes")}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between mt-5">
+                              {/* Total Order على اليسار */}
+                              <div className="text-sm font-medium text-[#]">
+                                <span className="text- text-[#000] dark:text-[#fff]">
+                                  {/* Total Order : {totalAmount.toFixed(2)} EGP */}
+                                  Total Order : {finalTotal.toFixed(2)} EGP
+                                </span>
+                              </div>
+
+                              {/* Select في المنتصف */}
+                              <div className="w-1/3 flex justify-center">
+                                <Controller
+                                  name="orderstatus"
+                                  control={controlCreateOrder}
+                                  rules={{
+                                    required: "Order status is required",
+                                  }}
+                                  render={({ field }) => (
+                                    <Select
+                                      {...field}
+                                      options={orderStatusOptions || []}
+                                      placeholder="Select Order status"
+                                      className="react-select w-full"
+                                      classNamePrefix="select"
+                                      value={
+                                        orderStatusOptions.find(
+                                          (option) =>
+                                            option.value === field.value
+                                        ) || null
+                                      }
+                                      onChange={(selectedOption) => {
+                                        field.onChange(selectedOption.value);
+                                        setValueCreateOrder(
+                                          "orderstatus",
+                                          selectedOption.value
+                                        );
+                                      }}
+                                      styles={selectStyles(theme, color)}
+                                    />
+                                  )}
+                                />
+                              </div>
+
+                              {/* الزرار على اليمين */}
+                              <DialogFooter>
+                                <DialogClose asChild></DialogClose>
+                                <Button type="submit">Send order</Button>
+                              </DialogFooter>
+                            </div>
+                          </form>
                         </div>
-                      </form>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
+                      </DialogContent>
+                    </Dialog>
+                  )}
 
-              <div className="flex items-center justify-between gap-5 my-5">
-                <Button
-                  className="w-1/2"
-                  color="success"
-                  onClick={() => setCancelOrderDialogOpen(true)}
-                >
-                  Pay
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button className="w-1/2" color="destructive">
-                      Cancel
+                  <div className="flex items-center justify-between gap-5 my-5">
+                    <Button
+                      className="w-1/2"
+                      color="success"
+                      onClick={() => setCancelOrderDialogOpen(true)}
+                    >
+                      {/* Pay */}
+                      Create order
                     </Button>
-                  </AlertDialogTrigger>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button className="w-1/2" color="destructive">
+                          Cancel
+                        </Button>
+                      </AlertDialogTrigger>
 
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Are you absolutely sure?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action will reset everything and start the process
-                        from the beginning.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel
-                        type="button"
-                        variant="outline"
-                        color="info"
-                      >
-                        Cancel
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        className="bg-destructive hover:bg-destructive/80"
-                        onClick={handleCacelOrder}
-                      >
-                        Ok
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Are you absolutely sure?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action will reset everything and start the
+                            process from the beginning.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel
+                            type="button"
+                            variant="outline"
+                            color="info"
+                          >
+                            Cancel
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-destructive hover:bg-destructive/80"
+                            onClick={handleCacelOrder}
+                          >
+                            Ok
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </>
+              )}
+            </Card>
+               </>
           )}
+        </div>
+        <Card className="p-4 shadow-md rounded-lg w-full">
+          {openEditDialog && selectedUser && (
+            <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
+              <DialogContent size="3xl">
+                <DialogHeader>
+                  <DialogTitle>Edit User</DialogTitle>
+                </DialogHeader>
+                <form
+                  onSubmit={handleSubmitEdit(onSubmitEditUserData)}
+                  className="space-y-1"
+                >
+                  <label
+                    htmlFor="username"
+                    className="block text-sm font-medium text-[#000] dark:text-[#fff]"
+                  >
+                    Username
+                    {/* <span className="text-red-500">*</span> */}
+                  </label>
 
-          {/* <div className="flex justify-between items-center"></div> */}
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="Username"
+                    {...registerEdit("username")}
+                    className={`${
+                      errorsEdit.username ? "mb-1" : "mb-4"
+                    } text-[#000] dark:text-[#fff]`}
+                  />
+                  {errorsEdit.username && (
+                    <p className="text-red-500 text-sm my-1">
+                      {errorsEdit.username.message}
+                    </p>
+                  )}
+
+                  {/* Phone */}
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-[#000] dark:text-[#fff]"
+                  >
+                    Phone
+                    {/* <span className="text-red-500">*</span>    */}
+                  </label>
+                  <Input
+                    id="phone"
+                    type="number"
+                    placeholder="Phone"
+                    {...registerEdit("phone")}
+                    className={`${
+                      errorsEdit.phone ? "mb-1" : "mb-4"
+                    } text-[#000] dark:text-[#fff]`}
+                  />
+                  {errorsEdit.phone && (
+                    <p className="text-red-500 text-sm">
+                      {errorsEdit.phone.message}
+                    </p>
+                  )}
+
+                  {/* Phone 2 */}
+                  <label
+                    htmlFor="phone2"
+                    className="block text-sm font-medium text-[#000] dark:text-[#fff]"
+                  >
+                    Phone 2
+                  </label>
+                  <Input
+                    id="phone2"
+                    type="number"
+                    placeholder="Phone 2"
+                    {...registerEdit("phone2", { required: false })}
+                    className={`${
+                      errorsEdit.phone2 ? "mb-1" : "mb-4"
+                    } text-[#000] dark:text-[#fff]`}
+                  />
+                  {errorsEdit.phone2 && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errorsEdit.phone2.message}
+                    </p>
+                  )}
+
+                  {/* Email */}
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-[#000] dark:text-[#fff]"
+                  >
+                    Email
+                  </label>
+                  <Input
+                    id="email"
+                    type="text"
+                    placeholder="Email"
+                    {...registerEdit("email", { required: false })}
+                    className={`${
+                      errorsEdit.email ? "mb-1" : "mb-4"
+                    } text-[#000] dark:text-[#fff]`}
+                  />
+                  {errorsEdit.email && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errorsEdit.email.message}
+                    </p>
+                  )}
+
+                  {/* Buttons */}
+                  <div className="mt-3">
+                    <DialogFooter className="flex justify-between items-center mt-4">
+                      <DialogClose asChild>
+                        <Button
+                          variant="outline"
+                          onClick={() => setOpenEditDialog(false)}
+                        >
+                          Close
+                        </Button>
+                      </DialogClose>
+                      <Button type="submit">Save Changes</Button>
+                    </DialogFooter>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
+          {openEditAddressDialog && selectedEditAddress && (
+            <Dialog
+              open={openEditAddressDialog}
+              onOpenChange={setOpenEditAddressDialog}
+            >
+              <DialogContent size="3xl">
+                <DialogHeader>
+                  <DialogTitle>Edit User Address</DialogTitle>
+                </DialogHeader>
+
+                <form
+                  onSubmit={handleEditAddressUser(onSubmitEditUserAddress)}
+                  className="space-y-4"
+                >
+                  {/* Select Field */}
+                  <div>
+                    <label className="block mb-1">Area</label>
+                    <Controller
+                      name="area"
+                      control={controlEditAddress}
+                      rules={{ required: "Area is required" }}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          options={areasOptions || []}
+                          placeholder="Area"
+                          className="react-select w-full"
+                          classNamePrefix="select"
+                          value={
+                            areasOptions?.find(
+                              (option) => option.value === field.value?.value
+                            ) || null
+                          }
+                          onChange={(selectedOption) => {
+                            field.onChange(selectedOption);
+                            handleChangeArea(selectedOption);
+                          }}
+                          styles={selectStyles(theme, color)}
+                        />
+                      )}
+                    />
+                  </div>
+                  {errorsEditAddressUser.area && (
+                    <p className="text-red-500 text-sm">
+                      {errorsEditAddressUser.area.message}
+                    </p>
+                  )}
+
+                  {/* Input Fields */}
+                  <div className="flex gap-2 items-center my-3">
+                    <div className="flex-1">
+                      <label className="block mb-1">Street</label>
+                      <Input
+                        type="text"
+                        {...registerEditAddressUser("street")}
+                        className="w-full text-[#000] dark:text-[#fff]"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block mb-1">Building</label>
+                      <Input
+                        type="text"
+                        {...registerEditAddressUser("building")}
+                        className="w-full text-[#000] dark:text-[#fff]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 items-center my-3">
+                    <div className="flex-1">
+                      <label className="block mb-1">Floor</label>
+                      <Input
+                        type="text"
+                        {...registerEditAddressUser("floor")}
+                        className="w-full text-[#000] dark:text-[#fff]"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block mb-1">Apt</label>
+                      <Input
+                        type="text"
+                        {...registerEditAddressUser("apt")}
+                        className="w-full text-[#000] dark:text-[#fff]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block mb-1">Landmark</label>
+                    <Input
+                      type="text"
+                      {...registerEditAddressUser("additionalInfo")}
+                      className="w-full text-[#000] dark:text-[#fff]"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex gap-4 items-center">
+                      {["home", "work", "other"].map((type) => (
+                        <label key={type} className="flex items-center gap-2">
+                          <Input
+                            type="checkbox"
+                            name="addressType"
+                            className="mt-1"
+                            value={type}
+                            checked={editAddressType === type}
+                            onChange={() => handleEditAddressTypeChange(type)}
+                          />
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </label>
+                      ))}
+                    </div>
+
+                    {editAddressType === "other" && (
+                      <Input
+                        type="text"
+                        placeholder="Enter address name"
+                        value={customAddressName}
+                        onChange={(e) => {
+                          setCustomAddressName(e.target.value);
+                          setValueEditAddressUser("name", e.target.value);
+                        }}
+                        className="text-[#000] dark:text-[#fff]"
+                      />
+                    )}
+                  </div>
+
+                  {/* Buttons */}
+                  <DialogFooter className="flex justify-end gap-4">
+                    <DialogClose asChild>
+                      <Button
+                        variant="outline"
+                        onClick={() => setOpenEditAddressDialog(false)}
+                      >
+                        Close
+                      </Button>
+                    </DialogClose>
+                    <Button type="submit">Save Changes</Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
         </Card>
-
-        {/* <Test /> */}
       </div>
     </div>
   );
