@@ -2679,7 +2679,6 @@ function CreateOrder() {
             <>
               <h3 className="text-lg font-semibold"></h3>
               <Card
-                // title="Bordered Tables"
                 className="w-full p- shadow-md rounded-lg mt-0 mb-3"
               >
            
@@ -2835,7 +2834,6 @@ function CreateOrder() {
             <>
               <h3 className="text-lg font-semibold"></h3>
               <Card
-                // title="Bordered Tables"
                 className="w-full p-2 shadow-md rounded-lg mt-0"
               >
            
