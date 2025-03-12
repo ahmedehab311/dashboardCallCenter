@@ -648,59 +648,50 @@ function CreateOrder() {
     );
   };
 
+  // const handleDecreaseTable = (id) => {
+  //   setCartItems((prevItems) =>
+  //     prevItems.map((item) =>
+  //       item.id === id && item.quantity > 1
+  //         ? {
+  //             ...item,
+  //             quantity: item.quantity - 1,
+  //             total: (item.quantity - 1) * item.price,
+  //           }
+  //         : item
+  //     )
+  //   );
+  // };
   const handleDecreaseTable = (id) => {
     setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id && item.quantity > 1
-          ? {
-              ...item,
-              quantity: item.quantity - 1,
-              total: (item.quantity - 1) * item.price,
+      prevItems
+        .map((item) => {
+          if (item.id === id) {
+            if (item.quantity > 1) {
+              return {
+                ...item,
+                quantity: item.quantity - 1,
+                total: (item.quantity - 1) * item.price,
+              };
+            } else {
+              // لما الكمية تكون 1 ونضغط "-" يتم الحذف فورًا
+              handleRemoveItem(id);
+              return null; // إزالة العنصر
             }
-          : item
-      )
+          }
+          return item;
+        })
+        .filter(Boolean) // إزالة العناصر المحذوفة
     );
   };
+  
+  
 
   const handleRemoveItem = (id) => {
     setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
   };
 
   const [cartItems, setCartItems] = useState([]);
-  // console.log("cartItems", cartItems);
-  // console.log("selectedItem", selectedItem);
-  const cartItemsTest = [
-    {
-      id: 1,
-      name: "Burger",
-      price: 10.99,
-      options: "Extra Cheese",
-      extras: "Bacon, Fries",
-      quantity: 2,
-      note: "Less spicy",
-      subtotal: 21.98,
-    },
-    {
-      id: 2,
-      name: "Pizza",
-      price: 15.49,
-      options: "Thin Crust",
-      extras: "Olives, Mushrooms",
-      quantity: 1,
-      note: "Extra crispy",
-      subtotal: 15.49,
-    },
-    {
-      id: 3,
-      name: "Pasta",
-      price: 12.99,
-      options: "White Sauce",
-      extras: "Garlic Bread",
-      quantity: 3,
-      note: "No pepper",
-      subtotal: 38.97,
-    },
-  ];
+
   const [note, setNote] = useState("");
 
   const handleAddToCart = () => {
@@ -938,7 +929,7 @@ function CreateOrder() {
   useEffect(() => {
     setIsBranchManuallySelected(!!selectedBranchId); 
   }, [selectedBranchId]);
-  console.log("selectedUser",selectedUser);
+  // console.log("selectedUser",selectedUser);
 
   const [showDateTime, setShowDateTime] = useState(false);
 
@@ -2695,14 +2686,12 @@ function CreateOrder() {
                 {cartItems.length > 0 && (
             <>
               <Card
-                // title="Bordered Tables"
                 className="w-full p-2  mt-0"
               >
                 {cartItems.length > 0 && (
                   <>
-                    <Card title="Bordered Tables" className="w-full p-2  mt-0">
+                    <Card  className="w-full p-2  mt-0">
                       {cartItems.map((item, index) => {
-                        // حساب إجمالي الإضافات
                         const extrasTotal =
                           item.selectedMainExtras?.reduce(
                             (sum, extra) =>
@@ -2710,7 +2699,6 @@ function CreateOrder() {
                             0
                           ) || 0;
 
-                        // حساب السعر الإجمالي للعنصر
                         const itemPrice = parseFloat(item?.price || 0);
                         const itemQuantity = parseFloat(item?.quantity || 0);
                         const total = itemPrice * itemQuantity;
