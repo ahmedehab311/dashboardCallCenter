@@ -57,6 +57,7 @@ const DialogPortal = DialogPrimitive.Portal;
         overlayClass,
         overlayScroll = false,
         hiddenCloseIcon = false,
+        
         ...props
       },
       ref

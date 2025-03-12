@@ -11,8 +11,11 @@ const apiInstance = axios.create({
 
 apiInstance.interceptors.request.use(
   (config) => {
-    // const token = Cookies.get("token");
-     const token =  localStorage.getItem("token") || Cookies.get("token")  
+    const token = Cookies.get("token");
+     
+    //  const tokenStorge =
+    // typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    // const token =   tokenStorge || Cookies.get("token")  
     if (token) {
       config.params = config.params || {};
       config.params.api_token = token;

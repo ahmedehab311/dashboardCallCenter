@@ -180,15 +180,24 @@ const ProfileInfo = () => {
         </DropdownMenuGroup> */}
         <DropdownMenuSeparator className="mb-0 dark:bg-background" />
         <DropdownMenuItem
-          onSelect={() => {
-            localStorage.removeItem("token");
+         onSelect={() => {
+    console.log("🚀 Logging out... Removing tokens!");
 
-            Cookies.remove("token");
-            const currentLanguage =
-              localStorage.getItem("language") || Cookies.get("language");
+    Cookies.remove("access_token");
+    Cookies.remove("token");
+    localStorage.removeItem("token");
+    Cookies.remove("token", { domain: "myres.me", path: "/" });
+Cookies.remove("access_token", { domain: "myres.me", path: "/" });
+Cookies.remove("access_token", { domain: "ordrz.me", path: "/" });
 
-            router.push(`/${currentLanguage}/login`);
-          }}
+    const currentLanguage =
+      localStorage.getItem("language") || Cookies.get("language");
+
+    console.log("🔍 Checking Cookies after removal:", Cookies.get("token"), Cookies.get("access_token"));
+    console.log("🔍 Checking Local Storage after removal:", localStorage.getItem("token"));
+
+    router.push(`/${currentLanguage}/login`);
+  }}
           className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize my-1 px-3 dark:hover:bg-background cursor-pointer"
         >
           <Icon icon="heroicons:power" className="w-4 h-4" />

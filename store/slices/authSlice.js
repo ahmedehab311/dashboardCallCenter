@@ -69,33 +69,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { loginUser as loginUserService } from "@/app/[lang]/(auth)/services/authService";
 
-const loadUserFromLocalStorage = () => {
-  if (typeof window !== "undefined") {
-    const userData = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
 
-    if (token && userData) {
-      try {
-        const parsedUserData = JSON.parse(userData);
-        return {
-          admin: parsedUserData || null,
-          tokenType: "Bearer",
-        };
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-      }
-    }
-  }
-  return null;
-};
 
 const initialState = {
   admin: null,
-  roles: [],
-  permissions: [],
-  accessToken: null,
-  tokenType: null,
-  expiresIn: null,
   loading: false,
   error: null,
   messages: [],

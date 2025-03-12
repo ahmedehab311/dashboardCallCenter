@@ -161,15 +161,19 @@ const LogInForm = ({ children }) => {
     }
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     Cookies.remove("token");
     Cookies.remove("look_up");
     Cookies.remove("language");
     Cookies.remove("domain");
     Cookies.remove("access_token");
     localStorage.removeItem("token");
-    
-  },[])
+    localStorage.removeItem("user");
+  
+    console.log("🚀 Removed all stored tokens and data!");
+    console.log("🔍 Token after remove:", Cookies.get("token"), localStorage.getItem("token"));
+  }, []);
+  
   // const onSubmit = async (data) => {
   //   setIsLoadings(true);
 
