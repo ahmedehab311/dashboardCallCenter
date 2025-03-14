@@ -282,7 +282,7 @@ function CreateOrder() {
     keepPreviousData: true,
   });
 
-  // console.log("menu from basic", menu);
+  // console.log("menu from create", menu);
   const sections = menu?.sections
     ? [{ id: "all", name_en: "All", name_ar: "الكل" }, ...menu.sections]
     : [{ id: "all", name_en: "All", name_ar: "الكل" }];
@@ -376,6 +376,7 @@ function CreateOrder() {
           name: response.name_en,
           description: response.description_en,
           image: response.image,
+          price: firstInfo?.price?.price,
           availability: firstInfo?.availability?.availability,
           info: response?.info || [],
           selectedInfo: firstInfo?.size_en || "",
@@ -387,7 +388,6 @@ function CreateOrder() {
           extrasData: firstInfo?.item_extras[0]?.data || [],
           selectedExtras: [],
           selectedExtrasIds: [],
-          price: firstInfo?.price?.price,
         });
       }
     } catch (error) {
@@ -799,20 +799,7 @@ function CreateOrder() {
     useState(false);
   const [pendingRestaurant, setPendingRestaurant] = useState(null);
 
-  // const handleRestaurantChange = (selectedOption) => {
-  //   if(cartItems.length >0 ) {
-  //     setPendingRestaurant(selectedOption);
-  //     setShowRestaurantChangeAlert(true);
-  //   }else{
-  //     setSelectedRestaurantId(selectedOption.value);
-  //     setSelectedBranchId(null);
-  //     // setSelectedBranchPriceList(null);
-  //     refetchBranches();
-  //     setCartItems([]);
-  //     setActiveSection("all");
-  //   }
 
-  // };
   const handleRestaurantChange = (selectedOption) => {
     if (cartItems.length > 0) {
       // لو السلة فيها عناصر، احفظ المطعم مؤقتًا واظهر التنبيه
@@ -872,6 +859,31 @@ function CreateOrder() {
 
   //     refetchMenu();
   //   };
+  // const handleSelectChangeBranches = (selectedOption) => {
+  //   if (!selectedOption) {
+  //     setSelectedBranchInSelected(null);
+  //     setSelectedBranchId(null);
+  //     setSavedBranch(null);
+  //     setSelectedBranchPriceList(null);
+  //     setIsBranchManuallySelected(false);
+  //     setMassegeNotSelectedBranch("Please select branch first");
+  //     return;
+  //   }
+
+  //   setSelectedBranchInSelected(selectedOption);
+  //   setSavedBranch(null);
+  //   setSelectedBranchName(selectedOption.label);
+  //   setSelectedBranchId(selectedOption.value);
+  //   setSelectedBranchPriceList(selectedOption.priceList);
+  //   setIsBranchManuallySelected(true);
+  //   setMassegeNotSelectedBranch(null);
+
+  //   refetchMenu();
+  // };
+  
+  // const [selectedBranchInSelected, setSelectedBranchInSelected] = useState(null);
+  const [pendingBranch, setPendingBranch] = useState(null);
+  const [showAlert, setShowAlert] = useState(false);
   const handleSelectChangeBranches = (selectedOption) => {
     if (!selectedOption) {
       setSelectedBranchInSelected(null);
@@ -883,16 +895,98 @@ function CreateOrder() {
       return;
     }
 
+    if (cartItems.length > 0) {
+      setPendingBranch(selectedOption);
+      setShowAlert(true);
+      setCancelOrderDialogOpen(false)
+    } else {
+      updateBranch(selectedOption);
+      setSelectedBranchName(selectedOption.label);
+    }
+  };
+
+  const updateBranch = (selectedOption) => {
     setSelectedBranchInSelected(selectedOption);
     setSavedBranch(null);
-    setSelectedBranchName(selectedOption.label);
     setSelectedBranchId(selectedOption.value);
     setSelectedBranchPriceList(selectedOption.priceList);
     setIsBranchManuallySelected(true);
     setMassegeNotSelectedBranch(null);
-
-    refetchMenu();
+    
+    refetchMenu(); // تحديث المينيو بعد تغيير الفرع
   };
+
+  const handleConfirmChange = () => {
+    console.log("pendingBranch",pendingBranch);
+    updateBranch(pendingBranch);
+    setSelectedBranchName(pendingBranch.label);
+    setShowAlert(false);
+    setCartItems([])
+  };
+
+  const handleCancelChange = () => {
+    setPendingBranch(null);
+    setShowAlert(false);
+  };
+
+
+  useEffect(() => {
+    const updateCartItems = async () => {
+      if (!selectedBranchId || cartItems.length === 0) return;
+  
+      try {
+        console.log("📡 Fetching new prices for branch:", selectedBranchId);
+        
+        const updatedCart = await Promise.all(
+          cartItems.map(async (item) => {
+            console.log("🛒 Fetching item:", item.id);
+  
+            const response = await fetchViewItem(
+              selectedRestaurantId,
+              selectedAddress?.id,
+              item.id
+            );
+  
+            console.log("🔍 API Response:", response);
+            console.log("🔍item:", item);
+  
+            if (!response) return item; // لو مفيش استجابة، رجّع العنصر زي ما هو
+  
+            const updatedSize = response.info.find(
+              (info) => info.id === item.selectedIdSize
+            );
+  
+            console.log("🔄 Found Size:", updatedSize);
+  
+            if (!updatedSize) return item;
+  
+            const newPrice = updatedSize.price?.price;
+            const newAvailability = updatedSize.availability
+            ? updatedSize.availability.availability
+            : "N/A";
+  
+            console.log(
+              `💰 New Price: ${newPrice}, 🔴 Availability: ${newAvailability}`
+            );
+  
+            return {
+              ...item,
+              price: newPrice !== undefined ? newPrice : item.price,
+              availability: newAvailability !== undefined ? newAvailability : item.availability,
+            };
+          })
+        );
+  
+        console.log("🛒 Updated Cart:", updatedCart);
+        setCartItems(updatedCart);
+      } catch (error) {
+        console.error("❌ Error updating cart items:", error);
+      }
+    };
+  
+    updateCartItems();
+  }, [selectedBranchId]);
+  
   useEffect(() => {
     if (deliveryMethod !== "pickup") {
       setSelectedBranch(null);
@@ -929,7 +1023,8 @@ function CreateOrder() {
   useEffect(() => {
     setIsBranchManuallySelected(!!selectedBranchId); 
   }, [selectedBranchId]);
-  // console.log("selectedUser",selectedUser);
+  // console.log("setSelectedBranchInSelected",selectedBranchInSelected);
+  // console.log("setSelectedBranchId",selectedBranchId);
 
   const [showDateTime, setShowDateTime] = useState(false);
 
@@ -1022,6 +1117,94 @@ function CreateOrder() {
       setSelectedAddress(selectedUser.address[0]); 
     }
   }, [deliveryMethod, selectedUser]);
+  useEffect(()=> {
+  if (selectedOrderType?.value === 2 ) {
+
+    console.log("selectedOrderType?.value",selectedOrderType?.value);
+    setDeliveryMethod("pickup");
+  }else {
+    setDeliveryMethod("delivery");
+
+  }
+    },[selectedOrderType])
+    // useEffect(() => {
+    //   if (selectedOrderType?.value === 2) {
+    //     const selectedBranch = getValueCreateOrder("branches"); // احصل على الفرع المختار داخل الكنترول
+    //     console.log("selectedBranch",selectedBranch);
+    
+    //     if (selectedBranch) {
+    //       const matchedBranch = branchOptions.find(
+    //         (option) => option.value === selectedBranch
+    //       );
+    //       setSelectedBranchInSelected(matchedBranch || null);
+    //     }
+    //   }
+    // }, [selectedOrderType, setSelectedBranchInSelected, getValueCreateOrder]);
+    
+    
+  // console.log("selectedOrderType",selectedOrderType);
+  
+  // useEffect(() => {
+  //   if (selectedOrderType?.value === 2) {
+  //     const selectedBranch = getValueCreateOrder("branches")
+  //     console.log("selectedBranch", selectedBranch);
+  
+  //     if (selectedBranch) {
+  //       const matchedBranch = branchOptions.find(
+  //         (option) => option.value === selectedBranch
+  //       );
+  
+  //       if (matchedBranch && matchedBranch.value !== selectedBranchInSelected?.value) {
+  //         setSelectedBranchInSelected(matchedBranch);
+  //         // setSelectedBranchName
+  //         setSelectedBranchName(matchedBranch.label);
+  //       }
+        
+  //     }
+  //   }
+  // }, [selectedOrderType, getValueCreateOrder("branches"), branchOptions]); 
+  
+  // useEffect(() => {
+  //   // (createOrderDialogOpen && selectedOrderType?.value === 2) 
+  //   if (selectedOrderType?.value === 2) {
+  //     const selectedBranch = getValueCreateOrder("branches"); // احصل على الفرع المختار داخل الكنترول
+  //     console.log("selectedBranch", selectedBranch);
+  
+  //     if (selectedBranch) {
+  //       const matchedBranch = branchOptions?.find(
+  //         (option) => option.value === selectedBranch
+  //       );
+  
+  //       if (matchedBranch && matchedBranch.value !== selectedBranchInSelected?.value) {
+  //         // تحديث القيم وكأن المستخدم اختار الفرع يدوياً
+  //         handleSelectChangeBranches(matchedBranch);
+  //       }
+  //     }
+  //   }
+  // }, [selectedOrderType, getValueCreateOrder("branches")]);
+  
+  
+  // (createOrderDialogOpen && selectedOrderType?.value === 2) 
+  useEffect(() => {
+    if (selectedOrderType?.value === 2) {
+      const selectedBranch = getValueCreateOrder("branches"); // احصل على الفرع المختار داخل الكنترول
+      console.log("selectedBranch", selectedBranch);
+  
+      if (selectedBranch) {
+        const matchedBranch = branchOptions?.find(
+          (option) => option.value === selectedBranch
+        );
+  
+        if (matchedBranch && matchedBranch.value !== selectedBranchInSelected?.value) {
+          // تحديث القيم وكأن المستخدم اختار الفرع يدوياً
+          handleSelectChangeBranches(matchedBranch);
+        }
+      }
+    }
+  }, [cancelOrderDialogOpen]);
+  
+  console.log("setSelectedBranchInSelected",selectedBranchInSelected);
+  
   const [selectedOrderPaymeny, setSelectedOrderPaymeny] = useState(null);
   const orderPaymenyOptions = [{ value: 1, label: "Cash" }];
 
@@ -2668,8 +2851,62 @@ function CreateOrder() {
                           styles={selectStyles(theme, color)}
                           value={selectedBranchInSelected}
                         />
+ {showAlert && (
+        <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+              <AlertDialogDescription>
+              Changing the restaurant will clear your cart. Do you want to
+              proceed?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={handleCancelChange}>
+                إلغاء
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmChange}>
+                نعم، تغيير
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
+{/* <AlertDialog
+  open={showBranchChangeAlert}
+  onOpenChange={setShowBranchChangeAlert}
+>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+      <AlertDialogDescription>
+        Changing the branch will clear your cart. Do you want to proceed?
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel
+        type="button"
+        variant="outline"
+        color="info"
+        onClick={() => setShowBranchChangeAlert(false)}
+      >
+        Cancel
+      </AlertDialogCancel>
+      <AlertDialogAction
+        className="bg-destructive hover:bg-destructive/80"
+        onClick={confirmBranchChange}
+      >
+        Ok
+      </AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog> */}
+
                       </div>
+                      
                     )}
+                    
                   </div>
                 )}
               </Card>
@@ -2705,7 +2942,7 @@ function CreateOrder() {
 
                         return (
                           <div key={item.id} className="p-2 mb-4">
-                            <div className="flex justify-between pb-2 mb-1">
+                            <div className="flex justify-between gap-2 pb-2 mb-1">
                               <span className="text-center break-words whitespace-nowrap overflow-hidden text-[14px] font-semibold">
                                 {item.selectedInfo}
                               </span>
@@ -2811,15 +3048,15 @@ function CreateOrder() {
                           </div>
                         );
                       })}
-                      <div className="border-b border-gray-300  my-3"></div>
+                      {/* <div className="border-b border-gray-300  my-3"></div> */}
 
-                      <div className="flex justify-between items-center">
+                      {/* <div className="flex justify-between items-center">
                         <span>grandTotal:</span>
                         <p className="inline-flex items-center gap-1">
                           {grandTotal.toFixed(2)}
                           <span>EGP</span>
                         </p>
-                      </div>
+                      </div> */}
                     </Card>
                   </>
                 )}
@@ -2844,6 +3081,20 @@ function CreateOrder() {
                       <Table>
                 
                         <TableBody>
+                          {/* <TableRow>
+                            <TableCell className="text-[#000] dark:text-[#fff]">
+                            grandTotal
+                            </TableCell>
+                            <TableCell className="text-[#000] dark:text-[#fff] ml-">
+                             
+                            </TableCell>
+                            <TableCell className="text-[#000] dark:text-[#fff]">
+                            <p className="inline-flex items-center gap-1">
+                          {grandTotal.toFixed(2)}
+                          <span>EGP</span>
+                        </p>
+                            </TableCell>
+                          </TableRow> */}
                           <TableRow>
                             <TableCell className="text-[#000] dark:text-[#fff]">
                               Subtotal
@@ -3039,15 +3290,12 @@ function CreateOrder() {
                                     Branches
                                   </label>
 
-                                  <Controller
+                                  {/* <Controller
                                     name="branches"
                                     control={controlCreateOrder}
                                     defaultValue={selectedBranch?.id || ""}
                                     render={({ field }) => {
-                                      // console.log(
-                                      //   "Selected Branch Value:",
-                                      //   field.value
-                                      // ); // ✅ تأكيد القيمة
+                                    
                                       return (
                                         <Select
                                           {...field}
@@ -3092,9 +3340,43 @@ function CreateOrder() {
                                           placeholder="Branches"
                                           styles={selectStyles(theme, color)}
                                         />
+                   
                                       );
                                     }}
-                                  />
+                                  /> */}
+                                  <Controller
+  name="branches"
+  control={controlCreateOrder}
+  defaultValue={selectedBranch?.id || ""}
+  render={({ field }) => {
+    return (
+      <Select
+        {...field}
+        className="react-select w-full"
+        classNamePrefix="select"
+        options={branchOptions}
+        onChange={(selectedOption) => {
+          if (!selectedOption) return;
+
+          if (cartItems.length > 0) {
+            setPendingBranch(selectedOption);
+            setShowAlert(true);
+            setCancelOrderDialogOpen(false);
+            setIsOpenAddress(true)
+          } else {
+            updateBranch(selectedOption); // ✅ لو الكارت فاضي، يغير الفرع عادي
+          }
+        }}
+        value={
+          branchOptions.find((option) => option.value === field.value) || null
+        }
+        placeholder="Branches"
+        styles={selectStyles(theme, color)}
+      />
+    );
+  }}
+/>
+
                                 </div>
                               </div>
 

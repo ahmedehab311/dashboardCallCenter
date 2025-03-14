@@ -28,8 +28,8 @@ export const fetchBranches = async (restaurantId) => {
       `${BASE_URL}/callcenter/get/branches?api_token=${token}&restaurantId=${restaurantId}`
     );
     console.log("API Response branches:", response.data);
-    console.log("API Response branches:", response.data.messages.branches);
-    console.log("API Response branches restaurantId:", restaurantId);
+    // console.log("API Response branches:", response.data.messages.branches);
+    // console.log("API Response branches restaurantId:", restaurantId);
     return response.data.messages.branches;
   } catch (error) {
     console.error("Error fetching branches:", error);
@@ -59,14 +59,14 @@ export const fetchMenu = async (restaurantId, priceList) => {
 };
 
 export const fetchViewItem = async (restaurantId, addressId, itemId) => {
-  console.log("restaurantId from fetch basic", restaurantId);
-  console.log("addressId from fetch basic", addressId);
-  console.log("itemId from fetch basic", itemId);
+  // console.log("restaurantId from fetch basic", restaurantId);
+  // console.log("addressId from fetch basic", addressId);
+  // console.log("itemId from fetch basic", itemId);
   try {
     const response = await axios.get(
       `${BASE_URL}/callcenter/get/menu/item?api_token=${token}&restaurant_id=${restaurantId}&address=${addressId}&item_id=${itemId}`
     );
-    console.log("fetch View Item:", response.data.item);
+    // console.log("fetch View Item:", response.data.item);
     return response.data.item;
   } catch (error) {
     console.error("Error fetching view item:", error);
