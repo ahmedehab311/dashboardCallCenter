@@ -266,6 +266,7 @@ export const createOrder = async ({
   lng,
   time,
   lat,
+  restaurant
 }) => {
   const formattedItems = {
     items: items.map((item) => ({
@@ -280,10 +281,10 @@ export const createOrder = async ({
       special: item.note || "",
     })),
   };
-  // console.log("formattedItems:", formattedItems); 
+  console.log("formattedItems:", formattedItems); 
   console.log("📦 items being sent:", JSON.stringify(formattedItems, null, 2));
 
-  const apiUrl = `/callcenter/order/create?api_token=${token}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${time || ""}&source=${source}&branch=${branch}&status=${status}&payment=${payment}&coins=${insertpoints || "00.00"}&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}`;
+  const apiUrl = `/callcenter/order/create?api_token=${token}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${time || ""}&source=${source}&status=${status}&payment=${payment}&coins=${insertpoints || "00.00"}&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}&restaurant=${restaurant}&branch=${branch}`;
 
 console.log("Final API URL:", apiUrl); 
 
@@ -306,6 +307,7 @@ console.log("Final API URL:", apiUrl);
           lat,
           lng,
           delivery_type,
+          restaurant
         },
       }
     );

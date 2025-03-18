@@ -1,5 +1,7 @@
-import { SiteLogo } from "@/components/svg";
+// import { SiteLogo } from "@/components/svg";
+import img from "./logo.png"
 import { useSidebar } from "@/store";
+import Image from "next/image";
 import React from "react";
 
 const SidebarLogo = ({ hovered }) => {
@@ -7,13 +9,13 @@ const SidebarLogo = ({ hovered }) => {
   return (
     <div className="px-4 py-4 ">
       <div className=" flex items-center">
-        <div className="flex flex-1 items-center gap-x-3  ">
-          <SiteLogo className="text-primary h-8 w-8" />
-          {(!collapsed || hovered) && (
+        <div className="flex flex-1 items-center gap-x-3  felx justify">
+          <Image src={img}   width={50} height={50}  alt="logo" className="h-10 w-10" />
+          {/* {(!collapsed || hovered) && (
             <div className="flex-1  text-xl text-primary  font-semibold">
               Myres
             </div>
-          )}
+          )} */}
         </div>
         {sidebarType === "classic" && (!collapsed || hovered) && (
           <div className="flex-none lg:block hidden">

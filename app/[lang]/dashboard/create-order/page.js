@@ -218,6 +218,10 @@ function CreateOrder() {
   const [selectedBranchIdCreateOrder, setSelectedBranchIdCreateOrder] =
     useState(null);
   const [SelectedBranchPriceist, setSelectedBranchPriceList] = useState(1);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+console.log("selectedRestaurantId",selectedRestaurantId);
+console.log("area :", selectedAddress?.area);
+
   // apis
   // api restaurants select
   const {
@@ -234,9 +238,9 @@ function CreateOrder() {
     errorBranchs,
     refetch: refetchBranches,
   } = useQuery({
-    queryKey: ["BranchesList", selectedRestaurantId],
-    queryFn: () => fetchBranches(selectedRestaurantId),
-    enabled: !!selectedRestaurantId,
+    queryKey: ["BranchesList", selectedRestaurantId,selectedAddress?.area],
+    queryFn: () => fetchBranches(selectedRestaurantId,selectedAddress?.area),
+    enabled: !!selectedRestaurantId && !!selectedAddress?.area,
   });
 
   const {
@@ -335,7 +339,7 @@ function CreateOrder() {
 
   const [isNewUserDialogOpen, setIsNewUserDialogOpen] = useState(false);
   const [isNewAddressDialogOpen, setIsNewAddressDialogOpen] = useState(false);
-  const [cancelOrderDialogOpen, setCancelOrderDialogOpen] = useState(false);
+  const [createOrderDialogOpen, setCreateOrderDialogOpen] = useState(false);
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
   const [isOpenMainExtra, setIsOpenMainExtra] = useState(true);
@@ -356,17 +360,21 @@ function CreateOrder() {
       return;
     }
 
-    if (deliveryMethod === "pickup" && !isBranchManuallySelected) {
-      setMassegeNotSelectedBranch("Please select branch first");
-      return;
-    }
+  
+//     const branchId = selectedBranchNew?.id || selectedBranchInSelected?.value;
+// console.log(" savedBranch?.value", savedBranch?.value)
+// console.log(" isBranchManuallySelected", isBranchManuallySelected)
+if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.value === null) {
+  setMassegeNotSelectedBranch("Select branch first");
+  return;
+}
 
-    try {
-      const response = await fetchViewItem(
-        selectedRestaurantId,
-        selectedAddress?.id,
-        item.id
-      );
+  try {
+    const response = await fetchViewItem(
+      savedBranch?.value || selectedBranchInSelected.value,
+      item.id
+    );
+    console.log("response",response)
 
       if (response) {
         const firstInfo = response?.info?.[0] || null;
@@ -394,7 +402,8 @@ function CreateOrder() {
       console.error("Error fetching item details:", error);
     }
   };
-  // console.log("selectedIdSize", selectedItem?.selectedIdSize);
+
+  // console.log("selectedItem ", selectedItem);
   // console.log("info", selectedItem?.info);
   // console.log("selectedIdSize", selectedItem?.selectedIdSize);
   // console.log("mainExtras", selectedItem?.mainExtras);
@@ -509,17 +518,205 @@ function CreateOrder() {
 
   const [search, setSearch] = useState("");
   const [allUserData, setAllUserData] = useState(null);
-  const [selectedAddress, setSelectedAddress] = useState(null);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [errorSearchUser, setErrorSearchUser] = useState(null);
+  const [selectedAddressArray, setSelectedAddressArray] = useState([]);
 
-  // تحديث السعر عند تحديد عنوان جديد
+  const [selectedBranchName, setSelectedBranchName] = useState("");
+  const [selectedBranchInSelected, setSelectedBranchInSelected] =
+    useState(null);
+  // useEffect(() => {
+  //   if (selectedUser?.address?.length > 0 && !selectedAddress) {
+  //     setSelectedAddress(selectedUser.address[0]);
+  //   }
+  // }, [selectedUser]);
+  // useEffect(() => {
+  //   if (selectedUser?.address?.length > 0) {
+  //     setSelectedAddress(selectedUser.address[0]);
+  //     setSelectedAddressArray(selectedUser.address);
+  //   } else {
+  //     setSelectedAddress(null);
+  //     setSelectedAddressArray([]);
+  //   }
+  // }, [selectedUser]);
+
+  
+  // useEffect(() => {
+  //   if (selectedAddress?.branch?.length > 0) {
+  //     const firstBranch = selectedAddress.branch[0];
+  //     console.log("firstBranch", firstBranch);
+  //     setSelectedBranch(firstBranch);
+  //   }
+  // }, [selectedAddress]);
+
+
+  // useEffect(() => {
+  //   if (selectedUser?.address?.length > 0) {
+  //     setSelectedAddressArray(selectedUser.address);
+  
+  //     if (!selectedAddress) {
+  //       const firstAddress = selectedUser.address[0];
+  //       setSelectedAddress(firstAddress);
+    
+  //       console.log("firstAddress", firstAddress);
+  //       setSelectedBranch(firstAddress.branch?.[0]); 
+    
+  //       // سيتم تسجيل null هنا لأن `setSelectedBranch` لم يطبق بعد
+  //       console.log("SelectedBranch (قبل التحديث)", firstAddress.branch?.[0]); 
+  //     }
+  //   } else {
+  //     setSelectedAddress(null);
+  //     setSelectedAddressArray([]);
+  //     setSelectedBranch(null);
+  //   }
+  // }, [selectedUser]);
+  
+  // useEffect(() => {
+  //   if (selectedAddress?.branch?.length > 0) {
+  //     setSelectedBranch(selectedAddress.branch[0]);
+  //   }
+  // }, [selectedAddress]);
+  
+  // useEffect(() => {
+  //   if (selectedBranch) {
+  //     console.log("SelectedBranch (بعد التحديث):", selectedBranch);
+  //   }
+  // }, [selectedBranch]);
+
+  const [branchId, setBranchId] = useState(null);
+  const [selectedBranchNew, setSelectedBranchNew] = useState(null);
+  // const [selectedBranchNew, setSelectedBranch] = useState(null);
+  const [deliveryMethod, setDeliveryMethod] = useState("delivery");
+
+  // const branchOptions = branches?.map((branch) => ({
+  //   value: branch.id,
+  //   label: branch.name_en,
+  //   priceList: branch.price_list,
+  // }));
+  const [branchOptions, setBranchOptions] = useState([]);
+  const [savedBranch, setSavedBranch] = useState(null);
+
   useEffect(() => {
-    if (selectedAddress?.branch?.length > 0) {
-      const firstBranch = selectedAddress.branch[0];
-      setSelectedBranch(firstBranch);
+    if (branches?.length > 0) {
+      const firstBranch = branches[0];
+      // تخزين أول فرع تلقائيًا
+      setSelectedBranchId(firstBranch.id);
+      // setSelectedBranchName(firstBranch.name_en);
+      setSavedBranch({
+        value: firstBranch.id,
+        label: firstBranch.name_en,
+        priceList: firstBranch.price_list,
+        deliveryFees: firstBranch.delivery_fees,
+      });
+      setBranchOptions(
+        branches.map((branch) => ({
+          value: branch.id,
+          label: branch.name_en,
+          priceList: branch.price_list,
+          deliveryFees: branch.delivery_fees,
+        }))
+      );
+      setSelectedBranchPriceList(firstBranch.price_list);
     }
-  }, [selectedAddress]);
+  }, [branches]);
+  
+  console.log("branchOptions",branchOptions);
+  console.log("selectedBranchId",selectedBranchId);
+  console.log("savedBranch",savedBranch);
+  
+  useEffect(() => {
+    if (selectedUser?.address?.length > 0) {
+      setSelectedAddressArray(selectedUser.address);
+  
+      if (!selectedAddress) {
+        const firstAddress = selectedUser.address[0];
+        setSelectedAddress(firstAddress);
+  
+        // console.log("firstAddress", firstAddress);
+        setSelectedBranch(firstAddress.branch?.[0]); 
+  
+        // console.log("SelectedBranch (قبل التحديث)", firstAddress.branch?.[0]);
+      }
+    } else {
+      setSelectedAddress(null);
+      setSelectedAddressArray([]);
+      setSelectedBranch(null);
+      setBranchId(null);
+    }
+  }, [selectedUser,selectedAddress]);
+  
+  // useEffect(() => {
+  //   if (branchOptions?.length > 0) {
+  //     const firstBranch = branchOptions[0]
+  // console.log(" branchId Branch ID:",firstBranch);
+      
+  //     setSelectedBranchNew(firstBranch);
+  //   }
+  // }, [selectedAddress,selectedUser]);
+  // useEffect(() => {
+  //   if (branchOptions?.length > 0 && !selectedBranchNew) {
+  //     const firstBranch = branchOptions[0]; 
+  //     console.log(" أول فرع: ", firstBranch);
+  
+  //     setSelectedBranchNew(firstBranch);
+  //     setBranchId(selectedBranchInSelected?.value); 
+  //   }
+  // }, [branchOptions]);
+ 
+// const isBranchSet = useRef(false); // للتحكم في التحديثات ومنع الـ infinite loop
+// const prevBranchOptions = useRef([]); // تخزين الفروع السابقة للمقارنة
+
+// useEffect(() => {
+//   if (branchOptions?.length > 0) {
+//     const firstBranch = branchOptions[0];
+
+//     // التحقق مما إذا كانت البرانشات قد تغيّرت فعليًا
+//     const isBranchListChanged = JSON.stringify(prevBranchOptions.current) !== JSON.stringify(branchOptions);
+
+//     if (isBranchListChanged) {
+//       console.log("🔄 تحديث الفروع الجديدة:", branchOptions);
+//       prevBranchOptions.current = branchOptions; // تحديث القيم السابقة
+
+//       // ضبط الفرع فقط إذا لم يكن محددًا أو إذا تغيّرت القائمة
+//       if (!selectedBranchNew || !branchOptions.some(branch => branch.id === selectedBranchNew.id)) {
+//         console.log("✅ تحديد أول فرع تلقائيًا:", firstBranch);
+        
+//         setSelectedBranchNew(firstBranch);
+//         setBranchId(firstBranch.id);
+//         isBranchSet.current = true;
+//       }
+//     }
+//   }
+// }, [branchOptions, selectedAddress]);
+//   useEffect(() => {
+//     if (selectedBranchNew) {
+//       setBranchId(selectedBranchNew.id ||selectedBranchInSelected?.value);
+//       console.log("selectedBranchNew (بعد التحديث):", selectedBranchNew);
+//     }
+//   }, [selectedBranchNew,selectedAddress,selectedBranchInSelected,deliveryMethod]);
+
+//   useEffect(() => {
+//     setBranchId(selectedBranchInSelected?.value ?? selectedBranchNew?.value ?? null);
+//   }, [selectedBranchInSelected, selectedBranchNew]);
+  
+  
+//   // const finalBranchId = branchId || selectedBranchInSelected?.value;
+  
+//   console.log(" branchId Branch ID:", branchId);
+//   console.log("setSelectedBranchNew ID:", selectedBranchNew);
+  
+
+
+
+
+
+
+
+  // useEffect(() => {
+  //   if (selectedAddress?.branch?.length > 0) {
+  //     setSelectedBranch(selectedAddress.branch[0]);
+  //   }
+  // }, [selectedAddress]);
   // console.log("SelectedBranch", selectedBranch);
 
   // console.log("selectedBranch", selectedBranch);
@@ -583,24 +780,8 @@ function CreateOrder() {
     }
   }, [theme]);
 
-  const [deliveryMethod, setDeliveryMethod] = useState("delivery");
-  const [selectedAddressArray, setSelectedAddressArray] = useState([]);
   const [selectedEditAddress, setSelectedEditAddress] = useState(null);
 
-  useEffect(() => {
-    if (selectedUser?.address?.length > 0 && !selectedAddress) {
-      setSelectedAddress(selectedUser.address[0]);
-    }
-  }, [selectedUser]);
-  useEffect(() => {
-    if (selectedUser?.address?.length > 0) {
-      setSelectedAddress(selectedUser.address[0]);
-      setSelectedAddressArray(selectedUser.address);
-    } else {
-      setSelectedAddress(null);
-      setSelectedAddressArray([]);
-    }
-  }, [selectedUser]);
 
   // useEffect(() => {
   //   if (deliveryMethod === "pickup") {
@@ -619,20 +800,7 @@ function CreateOrder() {
   // console.log("selectedEditAddress", selectedEditAddress);
   // console.log("selectedAddress", selectedAddress?.id);
 
-  const usersTable = [
-    {
-      id: 1,
-      Items: "Taco Joe Beef Pasta Taco Joe Pasta",
-      Edit: "",
-      Delete: "",
-      quantity: 25,
-      UnitPrice: 120,
-      TotalPrice: 120,
-    },
-  ];
-  const [countersTable, setCountersTable] = useState(
-    usersTable.reduce((acc, item) => ({ ...acc, [item.id]: 1 }), {})
-  );
+
 
   const handleIncreaseTable = (id) => {
     setCartItems((prevItems) =>
@@ -800,91 +968,75 @@ function CreateOrder() {
   const [pendingRestaurant, setPendingRestaurant] = useState(null);
 
 
-  const handleRestaurantChange = (selectedOption) => {
-    if (cartItems.length > 0) {
-      // لو السلة فيها عناصر، احفظ المطعم مؤقتًا واظهر التنبيه
-      setPendingRestaurant(selectedOption);
-      setShowRestaurantChangeAlert(true);
-    } else {
-      // لو السلة فاضية، غير المطعم مباشرة
-      setSelectedRestaurantId(selectedOption.value);
-      setSelectedBranchId(null);
-      refetchBranches();
-      setCartItems([]);
-      setActiveSection("all");
-      setIsBranchManuallySelected(!!selectedBranchId);
-      setSelectedBranchName("");
-      setSelectedBranchInSelected(null);
-    }
-  };
+    const handleRestaurantChange = (selectedOption) => {
+      if (cartItems.length > 0) {
 
-  const confirmRestaurantChange = () => {
-    if (pendingRestaurant) {
-      setSelectedRestaurantId(pendingRestaurant.value);
-      setSelectedBranchId(null);
-      refetchBranches();
-      setCartItems([]);
-      setActiveSection("all");
-      setShowRestaurantChangeAlert(false);
-      setPendingRestaurant(null);
-      setIsBranchManuallySelected(!!selectedBranchId);
-      setSelectedBranchName("");
-      setSelectedBranchInSelected(null);
-    }
-  };
+        setPendingRestaurant(selectedOption);
+        setShowRestaurantChangeAlert(true);
+      } else {
+        setSelectedRestaurantId(selectedOption.value);
+        setSelectedBranchId(null);
+        // refetchBranches();
+        setCartItems([]);
+        setActiveSection("all");
+        setIsBranchManuallySelected(!!selectedBranchId);
+        setSelectedBranchName("");
+        
+      }
+    };
+
+    const confirmRestaurantChange = () => {
+      if (pendingRestaurant) {
+        setSelectedRestaurantId(pendingRestaurant.value);
+        setSelectedBranchId(null);
+        // refetchBranches();
+        setCartItems([]);
+        setActiveSection("all");
+        setShowRestaurantChangeAlert(false);
+        setPendingRestaurant(null);
+        setIsBranchManuallySelected(!!selectedBranchId);
+        setSelectedBranchName("");
+      }
+    };
 
   // banches
-  const [selectedBranchName, setSelectedBranchName] = useState("");
-  const [selectedBranchInSelected, setSelectedBranchInSelected] =
-    useState(null);
-  const [savedBranch, setSavedBranch] = useState(null);
-  //   const handleSelectChangeBranches = (selectedOption) => {
-  //     if (!selectedOption) {
-  //       setSelectedBranchInSelected(null)
-  //       setSelectedBranchId(null);
-  //       setSavedBranch(null)
-  //       setSelectedBranchPriceList(null);
-  //       setIsBranchManuallySelected(false);
-  //       setMassegeNotSelectedBranch("Please select branch first");
-  //       return;
-  //     }
-  //     setSelectedBranchInSelected(selectedOption)
-  //     setSavedBranch(null)
-  // setSelectedBranchName(selectedOption.label)
-  //     setSelectedBranchId(selectedOption.value);
-  //     setSelectedBranchPriceList(selectedOption.priceList);
-  //     setIsBranchManuallySelected(true);
+ 
+    
+  const [dialogToReopen, setDialogToReopen] = useState(null);
 
-  //     setMassegeNotSelectedBranch(null);
 
-  //     refetchMenu();
-  //   };
-  // const handleSelectChangeBranches = (selectedOption) => {
-  //   if (!selectedOption) {
-  //     setSelectedBranchInSelected(null);
-  //     setSelectedBranchId(null);
-  //     setSavedBranch(null);
-  //     setSelectedBranchPriceList(null);
-  //     setIsBranchManuallySelected(false);
-  //     setMassegeNotSelectedBranch("Please select branch first");
-  //     return;
-  //   }
 
-  //   setSelectedBranchInSelected(selectedOption);
-  //   setSavedBranch(null);
-  //   setSelectedBranchName(selectedOption.label);
-  //   setSelectedBranchId(selectedOption.value);
-  //   setSelectedBranchPriceList(selectedOption.priceList);
-  //   setIsBranchManuallySelected(true);
-  //   setMassegeNotSelectedBranch(null);
-
-  //   refetchMenu();
-  // };
-  
-  // const [selectedBranchInSelected, setSelectedBranchInSelected] = useState(null);
   const [pendingBranch, setPendingBranch] = useState(null);
-  const [showAlert, setShowAlert] = useState(false);
+  const [showAlertBranch, setShowAlertBranch] = useState(false);
+//   useEffect(() => {
+//     if (selectedBranchInSelected) {
+//       setValueCreateOrder("branches", selectedBranchInSelected?.value);
+//     }
+//   }, [selectedBranchInSelected, setValueCreateOrder]);
+//   const prevBranchOptions = useRef([]); // لتخزين الفروع السابقة للمقارنة
+
+// useEffect(() => {
+//   if (branchOptions?.length > 0) {
+//     const firstBranch = branchOptions[0];
+
+//     // التحقق مما إذا كانت البرانشات قد تغيّرت فعليًا
+//     const isBranchListChanged = JSON.stringify(prevBranchOptions.current) !== JSON.stringify(branchOptions);
+
+//     if (isBranchListChanged) {
+//       console.log("🔄 تحديث الفروع الجديدة:", branchOptions);
+//       prevBranchOptions.current = branchOptions; // تحديث الفروع المخزنة
+
+//       // إذا لم يكن هناك فرع مختار يدويًا، قم باختيار أول فرع تلقائيًا
+//       if (!selectedBranchInSelected || !branchOptions.some(branch => branch.id === selectedBranchInSelected.id)) {
+//         console.log("✅ تحديد أول فرع تلقائيًا:", firstBranch);
+//         updateBranch(firstBranch); 
+//       }
+//     }
+//   }
+// }, [branchOptions, selectedAddress,selectedRestaurantId,selectedUser ]);
   const handleSelectChangeBranches = (selectedOption) => {
+    console.log("selectedOption",selectedOption);
+    
     if (!selectedOption) {
       setSelectedBranchInSelected(null);
       setSelectedBranchId(null);
@@ -894,15 +1046,25 @@ function CreateOrder() {
       setMassegeNotSelectedBranch("Please select branch first");
       return;
     }
+    
+    
+    const isFirstSelection = !selectedBranchInSelected; // أول اختيار؟
+    if (isFirstSelection && selectedOption?.priceList === 1) {
+      updateBranch(selectedOption);
+      setSelectedBranchName(selectedOption.label);
+      return;
+    }
 
-    if (cartItems.length > 0) {
+
+    if (cartItems.length > 0 ) {
       setPendingBranch(selectedOption);
-      setShowAlert(true);
-      setCancelOrderDialogOpen(false)
+      setShowAlertBranch(true);
+      setCreateOrderDialogOpen(false)
     } else {
       updateBranch(selectedOption);
       setSelectedBranchName(selectedOption.label);
     }
+    
   };
 
   const updateBranch = (selectedOption) => {
@@ -912,80 +1074,48 @@ function CreateOrder() {
     setSelectedBranchPriceList(selectedOption.priceList);
     setIsBranchManuallySelected(true);
     setMassegeNotSelectedBranch(null);
-    
-    refetchMenu(); // تحديث المينيو بعد تغيير الفرع
+    refetchMenu(); 
   };
+  useEffect(() => {
+    if (deliveryMethod === "pickup") {
+      // تفريغ الفرع المخزن وعرض رسالة
+      setSelectedBranchInSelected(null);
+      setSavedBranch(null);
+      setSelectedBranchId(null);
+      // setSelectedBranchPriceList(null);
+      setMassegeNotSelectedBranch("Select branch first");
+    } else if (deliveryMethod === "delivery" && branchOptions.length > 0) {
+     
+      const firstBranch = branchOptions[0];
+      setSelectedBranchId(firstBranch.value);
+      // setSelectedBranchName(firstBranch.label);
+      setSavedBranch(firstBranch);
+      setMassegeNotSelectedBranch(null); // إزالة الرسالة إن وجدت
+    }
+  }, [deliveryMethod, branchOptions]);
+  
+  // console.log("updateBranch",updateBranch);
+  console.log("selectedBranchInSelected",selectedBranchInSelected);
+  // console.log("setSavedBranch",selectedBranchInSelected);
+  // console.log("setIsBranchManuallySelected",isBranchManuallySelected);
+  // console.log("selectedBranchInSelected",selectedBranchInSelected?.value);
 
   const handleConfirmChange = () => {
     console.log("pendingBranch",pendingBranch);
     updateBranch(pendingBranch);
     setSelectedBranchName(pendingBranch.label);
-    setShowAlert(false);
+    setShowAlertBranch(false);
     setCartItems([])
   };
 
   const handleCancelChange = () => {
     setPendingBranch(null);
-    setShowAlert(false);
+    setShowAlertBranch(false);
   };
 
 
-  useEffect(() => {
-    const updateCartItems = async () => {
-      if (!selectedBranchId || cartItems.length === 0) return;
+
   
-      try {
-        console.log("📡 Fetching new prices for branch:", selectedBranchId);
-        
-        const updatedCart = await Promise.all(
-          cartItems.map(async (item) => {
-            console.log("🛒 Fetching item:", item.id);
-  
-            const response = await fetchViewItem(
-              selectedRestaurantId,
-              selectedAddress?.id,
-              item.id
-            );
-  
-            console.log("🔍 API Response:", response);
-            console.log("🔍item:", item);
-  
-            if (!response) return item; // لو مفيش استجابة، رجّع العنصر زي ما هو
-  
-            const updatedSize = response.info.find(
-              (info) => info.id === item.selectedIdSize
-            );
-  
-            console.log("🔄 Found Size:", updatedSize);
-  
-            if (!updatedSize) return item;
-  
-            const newPrice = updatedSize.price?.price;
-            const newAvailability = updatedSize.availability
-            ? updatedSize.availability.availability
-            : "N/A";
-  
-            console.log(
-              `💰 New Price: ${newPrice}, 🔴 Availability: ${newAvailability}`
-            );
-  
-            return {
-              ...item,
-              price: newPrice !== undefined ? newPrice : item.price,
-              availability: newAvailability !== undefined ? newAvailability : item.availability,
-            };
-          })
-        );
-  
-        console.log("🛒 Updated Cart:", updatedCart);
-        setCartItems(updatedCart);
-      } catch (error) {
-        console.error("❌ Error updating cart items:", error);
-      }
-    };
-  
-    updateCartItems();
-  }, [selectedBranchId]);
   
   useEffect(() => {
     if (deliveryMethod !== "pickup") {
@@ -996,7 +1126,13 @@ function CreateOrder() {
     }
   }, [deliveryMethod]);
   const prevUserRef = useRef(null);
-
+  const previousBranchId = useRef(null);
+  useEffect(() => {
+    if (selectedBranchNew?.id && selectedBranchNew.id !== previousBranchId.current) {
+      refetchMenu(); 
+      previousBranchId.current = selectedBranchNew.id; // تحديث القيمة القديمة
+    }
+  }, [selectedBranchNew?.id]);
   // useEffect(() => {
   //   setDeliveryMethod("delivery");
   //   setSelectedBranch(null);
@@ -1013,7 +1149,7 @@ function CreateOrder() {
       setDeliveryMethod("delivery");
       setSelectedBranch(null);
       setSelectedBranchName("");
-      setSelectedBranchInSelected(null);
+      // setSelectedBranchInSelected(null);
       setSelectedBranchId(null);
       setCartItems([]); 
     }
@@ -1040,12 +1176,7 @@ function CreateOrder() {
 
   // console.log("isBranchManuallySelected", isBranchManuallySelected);
 
-  const branchOptions = branches?.map((branch) => ({
-    value: branch.id,
-    label: branch.name_en,
-    priceList: branch.price_list,
-  }));
-
+ 
   // order source
   const orderSourceOptions = orderSource?.map((val) => ({
     value: val.id,
@@ -1201,9 +1332,9 @@ function CreateOrder() {
         }
       }
     }
-  }, [cancelOrderDialogOpen]);
+  }, [createOrderDialogOpen]);
   
-  console.log("setSelectedBranchInSelected",selectedBranchInSelected);
+  // console.log("setSelectedBranchInSelected",selectedBranchInSelected);
   
   const [selectedOrderPaymeny, setSelectedOrderPaymeny] = useState(null);
   const orderPaymenyOptions = [{ value: 1, label: "Cash" }];
@@ -1515,7 +1646,8 @@ function CreateOrder() {
   };
 
   const onSubmithandleCreateOrder = async (data) => {
-    // console.log("📦 بيانات الطلب:", data);
+    // console.log(" بيانات الطلب:", data);
+    console.log("branchId", branchId);
     setLoading(true);
 
     try {
@@ -1534,11 +1666,12 @@ function CreateOrder() {
         items: cartItems,
         lat: 0,
         lng: 0,
-        branch: data.branches,
+        branch: savedBranch?.value,
+        restaurant:selectedRestaurantId
       });
 
       toast.success("Order created successfully");
-      setCancelOrderDialogOpen(false);
+      setCreateOrderDialogOpen(false);
 
       resetCreateOrder({
         ordertype: orderTypeOptions.length > 0 ? orderTypeOptions[0].value : "",
@@ -1607,7 +1740,7 @@ function CreateOrder() {
   const Delivery =
     selectedOrderType?.value === 2
       ? 0
-      : parseFloat(selectedBranch?.delivery_fees) || 0;
+      : parseFloat(savedBranch ?.deliveryFees) || 0;
 
   const totalAmount = grandTotal + vatAmount + Delivery - discount;
 
@@ -1670,7 +1803,7 @@ function CreateOrder() {
   if (errorBranchs) return <p>Error loading branches: {error.message}</p>;
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col lg:flex-row lg:items-center gap-2 ml-4">
+      {/* <div className="flex flex-col lg:flex-row lg:items-center gap-2 ml-4">
         <Label className="lg:min-w-[160px]">Restaurant:</Label>
         <Select
           placeholder="Select Restaurant"
@@ -1683,7 +1816,7 @@ function CreateOrder() {
           onChange={handleRestaurantChange}
           styles={selectStyles(theme, color)}
         />
-      </div>
+      </div> */}
       <AlertDialog
         open={showRestaurantChangeAlert}
         onOpenChange={setShowRestaurantChangeAlert}
@@ -1715,15 +1848,13 @@ function CreateOrder() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* الكارتات */}
       <div className="grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-4">
-        {/* الكارت الكبير (على الشمال) */}
 
-        <div className="lg:col-span p-4 shadow-md rounded-lg">
+        <div className="lg:col-span p-4 shadow- rounded-lg mt-0">
           {/*  مربع البحث */}
           <div className="space-y-4">
             {/*  مربع البحث */}
-            <Card className="p-4 shadow-md rounded-lg">
+            <Card className="p-4 shadow-md rounded-lg mt-[-15px]">
               <div className="relative min-w-[240px] mb-2">
                 <span className="absolute top-1/2 -translate-y-1/2 left-2">
                   <Search className="w-4 h-4 text-gray-500" />
@@ -1765,7 +1896,6 @@ function CreateOrder() {
                 ))}
               </div>
 
-              {/*  عرض العناصر مع التعديلات */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
                 {displayedItems.map((item) => (
                   <Card
@@ -1826,11 +1956,11 @@ function CreateOrder() {
 
                           <input
                             type="number"
-                            step="0.001" // يحدد الخطوة لعشري واحد
+                            step="0.001" 
                             value={counter}
                             onInput={(e) => {
                               if (e.target.value.length > 4) {
-                                e.target.value = e.target.value.slice(0, 4); // اقتصاص القيمة إلى 4 أرقام
+                                e.target.value = e.target.value.slice(0, 4); // اقتصاص القيمة إلى 4 أرق
                               }
                             }}
                             onChange={(e) => {
@@ -1851,7 +1981,7 @@ function CreateOrder() {
                         </div>
                       </div>
                       <div className="items-center">
-                          <h3 className="font-medium">
+                          <h3 className="font-medium ">
                             {selectedItem?.description}
                           </h3>
                         </div>
@@ -1916,7 +2046,7 @@ function CreateOrder() {
                           {/* العناصر المختارة */}
                           {selectedItem?.selectedExtras?.length > 0 && (
                             <div className="p-3 bg-gray- border-t">
-                              <span className="text-gray-700 font-medium">
+                              <span className="text-[#000] dark:text-[#fff] font-medium">
                                 {selectedItem.selectedExtras
                                   .map((extra) => extra.name_en)
                                   .join(", ")}
@@ -1953,7 +2083,7 @@ function CreateOrder() {
                                       setIsOpen(false); // إغلاق القائمة بعد الاختيار
                                     }}
                                   />
-                                  <span>{extra.name_en}</span>
+                                  <span className="text-[#000] dark:text-[#fff]">{extra.name_en}</span>
                                 </label>
                               ))}
                             </div>
@@ -1979,7 +2109,7 @@ function CreateOrder() {
                           {/* العناصر المختارة */}
                           {selectedItem?.selectedMainExtras?.length > 0 && (
                             <div className="p-3 bg-gray- border-t">
-                              <span className="text-gray-300 font-medium">
+                              <span className="text-[#000] dark:text-[#fff] font-medium">
                                 {selectedItem.selectedMainExtras
                                   .map((extra) => extra.name_en)
                                   .join(", ")}
@@ -2044,7 +2174,7 @@ function CreateOrder() {
                                       });
                                     }}
                                   />
-                                  <span>{extra.name_en}</span>
+                                  <span className="text-[#000] dark:text-[#fff]">{extra.name_en}</span>
                                 </label>
                               ))}
                             </div>
@@ -2114,7 +2244,7 @@ function CreateOrder() {
                               disabled={
                                 !selectedUser ||
                                 (deliveryMethod === "pickup" &&
-                                  !isBranchManuallySelected)
+                                  !isBranchManuallySelected) || !selectedItem?.description
                               }
                             >
                               Add to Cart
@@ -2481,7 +2611,18 @@ function CreateOrder() {
           </div>
         </div>
         <div className="flex flex-col gap-4 mt-[15px]">
-          <Card className="p-4 shadow-md rounded-lg w-full">
+          <Select
+          placeholder="Select Restaurant"
+          className="react-select w-[3] mb-0"
+          classNamePrefix="select"
+          options={restaurantsSelect}
+          value={restaurantsSelect.find(
+            (option) => option.value === selectedRestaurantId
+          )}
+          onChange={handleRestaurantChange}
+          styles={selectStyles(theme, color)}
+        />
+          <Card className="p-4 shadow-m rounded-lg w-full mt-0">
           <div className="flex gap-1 items-center justify-between mb-3">
                 <div className="relative flex-grow">
                   <span className="absolute top-1/2 left-2 -translate-y-1/2">
@@ -2584,134 +2725,7 @@ function CreateOrder() {
               </div>
             )}
           </Card>
-          {/* <Card className="p-4 shadow-md rounded-lg w-full">
-{selectedUser && (
-            <div className="mt-4 p-4 border rounded-md">
-              <div className="flex item-center justify-between gap-4 mb-4 ">
-                <div className="flex items-center gap-2">
-                  <div className="flex item-center gap-1">
-                    <input
-                      type="radio"
-                      id="delivery"
-                      checked={deliveryMethod === "delivery"}
-                      onChange={() => setDeliveryMethod("delivery")}
-                    />
-                    <label htmlFor="delivery">Delivery</label>
-                  </div>
-                  <div className="flex item-center gap-1 ">
-                    <input
-                      type="radio"
-                      id="pickup"
-                      checked={deliveryMethod === "pickup"}
-                      onChange={() => setDeliveryMethod("pickup")}
-                    />
-                    <label htmlFor="pickup">Pickup</label>
-                  </div>
-                </div>
-
-                <Button
-                  className="my3"
-                  onClick={() => setIsNewAddressDialogOpen(true)}
-                >
-                   <FaPlus className="mr-1 text-xs"/> Add address
-                </Button>
-              </div>
-
-              {deliveryMethod === "delivery" && (
-                <div className="my-3 ">
-                  <h4 className="font-medium my-3 ">Address:</h4>
-                  {selectedAddressArray.map((address) => (
-                    <div
-                      key={address.id}
-                      className="flex items-center justify-between gap-2"
-                    >
-                      <div className="flex items-center gap-2 mb-3">
-                        <input
-                          type="radio"
-                          id={address.id}
-                          checked={selectedAddress?.id === address.id}
-                          onChange={() => setSelectedAddress(address)}
-                        />
-                        <label htmlFor={address.id}>
-                          {address.address_name}
-                        </label>
-                      </div>
-
-                      <div className="flex gap-3 ml-auto mb-3">
-                        <button
-                          size="icon"
-                          onClick={() => handleEditAddress(address)}
-                        >
-                          <FiEdit className="mr-1 text-xs" />
-                        </button>
-
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <button className="flex items-center text-red-500 gap-[2px]">
-                              <FiTrash2 className="text-xs" />
-                            </button>
-                          </AlertDialogTrigger>
-
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Are you absolutely sure?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will
-                                permanently delete this address from your saved
-                                addresses.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel
-                                type="button"
-                                variant="outline"
-                                color="info"
-                              >
-                                Cancel
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-destructive hover:bg-destructive/80"
-                                onClick={() => handleDeleteAddress(address.id)}
-                              >
-                                Ok
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {deliveryMethod === "delivery" && selectedAddress && (
-                <>
-                  <div className="mt-3 p-3 ">
-                    <p className="text-sm"> {selectedAddress?.address1}</p>
-                  </div>
-                </>
-              )}
-
-              {deliveryMethod === "pickup" && (
-                <div className="flex flex-col lg:flex-row lg:items-center gap-2">
-                  <Select
-                    className="react-select w-full"
-                    classNamePrefix="select"
-                    options={branchOptions}
-              
-                    onChange={handleSelectChangeBranches}
-                    // value={
-                    //   branchOptions.find((option) => option.value === selectedBranchId) || null
-                    // }
-                    placeholder="Branches"
-                    styles={selectStyles(theme, color)}
-                  />
-                </div>
-              )}
-            </div>
-          )}</Card> */}
+         
           {selectedAddressArray?.length > 0 && (
             <>
               <h3 className="text-lg font-semibold "></h3>
@@ -2851,22 +2865,22 @@ function CreateOrder() {
                           styles={selectStyles(theme, color)}
                           value={selectedBranchInSelected}
                         />
- {showAlert && (
-        <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
+ {showAlertBranch && (
+        <AlertDialog open={showAlertBranch} onOpenChange={setShowAlertBranch}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
-              Changing the restaurant will clear your cart. Do you want to
+              Changing the branch will clear your cart. Do you want to
               proceed?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel onClick={handleCancelChange}>
-                إلغاء
+              Cancel
               </AlertDialogCancel>
               <AlertDialogAction onClick={handleConfirmChange}>
-                نعم، تغيير
+               Ok
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -2916,7 +2930,7 @@ function CreateOrder() {
             <>
               <h3 className="text-lg font-semibold"></h3>
               <Card
-                className="w-full p- shadow-md rounded-lg mt-0 mb-3"
+                className="w-full mt-0 mb-3"
               >
            
                 {cartItems.length > 0 && (
@@ -2954,12 +2968,12 @@ function CreateOrder() {
                             <div className="flex items-center justify-between">
                               <div className="text-sm text-[#fff] mb-2">
                                 {item.selectedExtras?.map((extra) => (
-                                  <p key={extra.id} className="mb-1">
+                                  <p key={extra.id} className="mb-1 text-[#000] dark:text-[#fff]">
                                     {extra.name_en}
                                   </p>
                                 ))}
                                 {item.selectedMainExtras?.map((extra) => (
-                                  <p key={extra.id} className="mb-1">
+                                  <p key={extra.id} className="mb-1 text-[#000] dark:text-[#fff]">
                                     {extra.name_en}
                                   </p>
                                 ))}
@@ -3154,10 +3168,11 @@ function CreateOrder() {
                       </Table>
                     </Card>
 
-                    {cancelOrderDialogOpen && (
+                    
+                    {createOrderDialogOpen && (
                       <Dialog
-                        open={cancelOrderDialogOpen}
-                        onOpenChange={setCancelOrderDialogOpen}
+                        open={createOrderDialogOpen}
+                        onOpenChange={setCreateOrderDialogOpen}
                       >
                         <DialogContent size="3xl">
                           <DialogHeader>
@@ -3174,7 +3189,7 @@ function CreateOrder() {
                               <div className="flex gap-4 my-3">
                                 <div className="flex flex-col w-1/2">
                                   <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
-                                    payment
+                                    Payment
                                   </label>
 
                                   <Controller
@@ -3248,9 +3263,6 @@ function CreateOrder() {
                                     )}
                                   />
                                 </div>
-                              </div>
-
-                              <div className="flex flex-col lg:flex-row lg:items-center gap-2">
                                 <div className="flex flex-col w-1/2">
                                   <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
                                     Order Type
@@ -3283,71 +3295,92 @@ function CreateOrder() {
                                       />
                                     )}
                                   />
+
                                 </div>
+                              </div>
+
+                              <div className="flex flex-col lg:flex-row lg:items-center gap-2">
+                             {/* <div className="flex flex-col w-1/2">
+                             <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
+                             Address:
+                                  </label>
+                                  <p > {selectedOrderType?.value === 1 ?  selectedAddress?.address1 : "Pickup"}</p>
+                             </div> */}
+
+                             <div className="flex w-1/2 items-center">
+  <label className="text-[#000] dark:text-[#fff] font-medium text-[] mb-1  mr-2">
+    Address:
+  </label>
+  {selectedOrderType?.value === 1 ? (
+    <p className="w-full text-[#000] dark:text-[#fff]">{selectedAddress?.address1}</p>
+  ) : (
+    <p className="w-full text-[#000] dark:text-[#fff]">Pickup</p>
+  )}
+</div>
 
                                 <div className="flex flex-col w-1/2">
                                   <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
-                                    Branches
+                                    Branch
                                   </label>
+{/* 
+                                    <Controller
+                                      name="branches"
+                                      control={controlCreateOrder}
+                                      defaultValue={selectedBranch?.id || ""}
+                                      render={({ field }) => {
+                                      
+                                        return (
+                                          <Select
+                                            {...field}
+                                            className="react-select w-full"
+                                            classNamePrefix="select"
+                                            options={branchOptions}
+                                            onChange={(selectedOption) => {
+                                              if (!selectedOption) return;
 
-                                  {/* <Controller
-                                    name="branches"
-                                    control={controlCreateOrder}
-                                    defaultValue={selectedBranch?.id || ""}
-                                    render={({ field }) => {
-                                    
-                                      return (
-                                        <Select
-                                          {...field}
-                                          className="react-select w-full"
-                                          classNamePrefix="select"
-                                          options={branchOptions}
-                                          onChange={(selectedOption) => {
-                                            if (!selectedOption) return;
+                                              const branchId = Number(
+                                                selectedOption.value
+                                              );
+                                              // console.log(
+                                              //   "Selected Branch ID Before Storing:",
+                                              //   branchId
+                                              // );
 
-                                            const branchId = Number(
-                                              selectedOption.value
-                                            );
-                                            // console.log(
-                                            //   "Selected Branch ID Before Storing:",
-                                            //   branchId
-                                            // );
+                                              field.onChange(branchId);
+                                              setSelectedBranchIdCreateOrder(
+                                                branchId
+                                              );
+                                              setSelectedBranchPriceList(
+                                                selectedOption.priceList
+                                              );
+                                              setValueCreateOrder(
+                                                "branches",
+                                                branchId,
+                                                { shouldValidate: true }
+                                              );
 
-                                            field.onChange(branchId);
-                                            setSelectedBranchIdCreateOrder(
-                                              branchId
-                                            );
-                                            setSelectedBranchPriceList(
-                                              selectedOption.priceList
-                                            );
-                                            setValueCreateOrder(
-                                              "branches",
-                                              branchId,
-                                              { shouldValidate: true }
-                                            );
-
-                                            // console.log(
-                                            //   "Stored Branch ID in Form setValueCreateOrder:",
-                                            //   getValueCreateOrder("branches")
-                                            // ); // ✅ تأكيد التخزين
-                                          }}
-                                          value={
-                                            branchOptions.find(
-                                              (option) =>
-                                                option.value === field.value
-                                            ) || null
-                                          }
-                                          placeholder="Branches"
-                                          styles={selectStyles(theme, color)}
-                                        />
-                   
-                                      );
-                                    }}
-                                  /> */}
-                                  <Controller
+                                              // console.log(
+                                              //   "Stored Branch ID in Form setValueCreateOrder:",
+                                              //   getValueCreateOrder("branches")
+                                              // ); // ✅ تأكيد التخزين
+                                            }}
+                                            value={
+                                              branchOptions?.find(
+                                                (option) =>
+                                                  option.value === field.value
+                                              ) || null
+                                            }
+                                            placeholder="Branches"
+                                            styles={selectStyles(theme, color)}
+                                          />
+                    
+                                        );
+                                      }}
+                                    /> */}
+                                    <Controller
   name="branches"
   control={controlCreateOrder}
-  defaultValue={selectedBranch?.id || ""}
+  defaultValue={selectedBranch?.id || branchOptions?.[0]?.value || ""}
   render={({ field }) => {
     return (
       <Select
@@ -3358,17 +3391,20 @@ function CreateOrder() {
         onChange={(selectedOption) => {
           if (!selectedOption) return;
 
-          if (cartItems.length > 0) {
-            setPendingBranch(selectedOption);
-            setShowAlert(true);
-            setCancelOrderDialogOpen(false);
-            setIsOpenAddress(true)
-          } else {
-            updateBranch(selectedOption); // ✅ لو الكارت فاضي، يغير الفرع عادي
-          }
+          const branchId = Number(selectedOption.value);
+
+          field.onChange(branchId);
+          setSelectedBranchIdCreateOrder(branchId);
+          setSelectedBranchPriceList(selectedOption?.priceList);
+          setSavedBranch(selectedOption);
+          setSelectedBranchInSelected(selectedOption)
+          setSelectedBranchName(selectedOption?.label)
+          setValueCreateOrder("branches", branchId, { shouldValidate: true });
         }}
         value={
-          branchOptions.find((option) => option.value === field.value) || null
+          branchOptions?.find((option) => option.value === field.value) ||
+          branchOptions?.[0] || // اختيار أول عنصر تلقائيًا
+          null
         }
         placeholder="Branches"
         styles={selectStyles(theme, color)}
@@ -3376,6 +3412,25 @@ function CreateOrder() {
     );
   }}
 />
+
+                                    {/* <Controller
+  name="branches"
+  control={controlCreateOrder}
+  defaultValue={selectedBranch?.id || ""}
+  render={({ field }) => (
+    <Select
+      {...field}
+      className="react-select w-full"
+      classNamePrefix="select"
+      options={branchOptions}
+      onChange={handleBranchChangeCreateOrder} // استدعاء الدالة عند تغيير الفرع
+      value={branchOptions.find((option) => option.value === field.value) || null}
+      placeholder="Branches"
+      styles={selectStyles(theme, color)}
+    />
+  )}
+/> */}
+
 
                                 </div>
                               </div>
@@ -3623,9 +3678,9 @@ function CreateOrder() {
                       <Button
                         className="w-1/2"
                         color="success"
-                        onClick={() => setCancelOrderDialogOpen(true)}
+                        onClick={() => setCreateOrderDialogOpen(true)}
                       >
-                        Create order
+                        Checkout
                       </Button>
                     </div>
                   </>
@@ -3804,7 +3859,7 @@ function CreateOrder() {
           </Table> */}
         
         </div>
-        <Card className="p-4 shadow-md rounded-lg w-full">
+        < >
           {openEditDialog && selectedUser && (
             <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
               <DialogContent size="3xl">
@@ -4066,7 +4121,7 @@ function CreateOrder() {
               </DialogContent>
             </Dialog>
           )}
-        </Card>
+        </>
       </div>
     </div>
   );

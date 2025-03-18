@@ -2,6 +2,7 @@ import {
   DashBoard,
   Admin,
   Branch,
+  CreateOrder
 } from "../components/icons/index";
 const getLocalizedLinks = (language) => {
   return {
@@ -19,7 +20,7 @@ const getLocalizedLinks = (language) => {
         },
         {
           title: "Create-order",
-          icon: Admin,
+          icon: CreateOrder,
           href: `/${language}/dashboard/create-order`,
           isOpen: false,
           isHide: false,

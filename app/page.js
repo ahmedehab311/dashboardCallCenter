@@ -21,13 +21,7 @@ export default function HomePage() {
   
 
     const token = Cookies.get("token");
-    //  const token =  localStorage.getItem("token") || Cookies.get("token") 
-    //  const tokenStorge =
-    //     typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    //     const token =   tokenStorge || Cookies.get("token")  
-    // const currentLanguage = Cookies.get("language") 
-
-
+    const currentLanguage = Cookies.get("language") 
 
     if (token) {
       setAccessToken(token);
@@ -36,7 +30,6 @@ export default function HomePage() {
     } else {
       setAccessToken(null);
     }
-
 
     setIsLoading(false);
   }, [dispatch, router]);

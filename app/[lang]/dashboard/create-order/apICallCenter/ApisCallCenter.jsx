@@ -22,15 +22,18 @@ export const fetchRestaurantsList = async () => {
   }
 };
 
-export const fetchBranches = async (restaurantId) => {
+export const fetchBranches = async (restaurantId,area) => {
   try {
     const response = await axios.get(
-      `${BASE_URL}/callcenter/get/branches?api_token=${token}&restaurantId=${restaurantId}`
+      `${BASE_URL}/callcenter/get/branches?api_token=${token}&restaurantId=${restaurantId}&areaId=${area}`
     );
-    console.log("API Response branches:", response.data);
+    
+    // console.log("API Response branches:", response);
+    console.log("API Response.data branches:", response.data.data);
     // console.log("API Response branches:", response.data.messages.branches);
-    // console.log("API Response branches restaurantId:", restaurantId);
-    return response.data.messages.branches;
+    console.log("API Response branches restaurantId:", restaurantId);
+    console.log("API Response branches area:", area);
+    return response.data.data;
   } catch (error) {
     console.error("Error fetching branches:", error);
     throw error;
@@ -58,15 +61,16 @@ export const fetchMenu = async (restaurantId, priceList) => {
   }
 };
 
-export const fetchViewItem = async (restaurantId, addressId, itemId) => {
-  // console.log("restaurantId from fetch basic", restaurantId);
+export const fetchViewItem = async (BranchId,  itemId) => {
+  console.log("selectedBranch from fetch basic", BranchId);
   // console.log("addressId from fetch basic", addressId);
-  // console.log("itemId from fetch basic", itemId);
+  console.log("itemId from fetch basic", itemId);
   try {
     const response = await axios.get(
-      `${BASE_URL}/callcenter/get/menu/item?api_token=${token}&restaurant_id=${restaurantId}&address=${addressId}&item_id=${itemId}`
+      `${BASE_URL}/callcenter/get/menu/item?api_token=${token}&branch_id=${BranchId}&item_id=${itemId}`
     );
-    // console.log("fetch View Item:", response.data.item);
+    console.log("fetch View Item:", response);
+    console.log("fetch View Item:", response.data.item);
     return response.data.item;
   } catch (error) {
     console.error("Error fetching view item:", error);
