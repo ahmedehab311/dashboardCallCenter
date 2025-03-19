@@ -22,6 +22,9 @@ import { fetchSettings } from "@/store/slices/systemSlice";
 import { FaSpinner } from "react-icons/fa";
 import { getDictionary } from "@/app/dictionaries.js";
 import { useLanguage } from "@/provider/LanguageContext";
+import img from "/public/logo.png"
+import Image from "next/image";
+
 const schema = z.object({
   email: z.string().email({ message: "Your email is invalid." }),
   password: z.string().min(6),
@@ -248,7 +251,7 @@ const LogInForm = ({ children }) => {
           console.log("🎉 Login successful:", resultAction.payload);
 
           toast.success("Login successful");
-          router.push(`/${language}/dashboard`);
+          router.push(`/${language}/dashboard/create-order`);
 
           const messages = resultAction.payload?.messages || [];
           // messages.forEach((message) => toast.success(message));
@@ -270,7 +273,7 @@ const LogInForm = ({ children }) => {
 
   return (
     <>
-      <div className="w-full py-5 lg:py-10">
+      <div className="w-full py-5 lg:py-8">
         <Link href="/dashboard" className="inline-block">
           {/* <SiteLogo className="h-10 w-10 2xl:w-14 2xl:h-14 text-primary" /> */}
         </Link>
@@ -292,8 +295,8 @@ const LogInForm = ({ children }) => {
           </div>
         )}
       </div> */}
-
-        <div className="2xl:mt-8 mt-6 2xl:text-3xl text-2xl font-bold text-default-900">
+ <Image src={img}   width={100} height={100}  alt="logo"   />
+        <div className="2xl:mt-5 mt-6 2xl:text-3xl text-2xl font-bold text-default-900">
           Hey, Hello 👋
         </div>
         <div className="2xl:text-lg text-base text-default-600 mt-2 leading-6">

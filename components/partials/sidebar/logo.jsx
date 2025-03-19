@@ -1,5 +1,5 @@
 // import { SiteLogo } from "@/components/svg";
-import img from "./logo.png"
+import img from "/public/logo.png"
 import { useSidebar } from "@/store";
 import Image from "next/image";
 import React from "react";
@@ -10,7 +10,7 @@ const SidebarLogo = ({ hovered }) => {
     <div className="px-4 py-4 ">
       <div className=" flex items-center">
         <div className="flex flex-1 items-center gap-x-3  felx justify">
-          <Image src={img}   width={50} height={50}  alt="logo" className="h-10 w-10" />
+          <Image src={img}   width={collapsed ? 40 : 60} height={collapsed ? 40 : 60}  alt="logo" className="transition-all duration-300"  />
           {/* {(!collapsed || hovered) && (
             <div className="flex-1  text-xl text-primary  font-semibold">
               Myres

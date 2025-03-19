@@ -10,6 +10,8 @@ import { useThemeStore } from "@/store";
 import { useTheme } from "next-themes";
 import { themes } from "@/config/thems";
 import Language from "@/components/partials/header/language";
+import Image from "next/image";
+import img from "./dc50361d-502d-4fca-b4d9-0f655e9d067a.png"
 const LoginPage = () => {
   const { theme: config, setTheme: setConfig, isRtl } = useThemeStore();
   const { theme: mode } = useTheme();
@@ -31,6 +33,19 @@ const LoginPage = () => {
                 <LogInForm />
               </div>
             </div>
+            <div className="basis-full xl:basis-1/2 hidden xl:flex justify-end items-center relative">
+      <Image 
+        src={img} 
+        alt="login image" 
+        layout="intrinsic"
+        width={600} // يمكن زيادته إذا أردت تغطية مساحة أكبر
+        height={600}
+        className="rounded-3xl object-cover w-full h-auto"
+      />
+    </div>
+         
+         
+         
             {/* <div className="basis-full xl:basis-1/2 hidden xl:block relative w-[500px] ">
               <svg
                 className="absolute top-0 -right-0 "

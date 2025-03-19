@@ -45,11 +45,10 @@ import {
   fetchMenu,
   fetchViewItem,
   fetchTax,
-  fetchorderSource,
+  fetchorderSource,fetchUserByPhone
 } from "./apICallCenter/ApisCallCenter";
 import { toast } from "react-hot-toast";
 import {
-  fetchUserByPhone,
   updateUserData,
   fetchAreas,
   createUser,
@@ -71,11 +70,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useSidebar } from "@/store/index";
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
-  phone: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
+  phone: z.string().regex(/^\d{3,15}$/, "Invalid phone number"),
   phone2: z
     .string()
     .optional()
-    .refine((val) => val === "" || /^\d{10,15}$/.test(val), {
+    .refine((val) => val === "" || /^\d{3,15}$/.test(val), {
       message: "Invalid phone number",
     }),
 
@@ -88,8 +87,8 @@ const editUserDataSchema = z.object({
 });
 const addUserSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
-  phone: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
-  phone2: z.string().regex(/^\d{10,15}$/, "Invalid phone number"),
+  phone: z.string().regex(/^\d{3,15}$/, "Invalid phone number"),
+  phone2: z.string().regex(/^\d{3,15}$/, "Invalid phone number"),
   area: z.object(
     { value: z.number(), label: z.string() },
     { required_error: "Area is required" }
@@ -219,8 +218,9 @@ function CreateOrder() {
     useState(null);
   const [SelectedBranchPriceist, setSelectedBranchPriceList] = useState(1);
   const [selectedAddress, setSelectedAddress] = useState(null);
-console.log("selectedRestaurantId",selectedRestaurantId);
-console.log("area :", selectedAddress?.area);
+  const [token, setToken] = useState(null);
+// console.log("selectedRestaurantId",selectedRestaurantId);
+// console.log("area :", selectedAddress?.area);
 
   // apis
   // api restaurants select
@@ -230,7 +230,9 @@ console.log("area :", selectedAddress?.area);
     error,
   } = useQuery({
     queryKey: ["RestaurantsList"],
-    queryFn: fetchRestaurantsList,
+    // queryFn: fetchRestaurantsList(token),
+    queryFn: () => fetchRestaurantsList(token),
+    enabled: !!token,
   });
   const {
     data: branches,
@@ -239,8 +241,8 @@ console.log("area :", selectedAddress?.area);
     refetch: refetchBranches,
   } = useQuery({
     queryKey: ["BranchesList", selectedRestaurantId,selectedAddress?.area],
-    queryFn: () => fetchBranches(selectedRestaurantId,selectedAddress?.area),
-    enabled: !!selectedRestaurantId && !!selectedAddress?.area,
+    queryFn: () => fetchBranches(selectedRestaurantId,selectedAddress?.area,token),
+    enabled: !!selectedRestaurantId && !!selectedAddress?.area && !!token,
   });
 
   const {
@@ -258,7 +260,8 @@ console.log("area :", selectedAddress?.area);
     errororderSource,
   } = useQuery({
     queryKey: ["OrderSourceeList", selectedRestaurantId],
-    queryFn: () => fetchorderSource(selectedRestaurantId),
+    queryFn: () => fetchorderSource(selectedRestaurantId,token),
+    enabled:  !!token,
   });
   const {
     data: Tax,
@@ -278,8 +281,8 @@ console.log("area :", selectedAddress?.area);
     refetch: refetchMenu,
   } = useQuery({
     queryKey: ["menuList", selectedRestaurantId, SelectedBranchPriceist],
-    queryFn: () => fetchMenu(selectedRestaurantId, SelectedBranchPriceist),
-    enabled: !!selectedRestaurantId && !!SelectedBranchPriceist,
+    queryFn: () => fetchMenu(selectedRestaurantId, SelectedBranchPriceist,token),
+    enabled: !!selectedRestaurantId && !!SelectedBranchPriceist && !!token,
     staleTime: 1000 * 60 * 5,
     cacheTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
@@ -311,7 +314,7 @@ console.log("area :", selectedAddress?.area);
     errorUserDataForSearch,
   } = useQuery({
     queryKey: ["userSearch", phone],
-    queryFn: () => fetchUserByPhone(phone),
+    queryFn: () => fetchUserByPhone(phone,token),
     enabled: !!phone,
     onSuccess: (data) => {
       if (data) {
@@ -348,6 +351,22 @@ console.log("area :", selectedAddress?.area);
     useState(null);
   const [isBranchManuallySelected, setIsBranchManuallySelected] =
     useState(false);
+
+useEffect(() => {
+  const tokenStorage =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const newToken = tokenStorage || Cookies.get("token");
+
+  if (newToken) {
+    setToken(newToken);
+    console.log("🔹 Token loaded:", newToken); // مراقبة وجود التوك
+  } else {
+    console.error("🔸 No token found, redirecting to login...");
+    router.push("/login");
+  }
+}, []);
+
+
   const handleItemClick = async (item) => {
     setSelectedItem(item);
     setIsItemDialogOpen(true);
@@ -372,7 +391,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   try {
     const response = await fetchViewItem(
       savedBranch?.value || selectedBranchInSelected.value,
-      item.id
+      item.id,token
     );
     console.log("response",response)
 
@@ -620,9 +639,9 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
     }
   }, [branches]);
   
-  console.log("branchOptions",branchOptions);
-  console.log("selectedBranchId",selectedBranchId);
-  console.log("savedBranch",savedBranch);
+  // console.log("branchOptions",branchOptions);
+  // console.log("selectedBranchId",selectedBranchId);
+  // console.log("savedBranch",savedBranch);
   
   useEffect(() => {
     if (selectedUser?.address?.length > 0) {
@@ -1035,7 +1054,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
 //   }
 // }, [branchOptions, selectedAddress,selectedRestaurantId,selectedUser ]);
   const handleSelectChangeBranches = (selectedOption) => {
-    console.log("selectedOption",selectedOption);
+    // console.log("selectedOption",selectedOption);
     
     if (!selectedOption) {
       setSelectedBranchInSelected(null);
@@ -1095,13 +1114,13 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   }, [deliveryMethod, branchOptions]);
   
   // console.log("updateBranch",updateBranch);
-  console.log("selectedBranchInSelected",selectedBranchInSelected);
+  // console.log("selectedBranchInSelected",selectedBranchInSelected);
   // console.log("setSavedBranch",selectedBranchInSelected);
   // console.log("setIsBranchManuallySelected",isBranchManuallySelected);
   // console.log("selectedBranchInSelected",selectedBranchInSelected?.value);
 
   const handleConfirmChange = () => {
-    console.log("pendingBranch",pendingBranch);
+    // console.log("pendingBranch",pendingBranch);
     updateBranch(pendingBranch);
     setSelectedBranchName(pendingBranch.label);
     setShowAlertBranch(false);
@@ -1251,7 +1270,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   useEffect(()=> {
   if (selectedOrderType?.value === 2 ) {
 
-    console.log("selectedOrderType?.value",selectedOrderType?.value);
+    // console.log("selectedOrderType?.value",selectedOrderType?.value);
     setDeliveryMethod("pickup");
   }else {
     setDeliveryMethod("delivery");
@@ -1319,7 +1338,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   useEffect(() => {
     if (selectedOrderType?.value === 2) {
       const selectedBranch = getValueCreateOrder("branches"); // احصل على الفرع المختار داخل الكنترول
-      console.log("selectedBranch", selectedBranch);
+      // console.log("selectedBranch", selectedBranch);
   
       if (selectedBranch) {
         const matchedBranch = branchOptions?.find(
@@ -1427,7 +1446,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
       email: data.email,
       phone: data.phone,
       phone2: data.phone2,
-      userId: selectedUser?.id,
+      userId: selectedUser?.id,token:token
     }).reduce((acc, [key, value]) => {
       if (value) acc[key] = value;
       return acc;
@@ -1516,7 +1535,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
     // console.log("data", data);
     setLoading(true);
     try {
-      const userId = await createUser(data.username, data.phone, data.phone2);
+      const userId = await createUser(data.username, data.phone, data.phone2,token);
 
       if (!userId) throw new Error("User ID not received");
       // console.log("userId from onSubmitAddUserData ", userId);
@@ -1536,6 +1555,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
         data.additionalInfo,
         // data.name
         nameValue
+      ,token
       );
       setIsNewUserDialogOpen(false);
       resetAddNewUser();
@@ -1569,7 +1589,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
         data.apt,
         data.additionalInfo,
         // data.name
-        nameValue
+        nameValue,token
       );
 
       queryClient.invalidateQueries(["userSearch", phone]);
@@ -1599,6 +1619,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
       apt: data.apt || "",
       additional_info: data.additionalInfo || "",
       address_name: nameValue,
+      token:token
     };
 
     // console.log("Formatted Data to Send:", formattedData); // تحقق من البيانات
@@ -1624,7 +1645,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   const handleDeleteAddress = async (id) => {
     // console.log("id remove", id);
     try {
-      const response = await deleteAddress(id);
+      const response = await deleteAddress(id,token);
 
       toast.success("Address deleted successfully");
       queryClient.invalidateQueries(["userSearch", phone]);
@@ -1647,7 +1668,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
 
   const onSubmithandleCreateOrder = async (data) => {
     // console.log(" بيانات الطلب:", data);
-    console.log("branchId", branchId);
+    // console.log("branchId", branchId);
     setLoading(true);
 
     try {
@@ -1667,7 +1688,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
         lat: 0,
         lng: 0,
         branch: savedBranch?.value,
-        restaurant:selectedRestaurantId
+        restaurant:selectedRestaurantId,token
       });
 
       toast.success("Order created successfully");

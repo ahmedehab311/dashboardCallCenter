@@ -105,7 +105,7 @@ export const loginUser = async (credentials) => {
       // Cookies.set("token", response?.data?.data?.token, {
       //   path: "/",
       //   domain: "myres.me", // استخدم الدومين الرئيسي فقط
-      // });
+      // });  
       
  
       localStorage.setItem("user", JSON.stringify(response.data.data.user));

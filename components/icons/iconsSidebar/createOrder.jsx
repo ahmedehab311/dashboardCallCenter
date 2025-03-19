@@ -5,7 +5,7 @@ const CreateOrder = () => {
   const { theme } = useTheme();
   const iconColor = theme === "dark" ? "#fff" : "#B197FC";
 
-  return <OrderIcon fill={iconColor} width={20} height={20} />;
+  return <OrderIcon fill={iconColor} width={21} height={21} />;
 };
 
 export default CreateOrder;

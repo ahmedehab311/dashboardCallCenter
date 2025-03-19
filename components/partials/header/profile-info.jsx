@@ -186,7 +186,7 @@ const ProfileInfo = () => {
     Cookies.remove("access_token");
     Cookies.remove("token");
     localStorage.removeItem("token");
-    Cookies.remove("token", { domain: "myres.me", path: "/" });
+    // Cookies.remove("token", { domain: "myres.me", path: "/" });
 Cookies.remove("access_token", { domain: "myres.me", path: "/" });
 Cookies.remove("access_token", { domain: "ordrz.me", path: "/" });
 

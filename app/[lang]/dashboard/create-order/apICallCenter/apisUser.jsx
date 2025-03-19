@@ -6,33 +6,22 @@ import { toast } from "react-hot-toast";
 import { Buffer } from "buffer";
 // const token = Cookies.get("token");
 //  const token =  localStorage.getItem("token") || Cookies.get("token")
- const tokenStorge =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    const token =   tokenStorge || Cookies.get("token")  
+//  const tokenStorge =
+//     typeof window !== "undefined" ? localStorage.getItem("token") : null;
+//     // const token =   tokenStorge || Cookies.get("token")  
     
-    console.log("token",token);
+//     console.log("token",token);
     
 
-export const fetchUserByPhone = async (phone) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/callcenter/user/search?api_token=${token}&phone=${phone}`
-    );
-    // console.log("serach user ", response.data.users);
-    return response.data.users;
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    throw error;
-  }
-};
 
-export const createUser = async (name, phone) => {
+
+export const createUser = async (name, phone,phone2,token) => {
   try {
     const response = await apiInstance.post(
       `/callcenter/user/create?api_token=${token}`,
       null,
       {
-        params: { name, phone },
+        params: { name, phone,phone2 },
       }
     );
 
@@ -65,7 +54,7 @@ export const updateUserAddress = async (data) => {
     ...(data.additional_info && { additional_info: data.additional_info }),
   });
 
-  const url = `/api/callcenter/user/address/update?api_token=${token}&${params.toString()}`;
+  const url = `/api/callcenter/user/address/update?api_token=${data.token}&${params.toString()}`;
 
   try {
     const response = await axios.put(url);
@@ -86,7 +75,7 @@ export const updateUserData = async (userData) => {
   if (userData.phone) params.append("phone", userData.phone);
   if (userData.phone2) params.append("phone2", userData.phone2);
 
-  const url = `/api/callcenter/user/update?api_token=${token}&${params.toString()}`;
+  const url = `/api/callcenter/user/update?api_token=${userData.token}&${params.toString()}`;
 
   try {
     const response = await axios.put(url);
@@ -110,7 +99,7 @@ export const fetchAreas = async () => {
   }
 };
 
-export const deleteAddress = async (id) => {
+export const deleteAddress = async (id,token) => {
   try {
     const response = await axios.delete(
       `/api/callcenter/user/address/delete?api_token=${token}&id=${id}`
@@ -129,85 +118,6 @@ export const deleteAddress = async (id) => {
   }
 };
 
-// export const createOrder = async ({ apiToken, lookupId, address, area, items, notes, source }) => {
-//   try {
-//     const url = `/callcenter/order/create`;
-
-//     const params = {
-//       api_token: apiToken,
-//       lookup_id: lookupId,
-//       address,
-//       area,
-//       notes: notes || "",
-//       items:items,
-//       source: source || "call center",
-//     };
-
-//     const response = await apiInstance.post(url, null, { params });
-
-//     console.log("✅ الطلب تم إنشاؤه بنجاح:", response.data);
-//     return response.data;
-//   } catch (error) {
-//     console.error("❌ خطأ في إنشاء الطلب:", error);
-//     throw error;
-//   }
-// };
-
-// export const createOrder = async ({
-//   apiToken,
-//   lookupId,
-//   address,
-//   area,
-//   items,
-//   notes,
-//   source,
-//   status,
-//   insertcoupon,
-//   payment,
-//   delivery_type,
-//   branch
-// }) => {
-//   try {
-//     const url = `/api/callcenter/order/create?api_token=${token}`;
-
-//     let params = {
-
-//       api_token: apiToken,
-//       lookup_id: lookupId,
-//       delivery_type,
-//       payment,
-//       lat: 0,
-//       lng: 0,
-//       address,
-//       area,
-//       items: JSON.stringify({ items }), // ✅ تحويل `items` إلى JSON
-//       notes,
-//       time: "",
-//       status:status,
-//       coins: insertcoupon || "00.00",
-//       source: source ,
-//       branch:branch
-//     };
-
-//     // ✅ حذف القيم الفارغة أو undefined
-//     Object.keys(params).forEach((key) => {
-//       if (params[key] === "" || params[key] === undefined) {
-//         delete params[key];
-//       }
-//     });
-
-//     const fullUrl = `${url}?${new URLSearchParams(params).toString()}`;
-//     console.log("🔗 رابط الـ API:", fullUrl); // ✅ عرض الرابط النهائي
-
-//     const response = await axios.post(url, null, { params });
-
-//     console.log("✅ الطلب تم إنشاؤه بنجاح:", response.data);
-//     return response.data;
-//   } catch (error) {
-//     console.error("❌ خطأ في إنشاء الطلب:", error);
-//     throw error;
-//   }
-// };
 export const createAddress = async (
   userId,
   area,
@@ -216,7 +126,8 @@ export const createAddress = async (
   floor,
   apt,
   additionalInfo,
-  nameValue
+  nameValue,
+  token
 ) => {
   // console.log("userId",userId)
   // console.log("apt",apt)
@@ -266,7 +177,7 @@ export const createOrder = async ({
   lng,
   time,
   lat,
-  restaurant
+  restaurant,token
 }) => {
   const formattedItems = {
     items: items.map((item) => ({
