@@ -45,7 +45,8 @@ import {
   fetchMenu,
   fetchViewItem,
   fetchTax,
-  fetchorderSource,fetchUserByPhone
+  fetchorderSource,
+  fetchUserByPhone,
 } from "./apICallCenter/ApisCallCenter";
 import { toast } from "react-hot-toast";
 import {
@@ -219,8 +220,8 @@ function CreateOrder() {
   const [SelectedBranchPriceist, setSelectedBranchPriceList] = useState(1);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [token, setToken] = useState(null);
-// console.log("selectedRestaurantId",selectedRestaurantId);
-// console.log("area :", selectedAddress?.area);
+  // console.log("selectedRestaurantId",selectedRestaurantId);
+  // console.log("area :", selectedAddress?.area);
 
   // apis
   // api restaurants select
@@ -240,8 +241,9 @@ function CreateOrder() {
     errorBranchs,
     refetch: refetchBranches,
   } = useQuery({
-    queryKey: ["BranchesList", selectedRestaurantId,selectedAddress?.area],
-    queryFn: () => fetchBranches(selectedRestaurantId,selectedAddress?.area,token),
+    queryKey: ["BranchesList", selectedRestaurantId, selectedAddress?.area],
+    queryFn: () =>
+      fetchBranches(selectedRestaurantId, selectedAddress?.area, token),
     enabled: !!selectedRestaurantId && !!selectedAddress?.area && !!token,
   });
 
@@ -260,8 +262,8 @@ function CreateOrder() {
     errororderSource,
   } = useQuery({
     queryKey: ["OrderSourceeList", selectedRestaurantId],
-    queryFn: () => fetchorderSource(selectedRestaurantId,token),
-    enabled:  !!token,
+    queryFn: () => fetchorderSource(selectedRestaurantId, token),
+    enabled: !!token,
   });
   const {
     data: Tax,
@@ -281,7 +283,8 @@ function CreateOrder() {
     refetch: refetchMenu,
   } = useQuery({
     queryKey: ["menuList", selectedRestaurantId, SelectedBranchPriceist],
-    queryFn: () => fetchMenu(selectedRestaurantId, SelectedBranchPriceist,token),
+    queryFn: () =>
+      fetchMenu(selectedRestaurantId, SelectedBranchPriceist, token),
     enabled: !!selectedRestaurantId && !!SelectedBranchPriceist && !!token,
     staleTime: 1000 * 60 * 5,
     cacheTime: 1000 * 60 * 10,
@@ -314,7 +317,7 @@ function CreateOrder() {
     errorUserDataForSearch,
   } = useQuery({
     queryKey: ["userSearch", phone],
-    queryFn: () => fetchUserByPhone(phone,token),
+    queryFn: () => fetchUserByPhone(phone, token),
     enabled: !!phone,
     onSuccess: (data) => {
       if (data) {
@@ -352,20 +355,19 @@ function CreateOrder() {
   const [isBranchManuallySelected, setIsBranchManuallySelected] =
     useState(false);
 
-useEffect(() => {
-  const tokenStorage =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const newToken = tokenStorage || Cookies.get("token");
+  useEffect(() => {
+    const tokenStorage =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const newToken = tokenStorage || Cookies.get("token");
 
-  if (newToken) {
-    setToken(newToken);
-    console.log("🔹 Token loaded:", newToken); // مراقبة وجود التوك
-  } else {
-    console.error("🔸 No token found, redirecting to login...");
-    router.push("/login");
-  }
-}, []);
-
+    if (newToken) {
+      setToken(newToken);
+      // console.log("🔹 Token loaded:", newToken); // مراقبة وجود التوك
+    } else {
+      console.error("🔸 No token found, redirecting to login...");
+      router.push("/login");
+    }
+  }, []);
 
   const handleItemClick = async (item) => {
     setSelectedItem(item);
@@ -379,21 +381,24 @@ useEffect(() => {
       return;
     }
 
-  
-//     const branchId = selectedBranchNew?.id || selectedBranchInSelected?.value;
-// console.log(" savedBranch?.value", savedBranch?.value)
-// console.log(" isBranchManuallySelected", isBranchManuallySelected)
-if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.value === null) {
-  setMassegeNotSelectedBranch("Select branch first");
-  return;
-}
+    //     const branchId = selectedBranchNew?.id || selectedBranchInSelected?.value;
+    // console.log(" savedBranch?.value", savedBranch?.value)
+    // console.log(" isBranchManuallySelected", isBranchManuallySelected)
+    if (
+      (deliveryMethod === "pickup" && !isBranchManuallySelected) ||
+      savedBranch?.value === null
+    ) {
+      setMassegeNotSelectedBranch("Select branch first");
+      return;
+    }
 
-  try {
-    const response = await fetchViewItem(
-      savedBranch?.value || selectedBranchInSelected.value,
-      item.id,token
-    );
-    console.log("response",response)
+    try {
+      const response = await fetchViewItem(
+        savedBranch?.value || selectedBranchInSelected.value,
+        item.id,
+        token
+      );
+      // console.log("response",response)
 
       if (response) {
         const firstInfo = response?.info?.[0] || null;
@@ -559,7 +564,6 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   //   }
   // }, [selectedUser]);
 
-  
   // useEffect(() => {
   //   if (selectedAddress?.branch?.length > 0) {
   //     const firstBranch = selectedAddress.branch[0];
@@ -568,20 +572,19 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   //   }
   // }, [selectedAddress]);
 
-
   // useEffect(() => {
   //   if (selectedUser?.address?.length > 0) {
   //     setSelectedAddressArray(selectedUser.address);
-  
+
   //     if (!selectedAddress) {
   //       const firstAddress = selectedUser.address[0];
   //       setSelectedAddress(firstAddress);
-    
+
   //       console.log("firstAddress", firstAddress);
-  //       setSelectedBranch(firstAddress.branch?.[0]); 
-    
+  //       setSelectedBranch(firstAddress.branch?.[0]);
+
   //       // سيتم تسجيل null هنا لأن `setSelectedBranch` لم يطبق بعد
-  //       console.log("SelectedBranch (قبل التحديث)", firstAddress.branch?.[0]); 
+  //       console.log("SelectedBranch (قبل التحديث)", firstAddress.branch?.[0]);
   //     }
   //   } else {
   //     setSelectedAddress(null);
@@ -589,13 +592,13 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   //     setSelectedBranch(null);
   //   }
   // }, [selectedUser]);
-  
+
   // useEffect(() => {
   //   if (selectedAddress?.branch?.length > 0) {
   //     setSelectedBranch(selectedAddress.branch[0]);
   //   }
   // }, [selectedAddress]);
-  
+
   // useEffect(() => {
   //   if (selectedBranch) {
   //     console.log("SelectedBranch (بعد التحديث):", selectedBranch);
@@ -638,22 +641,22 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
       setSelectedBranchPriceList(firstBranch.price_list);
     }
   }, [branches]);
-  
+
   // console.log("branchOptions",branchOptions);
   // console.log("selectedBranchId",selectedBranchId);
   // console.log("savedBranch",savedBranch);
-  
+
   useEffect(() => {
     if (selectedUser?.address?.length > 0) {
       setSelectedAddressArray(selectedUser.address);
-  
+
       if (!selectedAddress) {
         const firstAddress = selectedUser.address[0];
         setSelectedAddress(firstAddress);
-  
+
         // console.log("firstAddress", firstAddress);
-        setSelectedBranch(firstAddress.branch?.[0]); 
-  
+        setSelectedBranch(firstAddress.branch?.[0]);
+
         // console.log("SelectedBranch (قبل التحديث)", firstAddress.branch?.[0]);
       }
     } else {
@@ -662,74 +665,66 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
       setSelectedBranch(null);
       setBranchId(null);
     }
-  }, [selectedUser,selectedAddress]);
-  
+  }, [selectedUser, selectedAddress]);
+
   // useEffect(() => {
   //   if (branchOptions?.length > 0) {
   //     const firstBranch = branchOptions[0]
   // console.log(" branchId Branch ID:",firstBranch);
-      
+
   //     setSelectedBranchNew(firstBranch);
   //   }
   // }, [selectedAddress,selectedUser]);
   // useEffect(() => {
   //   if (branchOptions?.length > 0 && !selectedBranchNew) {
-  //     const firstBranch = branchOptions[0]; 
+  //     const firstBranch = branchOptions[0];
   //     console.log(" أول فرع: ", firstBranch);
-  
+
   //     setSelectedBranchNew(firstBranch);
-  //     setBranchId(selectedBranchInSelected?.value); 
+  //     setBranchId(selectedBranchInSelected?.value);
   //   }
   // }, [branchOptions]);
- 
-// const isBranchSet = useRef(false); // للتحكم في التحديثات ومنع الـ infinite loop
-// const prevBranchOptions = useRef([]); // تخزين الفروع السابقة للمقارنة
 
-// useEffect(() => {
-//   if (branchOptions?.length > 0) {
-//     const firstBranch = branchOptions[0];
+  // const isBranchSet = useRef(false); // للتحكم في التحديثات ومنع الـ infinite loop
+  // const prevBranchOptions = useRef([]); // تخزين الفروع السابقة للمقارنة
 
-//     // التحقق مما إذا كانت البرانشات قد تغيّرت فعليًا
-//     const isBranchListChanged = JSON.stringify(prevBranchOptions.current) !== JSON.stringify(branchOptions);
+  // useEffect(() => {
+  //   if (branchOptions?.length > 0) {
+  //     const firstBranch = branchOptions[0];
 
-//     if (isBranchListChanged) {
-//       console.log("🔄 تحديث الفروع الجديدة:", branchOptions);
-//       prevBranchOptions.current = branchOptions; // تحديث القيم السابقة
+  //     // التحقق مما إذا كانت البرانشات قد تغيّرت فعليًا
+  //     const isBranchListChanged = JSON.stringify(prevBranchOptions.current) !== JSON.stringify(branchOptions);
 
-//       // ضبط الفرع فقط إذا لم يكن محددًا أو إذا تغيّرت القائمة
-//       if (!selectedBranchNew || !branchOptions.some(branch => branch.id === selectedBranchNew.id)) {
-//         console.log("✅ تحديد أول فرع تلقائيًا:", firstBranch);
-        
-//         setSelectedBranchNew(firstBranch);
-//         setBranchId(firstBranch.id);
-//         isBranchSet.current = true;
-//       }
-//     }
-//   }
-// }, [branchOptions, selectedAddress]);
-//   useEffect(() => {
-//     if (selectedBranchNew) {
-//       setBranchId(selectedBranchNew.id ||selectedBranchInSelected?.value);
-//       console.log("selectedBranchNew (بعد التحديث):", selectedBranchNew);
-//     }
-//   }, [selectedBranchNew,selectedAddress,selectedBranchInSelected,deliveryMethod]);
+  //     if (isBranchListChanged) {
+  //       console.log("🔄 تحديث الفروع الجديدة:", branchOptions);
+  //       prevBranchOptions.current = branchOptions; // تحديث القيم السابقة
 
-//   useEffect(() => {
-//     setBranchId(selectedBranchInSelected?.value ?? selectedBranchNew?.value ?? null);
-//   }, [selectedBranchInSelected, selectedBranchNew]);
-  
-  
-//   // const finalBranchId = branchId || selectedBranchInSelected?.value;
-  
-//   console.log(" branchId Branch ID:", branchId);
-//   console.log("setSelectedBranchNew ID:", selectedBranchNew);
-  
+  //       // ضبط الفرع فقط إذا لم يكن محددًا أو إذا تغيّرت القائمة
+  //       if (!selectedBranchNew || !branchOptions.some(branch => branch.id === selectedBranchNew.id)) {
+  //         console.log("✅ تحديد أول فرع تلقائيًا:", firstBranch);
 
+  //         setSelectedBranchNew(firstBranch);
+  //         setBranchId(firstBranch.id);
+  //         isBranchSet.current = true;
+  //       }
+  //     }
+  //   }
+  // }, [branchOptions, selectedAddress]);
+  //   useEffect(() => {
+  //     if (selectedBranchNew) {
+  //       setBranchId(selectedBranchNew.id ||selectedBranchInSelected?.value);
+  //       console.log("selectedBranchNew (بعد التحديث):", selectedBranchNew);
+  //     }
+  //   }, [selectedBranchNew,selectedAddress,selectedBranchInSelected,deliveryMethod]);
 
+  //   useEffect(() => {
+  //     setBranchId(selectedBranchInSelected?.value ?? selectedBranchNew?.value ?? null);
+  //   }, [selectedBranchInSelected, selectedBranchNew]);
 
+  //   // const finalBranchId = branchId || selectedBranchInSelected?.value;
 
-
-
+  //   console.log(" branchId Branch ID:", branchId);
+  //   console.log("setSelectedBranchNew ID:", selectedBranchNew);
 
   // useEffect(() => {
   //   if (selectedAddress?.branch?.length > 0) {
@@ -801,7 +796,6 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
 
   const [selectedEditAddress, setSelectedEditAddress] = useState(null);
 
-
   // useEffect(() => {
   //   if (deliveryMethod === "pickup") {
   //     const currentSelectedBranchId = getValueCreateOrder("branches");
@@ -818,8 +812,6 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   // console.log("SelectedAddress", selectedAddress);
   // console.log("selectedEditAddress", selectedEditAddress);
   // console.log("selectedAddress", selectedAddress?.id);
-
-
 
   const handleIncreaseTable = (id) => {
     setCartItems((prevItems) =>
@@ -849,29 +841,28 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   //   );
   // };
   const handleDecreaseTable = (id) => {
-    setCartItems((prevItems) =>
-      prevItems
-        .map((item) => {
-          if (item.id === id) {
-            if (item.quantity > 1) {
-              return {
-                ...item,
-                quantity: item.quantity - 1,
-                total: (item.quantity - 1) * item.price,
-              };
-            } else {
-              // لما الكمية تكون 1 ونضغط "-" يتم الحذف فورًا
-              handleRemoveItem(id);
-              return null; // إزالة العنصر
+    setCartItems(
+      (prevItems) =>
+        prevItems
+          .map((item) => {
+            if (item.id === id) {
+              if (item.quantity > 1) {
+                return {
+                  ...item,
+                  quantity: item.quantity - 1,
+                  total: (item.quantity - 1) * item.price,
+                };
+              } else {
+                // لما الكمية تكون 1 ونضغط "-" يتم الحذف فورًا
+                handleRemoveItem(id);
+                return null; // إزالة العنصر
+              }
             }
-          }
-          return item;
-        })
-        .filter(Boolean) // إزالة العناصر المحذوفة
+            return item;
+          })
+          .filter(Boolean) // إزالة العناصر المحذوفة
     );
   };
-  
-  
 
   const handleRemoveItem = (id) => {
     setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
@@ -986,76 +977,70 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
     useState(false);
   const [pendingRestaurant, setPendingRestaurant] = useState(null);
 
+  const handleRestaurantChange = (selectedOption) => {
+    if (cartItems.length > 0) {
+      setPendingRestaurant(selectedOption);
+      setShowRestaurantChangeAlert(true);
+    } else {
+      setSelectedRestaurantId(selectedOption.value);
+      setSelectedBranchId(null);
+      // refetchBranches();
+      setCartItems([]);
+      setActiveSection("all");
+      setIsBranchManuallySelected(!!selectedBranchId);
+      setSelectedBranchName("");
+    }
+  };
 
-    const handleRestaurantChange = (selectedOption) => {
-      if (cartItems.length > 0) {
-
-        setPendingRestaurant(selectedOption);
-        setShowRestaurantChangeAlert(true);
-      } else {
-        setSelectedRestaurantId(selectedOption.value);
-        setSelectedBranchId(null);
-        // refetchBranches();
-        setCartItems([]);
-        setActiveSection("all");
-        setIsBranchManuallySelected(!!selectedBranchId);
-        setSelectedBranchName("");
-        
-      }
-    };
-
-    const confirmRestaurantChange = () => {
-      if (pendingRestaurant) {
-        setSelectedRestaurantId(pendingRestaurant.value);
-        setSelectedBranchId(null);
-        // refetchBranches();
-        setCartItems([]);
-        setActiveSection("all");
-        setShowRestaurantChangeAlert(false);
-        setPendingRestaurant(null);
-        setIsBranchManuallySelected(!!selectedBranchId);
-        setSelectedBranchName("");
-      }
-    };
+  const confirmRestaurantChange = () => {
+    if (pendingRestaurant) {
+      setSelectedRestaurantId(pendingRestaurant.value);
+      setSelectedBranchId(null);
+      // refetchBranches();
+      setCartItems([]);
+      setActiveSection("all");
+      setShowRestaurantChangeAlert(false);
+      setPendingRestaurant(null);
+      setIsBranchManuallySelected(!!selectedBranchId);
+      setSelectedBranchName("");
+    }
+  };
 
   // banches
- 
-    
+
   const [dialogToReopen, setDialogToReopen] = useState(null);
-
-
 
   const [pendingBranch, setPendingBranch] = useState(null);
   const [showAlertBranch, setShowAlertBranch] = useState(false);
-//   useEffect(() => {
-//     if (selectedBranchInSelected) {
-//       setValueCreateOrder("branches", selectedBranchInSelected?.value);
-//     }
-//   }, [selectedBranchInSelected, setValueCreateOrder]);
-//   const prevBranchOptions = useRef([]); // لتخزين الفروع السابقة للمقارنة
+  //   useEffect(() => {
+  //     if (selectedBranchInSelected) {
+  //       setValueCreateOrder("branches", selectedBranchInSelected?.value);
+  //     }
+  //   }, [selectedBranchInSelected, setValueCreateOrder]);
+  //   const prevBranchOptions = useRef([]); // لتخزين الفروع السابقة للمقارنة
 
-// useEffect(() => {
-//   if (branchOptions?.length > 0) {
-//     const firstBranch = branchOptions[0];
+  // useEffect(() => {
+  //   if (branchOptions?.length > 0) {
+  //     const firstBranch = branchOptions[0];
 
-//     // التحقق مما إذا كانت البرانشات قد تغيّرت فعليًا
-//     const isBranchListChanged = JSON.stringify(prevBranchOptions.current) !== JSON.stringify(branchOptions);
+  //     // التحقق مما إذا كانت البرانشات قد تغيّرت فعليًا
+  //     const isBranchListChanged = JSON.stringify(prevBranchOptions.current) !== JSON.stringify(branchOptions);
 
-//     if (isBranchListChanged) {
-//       console.log("🔄 تحديث الفروع الجديدة:", branchOptions);
-//       prevBranchOptions.current = branchOptions; // تحديث الفروع المخزنة
+  //     if (isBranchListChanged) {
+  //       console.log("🔄 تحديث الفروع الجديدة:", branchOptions);
+  //       prevBranchOptions.current = branchOptions; // تحديث الفروع المخزنة
 
-//       // إذا لم يكن هناك فرع مختار يدويًا، قم باختيار أول فرع تلقائيًا
-//       if (!selectedBranchInSelected || !branchOptions.some(branch => branch.id === selectedBranchInSelected.id)) {
-//         console.log("✅ تحديد أول فرع تلقائيًا:", firstBranch);
-//         updateBranch(firstBranch); 
-//       }
-//     }
-//   }
-// }, [branchOptions, selectedAddress,selectedRestaurantId,selectedUser ]);
+  //       // إذا لم يكن هناك فرع مختار يدويًا، قم باختيار أول فرع تلقائيًا
+  //       if (!selectedBranchInSelected || !branchOptions.some(branch => branch.id === selectedBranchInSelected.id)) {
+  //         console.log("✅ تحديد أول فرع تلقائيًا:", firstBranch);
+  //         updateBranch(firstBranch);
+  //       }
+  //     }
+  //   }
+  // }, [branchOptions, selectedAddress,selectedRestaurantId,selectedUser ]);
   const handleSelectChangeBranches = (selectedOption) => {
     // console.log("selectedOption",selectedOption);
-    
+
     if (!selectedOption) {
       setSelectedBranchInSelected(null);
       setSelectedBranchId(null);
@@ -1065,8 +1050,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
       setMassegeNotSelectedBranch("Please select branch first");
       return;
     }
-    
-    
+
     const isFirstSelection = !selectedBranchInSelected; // أول اختيار؟
     if (isFirstSelection && selectedOption?.priceList === 1) {
       updateBranch(selectedOption);
@@ -1074,16 +1058,18 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
       return;
     }
 
-
-    if (cartItems.length > 0 ) {
+    if (
+      cartItems.length > 0 &&
+      pendingBranch?.value !== selectedOption?.value &&
+      selectedBranchInSelected?.value !== selectedOption.value
+    ) {
       setPendingBranch(selectedOption);
       setShowAlertBranch(true);
-      setCreateOrderDialogOpen(false)
+      setCreateOrderDialogOpen(false);
     } else {
       updateBranch(selectedOption);
       setSelectedBranchName(selectedOption.label);
     }
-    
   };
 
   const updateBranch = (selectedOption) => {
@@ -1093,8 +1079,10 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
     setSelectedBranchPriceList(selectedOption.priceList);
     setIsBranchManuallySelected(true);
     setMassegeNotSelectedBranch(null);
-    refetchMenu(); 
+    refetchMenu();
   };
+  console.log("panding", pendingBranch);
+
   useEffect(() => {
     if (deliveryMethod === "pickup") {
       // تفريغ الفرع المخزن وعرض رسالة
@@ -1104,7 +1092,6 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
       // setSelectedBranchPriceList(null);
       setMassegeNotSelectedBranch("Select branch first");
     } else if (deliveryMethod === "delivery" && branchOptions.length > 0) {
-     
       const firstBranch = branchOptions[0];
       setSelectedBranchId(firstBranch.value);
       // setSelectedBranchName(firstBranch.label);
@@ -1112,7 +1099,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
       setMassegeNotSelectedBranch(null); // إزالة الرسالة إن وجدت
     }
   }, [deliveryMethod, branchOptions]);
-  
+
   // console.log("updateBranch",updateBranch);
   // console.log("selectedBranchInSelected",selectedBranchInSelected);
   // console.log("setSavedBranch",selectedBranchInSelected);
@@ -1124,7 +1111,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
     updateBranch(pendingBranch);
     setSelectedBranchName(pendingBranch.label);
     setShowAlertBranch(false);
-    setCartItems([])
+    setCartItems([]);
   };
 
   const handleCancelChange = () => {
@@ -1132,10 +1119,6 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
     setShowAlertBranch(false);
   };
 
-
-
-  
-  
   useEffect(() => {
     if (deliveryMethod !== "pickup") {
       setSelectedBranch(null);
@@ -1147,8 +1130,11 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   const prevUserRef = useRef(null);
   const previousBranchId = useRef(null);
   useEffect(() => {
-    if (selectedBranchNew?.id && selectedBranchNew.id !== previousBranchId.current) {
-      refetchMenu(); 
+    if (
+      selectedBranchNew?.id &&
+      selectedBranchNew.id !== previousBranchId.current
+    ) {
+      refetchMenu();
       previousBranchId.current = selectedBranchNew.id; // تحديث القيمة القديمة
     }
   }, [selectedBranchNew?.id]);
@@ -1162,21 +1148,21 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   // }, [selectedUser]);
   useEffect(() => {
     if (
-      prevUserRef?.current !== null && 
-      prevUserRef?.current?.id !== selectedUser?.id 
+      prevUserRef?.current !== null &&
+      prevUserRef?.current?.id !== selectedUser?.id
     ) {
       setDeliveryMethod("delivery");
       setSelectedBranch(null);
       setSelectedBranchName("");
       // setSelectedBranchInSelected(null);
       setSelectedBranchId(null);
-      setCartItems([]); 
+      setCartItems([]);
     }
-  
-    prevUserRef.current = selectedUser; 
+
+    prevUserRef.current = selectedUser;
   }, [selectedUser]);
   useEffect(() => {
-    setIsBranchManuallySelected(!!selectedBranchId); 
+    setIsBranchManuallySelected(!!selectedBranchId);
   }, [selectedBranchId]);
   // console.log("setSelectedBranchInSelected",selectedBranchInSelected);
   // console.log("setSelectedBranchId",selectedBranchId);
@@ -1195,7 +1181,6 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
 
   // console.log("isBranchManuallySelected", isBranchManuallySelected);
 
- 
   // order source
   const orderSourceOptions = orderSource?.map((val) => ({
     value: val.id,
@@ -1264,67 +1249,64 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   }, [selectedBranchId, deliveryMethod, selectedAddress, setValueCreateOrder]);
   useEffect(() => {
     if (deliveryMethod === "delivery" && selectedUser?.address?.length > 0) {
-      setSelectedAddress(selectedUser.address[0]); 
+      setSelectedAddress(selectedUser.address[0]);
     }
   }, [deliveryMethod, selectedUser]);
-  useEffect(()=> {
-  if (selectedOrderType?.value === 2 ) {
-
-    // console.log("selectedOrderType?.value",selectedOrderType?.value);
-    setDeliveryMethod("pickup");
-  }else {
-    setDeliveryMethod("delivery");
-
-  }
-    },[selectedOrderType])
-    // useEffect(() => {
-    //   if (selectedOrderType?.value === 2) {
-    //     const selectedBranch = getValueCreateOrder("branches"); // احصل على الفرع المختار داخل الكنترول
-    //     console.log("selectedBranch",selectedBranch);
-    
-    //     if (selectedBranch) {
-    //       const matchedBranch = branchOptions.find(
-    //         (option) => option.value === selectedBranch
-    //       );
-    //       setSelectedBranchInSelected(matchedBranch || null);
-    //     }
-    //   }
-    // }, [selectedOrderType, setSelectedBranchInSelected, getValueCreateOrder]);
-    
-    
-  // console.log("selectedOrderType",selectedOrderType);
-  
+  useEffect(() => {
+    if (selectedOrderType?.value === 2) {
+      // console.log("selectedOrderType?.value",selectedOrderType?.value);
+      setDeliveryMethod("pickup");
+    } else {
+      setDeliveryMethod("delivery");
+    }
+  }, [selectedOrderType]);
   // useEffect(() => {
   //   if (selectedOrderType?.value === 2) {
-  //     const selectedBranch = getValueCreateOrder("branches")
-  //     console.log("selectedBranch", selectedBranch);
-  
+  //     const selectedBranch = getValueCreateOrder("branches"); // احصل على الفرع المختار داخل الكنترول
+  //     console.log("selectedBranch",selectedBranch);
+
   //     if (selectedBranch) {
   //       const matchedBranch = branchOptions.find(
   //         (option) => option.value === selectedBranch
   //       );
-  
+  //       setSelectedBranchInSelected(matchedBranch || null);
+  //     }
+  //   }
+  // }, [selectedOrderType, setSelectedBranchInSelected, getValueCreateOrder]);
+
+  // console.log("selectedOrderType",selectedOrderType);
+
+  // useEffect(() => {
+  //   if (selectedOrderType?.value === 2) {
+  //     const selectedBranch = getValueCreateOrder("branches")
+  //     console.log("selectedBranch", selectedBranch);
+
+  //     if (selectedBranch) {
+  //       const matchedBranch = branchOptions.find(
+  //         (option) => option.value === selectedBranch
+  //       );
+
   //       if (matchedBranch && matchedBranch.value !== selectedBranchInSelected?.value) {
   //         setSelectedBranchInSelected(matchedBranch);
   //         // setSelectedBranchName
   //         setSelectedBranchName(matchedBranch.label);
   //       }
-        
+
   //     }
   //   }
-  // }, [selectedOrderType, getValueCreateOrder("branches"), branchOptions]); 
-  
+  // }, [selectedOrderType, getValueCreateOrder("branches"), branchOptions]);
+
   // useEffect(() => {
-  //   // (createOrderDialogOpen && selectedOrderType?.value === 2) 
+  //   // (createOrderDialogOpen && selectedOrderType?.value === 2)
   //   if (selectedOrderType?.value === 2) {
   //     const selectedBranch = getValueCreateOrder("branches"); // احصل على الفرع المختار داخل الكنترول
   //     console.log("selectedBranch", selectedBranch);
-  
+
   //     if (selectedBranch) {
   //       const matchedBranch = branchOptions?.find(
   //         (option) => option.value === selectedBranch
   //       );
-  
+
   //       if (matchedBranch && matchedBranch.value !== selectedBranchInSelected?.value) {
   //         // تحديث القيم وكأن المستخدم اختار الفرع يدوياً
   //         handleSelectChangeBranches(matchedBranch);
@@ -1332,29 +1314,31 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   //     }
   //   }
   // }, [selectedOrderType, getValueCreateOrder("branches")]);
-  
-  
-  // (createOrderDialogOpen && selectedOrderType?.value === 2) 
+
+  // (createOrderDialogOpen && selectedOrderType?.value === 2)
   useEffect(() => {
     if (selectedOrderType?.value === 2) {
       const selectedBranch = getValueCreateOrder("branches"); // احصل على الفرع المختار داخل الكنترول
       // console.log("selectedBranch", selectedBranch);
-  
+
       if (selectedBranch) {
         const matchedBranch = branchOptions?.find(
           (option) => option.value === selectedBranch
         );
-  
-        if (matchedBranch && matchedBranch.value !== selectedBranchInSelected?.value) {
+
+        if (
+          matchedBranch &&
+          matchedBranch.value !== selectedBranchInSelected?.value
+        ) {
           // تحديث القيم وكأن المستخدم اختار الفرع يدوياً
           handleSelectChangeBranches(matchedBranch);
         }
       }
     }
   }, [createOrderDialogOpen]);
-  
+
   // console.log("setSelectedBranchInSelected",selectedBranchInSelected);
-  
+
   const [selectedOrderPaymeny, setSelectedOrderPaymeny] = useState(null);
   const orderPaymenyOptions = [{ value: 1, label: "Cash" }];
 
@@ -1446,7 +1430,8 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
       email: data.email,
       phone: data.phone,
       phone2: data.phone2,
-      userId: selectedUser?.id,token:token
+      userId: selectedUser?.id,
+      token: token,
     }).reduce((acc, [key, value]) => {
       if (value) acc[key] = value;
       return acc;
@@ -1535,7 +1520,12 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
     // console.log("data", data);
     setLoading(true);
     try {
-      const userId = await createUser(data.username, data.phone, data.phone2,token);
+      const userId = await createUser(
+        data.username,
+        data.phone,
+        data.phone2,
+        token
+      );
 
       if (!userId) throw new Error("User ID not received");
       // console.log("userId from onSubmitAddUserData ", userId);
@@ -1554,8 +1544,8 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
         data.apt,
         data.additionalInfo,
         // data.name
-        nameValue
-      ,token
+        nameValue,
+        token
       );
       setIsNewUserDialogOpen(false);
       resetAddNewUser();
@@ -1589,7 +1579,8 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
         data.apt,
         data.additionalInfo,
         // data.name
-        nameValue,token
+        nameValue,
+        token
       );
 
       queryClient.invalidateQueries(["userSearch", phone]);
@@ -1619,7 +1610,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
       apt: data.apt || "",
       additional_info: data.additionalInfo || "",
       address_name: nameValue,
-      token:token
+      token: token,
     };
 
     // console.log("Formatted Data to Send:", formattedData); // تحقق من البيانات
@@ -1645,7 +1636,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   const handleDeleteAddress = async (id) => {
     // console.log("id remove", id);
     try {
-      const response = await deleteAddress(id,token);
+      const response = await deleteAddress(id, token);
 
       toast.success("Address deleted successfully");
       queryClient.invalidateQueries(["userSearch", phone]);
@@ -1688,7 +1679,8 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
         lat: 0,
         lng: 0,
         branch: savedBranch?.value,
-        restaurant:selectedRestaurantId,token
+        restaurant: selectedRestaurantId,
+        token,
       });
 
       toast.success("Order created successfully");
@@ -1761,7 +1753,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
   const Delivery =
     selectedOrderType?.value === 2
       ? 0
-      : parseFloat(savedBranch ?.deliveryFees) || 0;
+      : parseFloat(savedBranch?.deliveryFees) || 0;
 
   const totalAmount = grandTotal + vatAmount + Delivery - discount;
 
@@ -1870,7 +1862,6 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
       </AlertDialog>
 
       <div className="grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-4">
-
         <div className="lg:col-span p-4 shadow- rounded-lg mt-0">
           {/*  مربع البحث */}
           <div className="space-y-4">
@@ -1955,11 +1946,8 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                         </DialogTitle>
                       </DialogHeader> */}
                       <div className=" flex justify-between items-center space-y-4">
-                         <p className="text-xl">
-                         {selectedItem?.name}
-                         </p>
+                        <p className="text-xl">{selectedItem?.name}</p>
 
-                  
                         <div className="flex items-center space-">
                           {/* السعر الإجمالي */}
                           <p className="text-sm font-semibold text-gray-">
@@ -1977,7 +1965,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
 
                           <input
                             type="number"
-                            step="0.001" 
+                            step="0.001"
                             value={counter}
                             onInput={(e) => {
                               if (e.target.value.length > 4) {
@@ -2002,11 +1990,11 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                         </div>
                       </div>
                       <div className="items-center">
-                          <h3 className="font-medium ">
-                            {selectedItem?.description}
-                          </h3>
-                        </div>
-                        <hr className="my-2" />
+                        <h3 className="font-medium ">
+                          {selectedItem?.description}
+                        </h3>
+                      </div>
+                      <hr className="my-2" />
                       <div className="mt-4">
                         <div className="flex flex-c gap-5">
                           {selectedItem?.info?.map((size, index) => (
@@ -2024,9 +2012,9 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                                 onChange={() =>
                                   setSelectedItem((prev) => {
                                     const newItemExtras =
-                                      size?.item_extras || []; 
+                                      size?.item_extras || [];
                                     const newExtrasData =
-                                      size?.item_extras?.[0]?.data || []; 
+                                      size?.item_extras?.[0]?.data || [];
 
                                     return {
                                       ...prev,
@@ -2048,7 +2036,6 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                         </div>
                       </div>
 
-                      
                       {selectedItem?.extrasData?.length > 0 && (
                         <div className="border rounded-lg overflow-hidden shadow-md mt-3">
                           <div
@@ -2104,7 +2091,9 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                                       setIsOpen(false); // إغلاق القائمة بعد الاختيار
                                     }}
                                   />
-                                  <span className="text-[#000] dark:text-[#fff]">{extra.name_en}</span>
+                                  <span className="text-[#000] dark:text-[#fff]">
+                                    {extra.name_en}
+                                  </span>
                                 </label>
                               ))}
                             </div>
@@ -2195,7 +2184,9 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                                       });
                                     }}
                                   />
-                                  <span className="text-[#000] dark:text-[#fff]">{extra.name_en}</span>
+                                  <span className="text-[#000] dark:text-[#fff]">
+                                    {extra.name_en}
+                                  </span>
                                 </label>
                               ))}
                             </div>
@@ -2265,7 +2256,8 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                               disabled={
                                 !selectedUser ||
                                 (deliveryMethod === "pickup" &&
-                                  !isBranchManuallySelected) || !selectedItem?.description
+                                  !isBranchManuallySelected) ||
+                                !selectedItem?.description
                               }
                             >
                               Add to Cart
@@ -2633,90 +2625,90 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
         </div>
         <div className="flex flex-col gap-4 mt-[15px]">
           <Select
-          placeholder="Select Restaurant"
-          className="react-select w-[3] mb-0"
-          classNamePrefix="select"
-          options={restaurantsSelect}
-          value={restaurantsSelect.find(
-            (option) => option.value === selectedRestaurantId
-          )}
-          onChange={handleRestaurantChange}
-          styles={selectStyles(theme, color)}
-        />
+            placeholder="Select Restaurant"
+            className="react-select w-[3] mb-0"
+            classNamePrefix="select"
+            options={restaurantsSelect}
+            value={restaurantsSelect.find(
+              (option) => option.value === selectedRestaurantId
+            )}
+            onChange={handleRestaurantChange}
+            styles={selectStyles(theme, color)}
+          />
           <Card className="p-4 shadow-m rounded-lg w-full mt-0">
-          <div className="flex gap-1 items-center justify-between mb-3">
-                <div className="relative flex-grow">
-                  <span className="absolute top-1/2 left-2 -translate-y-1/2">
-                    <Search className="w-4 h-4 text-gray-500" />
-                  </span>
+            <div className="flex gap-1 items-center justify-between mb-3">
+              <div className="relative flex-grow">
+                <span className="absolute top-1/2 left-2 -translate-y-1/2">
+                  <Search className="w-4 h-4 text-gray-500" />
+                </span>
 
-                  <Input
-                    type="text"
-                    placeholder="Enter phone number"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    className="pl-7 pr-8 w-full text-[#000] dark:text-[#fff]"
-                  />
-                  {search && (
-                    <button
-                      onClick={handleClear}
-                      className="absolute top-1/2 right-2 -translate-y-1/2 text-[#000] dark:text-[#fff] text-xs font-bold"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    onClick={handleSearch}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: "8px",
-                      borderRadius: "4px",
-                      border: "none",
-                      backgroundColor: "#007bff",
-                      color: "#fff",
-                      cursor: "pointer",
-                      transition: "background-color 0.3s",
-                    }}
-                    onMouseOver={(e) =>
-                      (e.currentTarget.style.backgroundColor = "#0056b3")
-                    }
-                    onMouseOut={(e) =>
-                      (e.currentTarget.style.backgroundColor = "#007bff")
-                    }
+                <Input
+                  type="text"
+                  placeholder="Enter phone number"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  className="pl-7 pr-8 w-full text-[#000] dark:text-[#fff]"
+                />
+                {search && (
+                  <button
+                    onClick={handleClear}
+                    className="absolute top-1/2 right-2 -translate-y-1/2 text-[#000] dark:text-[#fff] text-xs font-bold"
                   >
-                    <FiSearch className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    onClick={handleNewUserClick}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: "8px 16px",
-                      borderRadius: "4px",
-                      border: "none",
-                      backgroundColor: "#007bff",
-                      color: "#fff",
-                      cursor: "pointer",
-                      transition: "background-color 0.3s",
-                    }}
-                    onMouseOver={(e) =>
-                      (e.currentTarget.style.backgroundColor = "#0056b3")
-                    }
-                    onMouseOut={(e) =>
-                      (e.currentTarget.style.backgroundColor = "#007bff")
-                    }
-                  >
-                    <Admin />
-                  </Button>
-                </div>
+                    ✕
+                  </button>
+                )}
               </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleSearch}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "8px",
+                    borderRadius: "4px",
+                    border: "none",
+                    backgroundColor: "#007bff",
+                    color: "#fff",
+                    cursor: "pointer",
+                    transition: "background-color 0.3s",
+                  }}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#0056b3")
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#007bff")
+                  }
+                >
+                  <FiSearch className="w-4 h-4" />
+                </Button>
+                <Button
+                  onClick={handleNewUserClick}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    border: "none",
+                    backgroundColor: "#007bff",
+                    color: "#fff",
+                    cursor: "pointer",
+                    transition: "background-color 0.3s",
+                  }}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#0056b3")
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#007bff")
+                  }
+                >
+                  <Admin />
+                </Button>
+              </div>
+            </div>
 
             {selectedUser && isOpenUserData && (
               <div className="mt-2 p-2  rounded-md">
@@ -2728,7 +2720,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                     className="my3"
                     onClick={() => setOpenEditDialog(true)}
                   >
-                    <FiEdit className=" " /> 
+                    <FiEdit className=" " />
                   </Button>
                 </div>
                 <div className="mt-2">
@@ -2746,7 +2738,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
               </div>
             )}
           </Card>
-         
+
           {selectedAddressArray?.length > 0 && (
             <>
               <h3 className="text-lg font-semibold "></h3>
@@ -2801,7 +2793,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                         className="my3"
                         onClick={() => setIsNewAddressDialogOpen(true)}
                       >
-                        <FaPlus className="m text-xs" /> 
+                        <FaPlus className="m text-xs" />
                       </Button>
                     </div>
 
@@ -2886,29 +2878,36 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                           styles={selectStyles(theme, color)}
                           value={selectedBranchInSelected}
                         />
- {showAlertBranch && (
-        <AlertDialog open={showAlertBranch} onOpenChange={setShowAlertBranch}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-              Changing the branch will clear your cart. Do you want to
-              proceed?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={handleCancelChange}>
-              Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmChange}>
-               Ok
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
+                        {showAlertBranch && (
+                          <AlertDialog
+                            open={showAlertBranch}
+                            onOpenChange={setShowAlertBranch}
+                          >
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Are you sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Changing the branch will clear your cart. Do
+                                  you want to proceed?
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel onClick={handleCancelChange}>
+                                  Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={handleConfirmChange}
+                                >
+                                  Ok
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
 
-{/* <AlertDialog
+                        {/* <AlertDialog
   open={showBranchChangeAlert}
   onOpenChange={setShowBranchChangeAlert}
 >
@@ -2937,11 +2936,8 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
     </AlertDialogFooter>
   </AlertDialogContent>
 </AlertDialog> */}
-
                       </div>
-                      
                     )}
-                    
                   </div>
                 )}
               </Card>
@@ -2950,171 +2946,174 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
           {cartItems.length > 0 && (
             <>
               <h3 className="text-lg font-semibold"></h3>
-              <Card
-                className="w-full mt-0 mb-3"
-              >
-           
-                {cartItems.length > 0 && (
-            <>
-              <Card
-                className="w-full p-2  mt-0"
-              >
+              <Card className="w-full mt-0 mb-3">
                 {cartItems.length > 0 && (
                   <>
-                    <Card  className="w-full p-2  mt-0">
-                      {cartItems.map((item, index) => {
-                        const extrasTotal =
-                          item.selectedMainExtras?.reduce(
-                            (sum, extra) =>
-                              sum + parseFloat(extra?.price_en || 0),
-                            0
-                          ) || 0;
+                    <Card className="w-full p-2  mt-0">
+                      {cartItems.length > 0 && (
+                        <>
+                          <Card className="w-full p-2  mt-0">
+                            {cartItems.map((item, index) => {
+                              const extrasTotal =
+                                item.selectedMainExtras?.reduce(
+                                  (sum, extra) =>
+                                    sum + parseFloat(extra?.price_en || 0),
+                                  0
+                                ) || 0;
 
-                        const itemPrice = parseFloat(item?.price || 0);
-                        const itemQuantity = parseFloat(item?.quantity || 0);
-                        const total = itemPrice * itemQuantity;
-                        const itemTotal = total + extrasTotal;
+                              const itemPrice = parseFloat(item?.price || 0);
+                              const itemQuantity = parseFloat(
+                                item?.quantity || 0
+                              );
+                              const total = itemPrice * itemQuantity;
+                              const itemTotal = total + extrasTotal;
 
-                        return (
-                          <div key={item.id} className="p-2 mb-4">
-                            <div className="flex justify-between gap-2 pb-2 mb-1">
-                              <span className="text-center break-words whitespace-nowrap overflow-hidden text-[14px] font-semibold">
-                                {item.selectedInfo}
-                              </span>
-                              <span className="inline-flex items-center gap-1">
-                                {item.price.toFixed(2)}
-                                <span>EGP</span>
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <div className="text-sm text-[#fff] mb-2">
-                                {item.selectedExtras?.map((extra) => (
-                                  <p key={extra.id} className="mb-1 text-[#000] dark:text-[#fff]">
-                                    {extra.name_en}
-                                  </p>
-                                ))}
-                                {item.selectedMainExtras?.map((extra) => (
-                                  <p key={extra.id} className="mb-1 text-[#000] dark:text-[#fff]">
-                                    {extra.name_en}
-                                  </p>
-                                ))}
-                              </div>
-                              <div className="flex items-center">
-                                <button
-                                  onClick={() => handleDecreaseTable(item.id)}
-                                  className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
-                                >
-                                  -
-                                </button>
-                                <span className="mx-4 text-gray-800 dark:text-gray-200">
-                                  {item.quantity}
-                                </span>
-                                <button
-                                  onClick={() => handleIncreaseTable(item.id)}
-                                  className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                            <div className="my-3">
-                              <Input
-                                type="text"
-                                value={item.note || ""}
-                                onChange={(e) => handleNoteChange(e, item.id)}
-                                placeholder="No note added"
-                                className="w-full px-3 py- border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
-                              />
-                            </div>
-
-                            <div className="flex justify-between items-center">
-                              <div className="flex ml-1  items-center">
-                                <button
-                                  size="icon"
-                                  onClick={() => handleEditItem(item)}
-                                  className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
-                                >
-                                  <FiEdit className="mr-3 text-l" />
-                                </button>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <button className="flex items-center text-red-500 hover:text-red-400 gap-[2px]">
-                                      <FiTrash2 className="text-l" />
-                                    </button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200">
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle className="text-gray-800 dark:text-gray-200">
-                                        Are you absolutely sure?
-                                      </AlertDialogTitle>
-                                      <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
-                                        This action cannot be undone. This will
-                                        permanently delete this item from your
-                                        saved items.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel
-                                        type="button"
-                                        variant="outline"
-                                        className="text-gray-800 dark:text-gray-200 border-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                      >
-                                        Cancel
-                                      </AlertDialogCancel>
-                                      <AlertDialogAction
-                                        className="bg-red-600 hover:bg-red-500 text-white"
+                              return (
+                                <div key={item.id} className="p-2 mb-4">
+                                  <div className="flex justify-between gap-2 pb-2 mb-1">
+                                    <span className="text-center break-words whitespace-nowrap overflow-hidden text-[14px] font-semibold">
+                                      {item.selectedInfo}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1">
+                                      {item.price.toFixed(2)}
+                                      <span>EGP</span>
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center justify-between">
+                                    <div className="text-sm text-[#fff] mb-2">
+                                      {item.selectedExtras?.map((extra) => (
+                                        <p
+                                          key={extra.id}
+                                          className="mb-1 text-[#000] dark:text-[#fff]"
+                                        >
+                                          {extra.name_en}
+                                        </p>
+                                      ))}
+                                      {item.selectedMainExtras?.map((extra) => (
+                                        <p
+                                          key={extra.id}
+                                          className="mb-1 text-[#000] dark:text-[#fff]"
+                                        >
+                                          {extra.name_en}
+                                        </p>
+                                      ))}
+                                    </div>
+                                    <div className="flex items-center">
+                                      <button
                                         onClick={() =>
-                                          handleRemoveItem(item.id)
+                                          handleDecreaseTable(item.id)
                                         }
+                                        className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
                                       >
-                                        Ok
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                              <span className="inline-flex items-center gap-1">
-                                {itemTotal.toFixed(2)} EGP
-                              </span>
-                            </div>
-                            {index !== cartItems.length - 1 && (
-                              <div className="border-b border-gray-500 -mx-4 mt-4"></div>
-                            )}
-                          </div>
-                        );
-                      })}
-                      {/* <div className="border-b border-gray-300  my-3"></div> */}
+                                        -
+                                      </button>
+                                      <span className="mx-4 text-gray-800 dark:text-gray-200">
+                                        {item.quantity}
+                                      </span>
+                                      <button
+                                        onClick={() =>
+                                          handleIncreaseTable(item.id)
+                                        }
+                                        className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <div className="my-3">
+                                    <Input
+                                      type="text"
+                                      value={item.note || ""}
+                                      onChange={(e) =>
+                                        handleNoteChange(e, item.id)
+                                      }
+                                      placeholder="No note added"
+                                      className="w-full px-3 py- border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
+                                    />
+                                  </div>
 
-                      {/* <div className="flex justify-between items-center">
+                                  <div className="flex justify-between items-center">
+                                    <div className="flex ml-1  items-center">
+                                      <button
+                                        size="icon"
+                                        onClick={() => handleEditItem(item)}
+                                        className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
+                                      >
+                                        <FiEdit className="mr-3 text-l" />
+                                      </button>
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <button className="flex items-center text-red-500 hover:text-red-400 gap-[2px]">
+                                            <FiTrash2 className="text-l" />
+                                          </button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200">
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle className="text-gray-800 dark:text-gray-200">
+                                              Are you absolutely sure?
+                                            </AlertDialogTitle>
+                                            <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+                                              This action cannot be undone. This
+                                              will permanently delete this item
+                                              from your saved items.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel
+                                              type="button"
+                                              variant="outline"
+                                              className="text-gray-800 dark:text-gray-200 border-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                            >
+                                              Cancel
+                                            </AlertDialogCancel>
+                                            <AlertDialogAction
+                                              className="bg-red-600 hover:bg-red-500 text-white"
+                                              onClick={() =>
+                                                handleRemoveItem(item.id)
+                                              }
+                                            >
+                                              Ok
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    </div>
+                                    <span className="inline-flex items-center gap-1">
+                                      {itemTotal.toFixed(2)} EGP
+                                    </span>
+                                  </div>
+                                  {index !== cartItems.length - 1 && (
+                                    <div className="border-b border-gray-500 -mx-4 mt-4"></div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                            {/* <div className="border-b border-gray-300  my-3"></div> */}
+
+                            {/* <div className="flex justify-between items-center">
                         <span>grandTotal:</span>
                         <p className="inline-flex items-center gap-1">
                           {grandTotal.toFixed(2)}
                           <span>EGP</span>
                         </p>
                       </div> */}
+                          </Card>
+                        </>
+                      )}
                     </Card>
                   </>
                 )}
               </Card>
             </>
           )}
-              
-              </Card>
-            </>
-          )}
           {cartItems.length > 0 && (
             <>
               <h3 className="text-lg font-semibold"></h3>
-              <Card
-                className="w-full p-2 shadow-md rounded-lg mt-0"
-              >
-           
-           
+              <Card className="w-full p-2 shadow-md rounded-lg mt-0">
                 {cartItems.length > 0 && (
                   <>
                     <Card title="Bordered Tables">
                       <Table>
-                
                         <TableBody>
                           {/* <TableRow>
                             <TableCell className="text-[#000] dark:text-[#fff]">
@@ -3189,7 +3188,6 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                       </Table>
                     </Card>
 
-                    
                     {createOrderDialogOpen && (
                       <Dialog
                         open={createOrderDialogOpen}
@@ -3294,7 +3292,7 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                                     control={controlCreateOrder}
                                     rules={{
                                       required: "Order type is required",
-                                    }} 
+                                    }}
                                     render={({ field }) => (
                                       <Select
                                         {...field}
@@ -3316,34 +3314,37 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                                       />
                                     )}
                                   />
-
                                 </div>
                               </div>
 
                               <div className="flex flex-col lg:flex-row lg:items-center gap-2">
-                             {/* <div className="flex flex-col w-1/2">
+                                {/* <div className="flex flex-col w-1/2">
                              <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
                              Address:
                                   </label>
                                   <p > {selectedOrderType?.value === 1 ?  selectedAddress?.address1 : "Pickup"}</p>
                              </div> */}
 
-                             <div className="flex w-1/2 items-center">
-  <label className="text-[#000] dark:text-[#fff] font-medium text-[] mb-1  mr-2">
-    Address:
-  </label>
-  {selectedOrderType?.value === 1 ? (
-    <p className="w-full text-[#000] dark:text-[#fff]">{selectedAddress?.address1}</p>
-  ) : (
-    <p className="w-full text-[#000] dark:text-[#fff]">Pickup</p>
-  )}
-</div>
+                                <div className="flex w-1/2 items-center">
+                                  <label className="text-[#000] dark:text-[#fff] font-medium text-[] mb-1  mr-2">
+                                    Address:
+                                  </label>
+                                  {selectedOrderType?.value === 1 ? (
+                                    <p className="w-full text-[#000] dark:text-[#fff]">
+                                      {selectedAddress?.address1}
+                                    </p>
+                                  ) : (
+                                    <p className="w-full text-[#000] dark:text-[#fff]">
+                                      Pickup
+                                    </p>
+                                  )}
+                                </div>
 
                                 <div className="flex flex-col w-1/2">
                                   <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
                                     Branch
                                   </label>
-{/* 
+                                  {/* 
                                     <Controller
                                       name="branches"
                                       control={controlCreateOrder}
@@ -3398,43 +3399,64 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                                         );
                                       }}
                                     /> */}
-                                    <Controller
-  name="branches"
-  control={controlCreateOrder}
-  defaultValue={selectedBranch?.id || branchOptions?.[0]?.value || ""}
-  render={({ field }) => {
-    return (
-      <Select
-        {...field}
-        className="react-select w-full"
-        classNamePrefix="select"
-        options={branchOptions}
-        onChange={(selectedOption) => {
-          if (!selectedOption) return;
+                                  <Controller
+                                    name="branches"
+                                    control={controlCreateOrder}
+                                    defaultValue={
+                                      selectedBranch?.id ||
+                                      branchOptions?.[0]?.value ||
+                                      ""
+                                    }
+                                    render={({ field }) => {
+                                      return (
+                                        <Select
+                                          {...field}
+                                          className="react-select w-full"
+                                          classNamePrefix="select"
+                                          options={branchOptions}
+                                          onChange={(selectedOption) => {
+                                            if (!selectedOption) return;
 
-          const branchId = Number(selectedOption.value);
+                                            const branchId = Number(
+                                              selectedOption.value
+                                            );
 
-          field.onChange(branchId);
-          setSelectedBranchIdCreateOrder(branchId);
-          setSelectedBranchPriceList(selectedOption?.priceList);
-          setSavedBranch(selectedOption);
-          setSelectedBranchInSelected(selectedOption)
-          setSelectedBranchName(selectedOption?.label)
-          setValueCreateOrder("branches", branchId, { shouldValidate: true });
-        }}
-        value={
-          branchOptions?.find((option) => option.value === field.value) ||
-          branchOptions?.[0] || // اختيار أول عنصر تلقائيًا
-          null
-        }
-        placeholder="Branches"
-        styles={selectStyles(theme, color)}
-      />
-    );
-  }}
-/>
+                                            field.onChange(branchId);
+                                            setSelectedBranchIdCreateOrder(
+                                              branchId
+                                            );
+                                            setSelectedBranchPriceList(
+                                              selectedOption?.priceList
+                                            );
+                                            setSavedBranch(selectedOption);
+                                            setSelectedBranchInSelected(
+                                              selectedOption
+                                            );
+                                            setSelectedBranchName(
+                                              selectedOption?.label
+                                            );
+                                            setValueCreateOrder(
+                                              "branches",
+                                              branchId,
+                                              { shouldValidate: true }
+                                            );
+                                          }}
+                                          value={
+                                            branchOptions?.find(
+                                              (option) =>
+                                                option.value === field.value
+                                            ) ||
+                                            branchOptions?.[0] || // اختيار أول عنصر تلقائيًا
+                                            null
+                                          }
+                                          placeholder="Branches"
+                                          styles={selectStyles(theme, color)}
+                                        />
+                                      );
+                                    }}
+                                  />
 
-                                    {/* <Controller
+                                  {/* <Controller
   name="branches"
   control={controlCreateOrder}
   defaultValue={selectedBranch?.id || ""}
@@ -3451,8 +3473,6 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
     />
   )}
 /> */}
-
-
                                 </div>
                               </div>
 
@@ -3661,7 +3681,6 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
                     )}
 
                     <div className="flex items-center justify-between gap-5 my-5">
-                    
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button className="w-1/2" color="destructive">
@@ -3709,8 +3728,8 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
               </Card>
             </>
           )}
-         
-{/* 
+
+          {/* 
           <Table className="border border-default-300">
             <TableHeader>
               <TableRow className="bg-gray-200 dark:bg-gray-800"></TableRow>
@@ -3878,9 +3897,8 @@ if (deliveryMethod === "pickup" && !isBranchManuallySelected || savedBranch?.val
               </TableRow>
             </tfoot>
           </Table> */}
-        
         </div>
-        < >
+        <>
           {openEditDialog && selectedUser && (
             <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
               <DialogContent size="3xl">

@@ -76,15 +76,15 @@ export const fetchMenu = async (restaurantId, priceList,token) => {
 };
 
 export const fetchViewItem = async (BranchId,  itemId,token) => {
-  console.log("selectedBranch from fetch basic", BranchId);
+  // console.log("selectedBranch from fetch basic", BranchId);
   // console.log("addressId from fetch basic", addressId);
-  console.log("itemId from fetch basic", itemId);
+  // console.log("itemId from fetch basic", itemId);
   try {
     const response = await axios.get(
       `${BASE_URL}/callcenter/get/menu/item?api_token=${token}&branch_id=${BranchId}&item_id=${itemId}`
     );
-    console.log("fetch View Item:", response);
-    console.log("fetch View Item:", response.data.item);
+    // console.log("fetch View Item:", response);
+    // console.log("fetch View Item:", response.data.item);
     return response.data.item;
   } catch (error) {
     console.error("Error fetching view item:", error);
