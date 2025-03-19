@@ -1,18 +1,20 @@
 import { BASE_URL } from "@/api/BaseUrl";
 import axios from "axios";
-import Cookies from "js-cookie";
 import apiInstance from "@/api/axiosInstance";
 import { toast } from "react-hot-toast";
-import { Buffer } from "buffer";
-// const token = Cookies.get("token");
-//  const token =  localStorage.getItem("token") || Cookies.get("token")
-//  const tokenStorge =
-//     typeof window !== "undefined" ? localStorage.getItem("token") : null;
-//     // const token =   tokenStorge || Cookies.get("token")  
-    
-//     console.log("token",token);
-    
 
+export const fetchUserByPhone = async (phone,token) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/callcenter/user/search?api_token=${token}&phone=${phone}`
+    );
+    // console.log("serach user ", response.data.users);
+    return response.data.users;
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    throw error;
+  }
+};
 
 
 export const createUser = async (name, phone,phone2,token) => {

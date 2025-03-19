@@ -3,23 +3,8 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 // axiosInstance
-// const token = Cookies.get("token");
-//  const token =  localStorage.getItem("token") || Cookies.get("token") 
-//  const tokenStorge =
-//     typeof window !== "undefined" ? localStorage.getItem("token") : null;
-//     const token =   tokenStorge || Cookies.get("token")  
-export const fetchUserByPhone = async (phone,token) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/callcenter/user/search?api_token=${token}&phone=${phone}`
-    );
-    // console.log("serach user ", response.data.users);
-    return response.data.users;
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    throw error;
-  }
-};
+
+
 
 
 export const fetchRestaurantsList = async (token) => {
