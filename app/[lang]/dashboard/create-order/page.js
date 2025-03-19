@@ -1081,11 +1081,10 @@ function CreateOrder() {
     setMassegeNotSelectedBranch(null);
     refetchMenu();
   };
-  console.log("panding", pendingBranch);
+  // console.log("panding", pendingBranch);
 
   useEffect(() => {
     if (deliveryMethod === "pickup") {
-      // تفريغ الفرع المخزن وعرض رسالة
       setSelectedBranchInSelected(null);
       setSavedBranch(null);
       setSelectedBranchId(null);
