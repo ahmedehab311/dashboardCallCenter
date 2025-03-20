@@ -3,10 +3,11 @@ import axios from "axios";
 import apiInstance from "@/api/axiosInstance";
 import { toast } from "react-hot-toast";
 
-export const fetchUserByPhone = async (phone,token) => {
+export const fetchUserByPhone = async (phone,token,apiBaseUrl) => {
   try {
+    
     const response = await axios.get(
-      `${BASE_URL}/callcenter/user/search?api_token=${token}&phone=${phone}`
+      `${apiBaseUrl}/callcenter/user/search?api_token=${token}&phone=${phone}`
     );
     // console.log("serach user ", response.data.users);
     return response.data.users;
@@ -17,17 +18,20 @@ export const fetchUserByPhone = async (phone,token) => {
 };
 
 
-export const createUser = async (name, phone,phone2,token) => {
+export const createUser = async (name, phone,phone2,token,apiBaseUrl) => {
   try {
+    const cleanedBaseUrl = apiBaseUrl.replace(/\/api$/, "");
     const response = await apiInstance.post(
-      `/callcenter/user/create?api_token=${token}`,
+      `${cleanedBaseUrl}/api/callcenter/user/create?api_token=${token}`,
       null,
       {
         params: { name, phone,phone2 },
       }
     );
 
-    // console.log("User ID response:", response?.data);
+    console.log(" apiBaseUrl FROM :", apiBaseUrl);
+    console.log("User ID response:", response);
+    console.log("User ID response:", response?.data);
     // console.log("User ID response id:", response?.data?.user?.id);
     // console.log("User ID response messages:", response?.data?.messages);
     if (!response?.data?.response) {
@@ -42,84 +46,6 @@ export const createUser = async (name, phone,phone2,token) => {
   }
 };
 
-export const updateUserAddress = async (data) => {
-  const params = new URLSearchParams({
-    id: data.id,
-    area: data.area,
-    street: data.street,
-    address_name: data.address_name,
-    country: 1,
-    city: 1,
-    ...(data.building && { building: data.building }),
-    ...(data.floor && { floor: data.floor }),
-    ...(data.apt && { apt: data.apt }),
-    ...(data.additional_info && { additional_info: data.additional_info }),
-  });
-
-  const url = `/api/callcenter/user/address/update?api_token=${data.token}&${params.toString()}`;
-
-  try {
-    const response = await axios.put(url);
-    console.log("Address updated successfully:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error updating address:", error);
-    throw error;
-  }
-};
-
-export const updateUserData = async (userData) => {
-  const params = new URLSearchParams();
-
-  if (userData.userId) params.append("user_id", userData.userId);
-  if (userData.username) params.append("user_name", userData.username);
-  if (userData.email) params.append("email", userData.email);
-  if (userData.phone) params.append("phone", userData.phone);
-  if (userData.phone2) params.append("phone2", userData.phone2);
-
-  const url = `/api/callcenter/user/update?api_token=${userData.token}&${params.toString()}`;
-
-  try {
-    const response = await axios.put(url);
-    // console.log("User updated:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error updating user:", error);
-    throw error;
-  }
-};
-
-export const fetchAreas = async () => {
-  try {
-    const response = await axios.get(`/api/areas/?city=1`);
-    // console.log("areas:", response.data.data.areas);
-    return response.data.data.areas;
-  } catch (error) {
-    console.error("Error fetching areas:", error);
-
-    throw error;
-  }
-};
-
-export const deleteAddress = async (id,token) => {
-  try {
-    const response = await axios.delete(
-      `/api/callcenter/user/address/delete?api_token=${token}&id=${id}`
-    );
-    const messages = response.data.messages || response.data.data;
-
-    //   if (messages.length > 0) {
-    //     toast.success(messages[0]);
-    //   }
-    // console.log(response.data);
-
-    return response.data;
-  } catch (error) {
-    toast.error(`Failed to delete : ${error}`);
-    throw error;
-  }
-};
-
 export const createAddress = async (
   userId,
   area,
@@ -129,14 +55,15 @@ export const createAddress = async (
   apt,
   additionalInfo,
   nameValue,
-  token
+  token,apiBaseUrl
 ) => {
   // console.log("userId",userId)
   // console.log("apt",apt)
   // console.log("additionalInfo",additionalInfo)
   try {
+    const cleanedBaseUrl = apiBaseUrl.replace(/\/api$/, "");
     const response = await apiInstance.post(
-      `/callcenter/user/address/add?api_token=${token}`,
+      `${cleanedBaseUrl}/api/callcenter/user/address/add?api_token=${token}`,
       null,
       {
         params: {
@@ -179,7 +106,7 @@ export const createOrder = async ({
   lng,
   time,
   lat,
-  restaurant,token
+  restaurant,token,apiBaseUrl
 }) => {
   const formattedItems = {
     items: items.map((item) => ({
@@ -203,7 +130,7 @@ console.log("Final API URL:", apiUrl);
 
   try {
     const response = await apiInstance.post(
-      `/callcenter/order/create?api_token=${token}`,
+      `${apiBaseUrl}/callcenter/order/create?api_token=${token}`,
       null,
       {
         params: {
@@ -229,6 +156,101 @@ console.log("Final API URL:", apiUrl);
     return response.data;
   } catch (error) {
     console.error("Error creating order:", error);
+    throw error;
+  }
+};
+
+export const updateUserAddress = async (data) => {
+  const params = new URLSearchParams({
+    id: data.id,
+    area: data.area,
+    street: data.street,
+    address_name: data.address_name,
+    country: 1,
+    city: 1,
+    ...(data.building && { building: data.building }),
+    ...(data.floor && { floor: data.floor }),
+    ...(data.apt && { apt: data.apt }),
+    ...(data.additional_info && { additional_info: data.additional_info }),
+  });
+  const basePath = typeof window !== "undefined" && window.location.origin.includes("localhost")
+  ? "/api"
+  : data.apiBaseUrl;
+  const url = `${basePath}/callcenter/user/address/update?api_token=${data.token}&${params.toString()}`;
+
+  try {
+
+    const response = await axios.put(url);
+    console.log("Address updated successfully:", response.data);
+    console.log("Address updated successfully :", basePath);
+    console.log("Address updated successfully :", data.apiBaseUrl);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating address:", error);
+    throw error;
+  }
+};
+
+export const updateUserData = async (userData) => {
+  const params = new URLSearchParams();
+
+  if (userData.userId) params.append("user_id", userData.userId);
+  if (userData.username) params.append("user_name", userData.username);
+  if (userData.email) params.append("email", userData.email);
+  if (userData.phone) params.append("phone", userData.phone);
+  if (userData.phone2) params.append("phone2", userData.phone2);
+  const basePath = typeof window !== "undefined" && window.location.origin.includes("localhost")
+  ? "/api"
+  : userData.apiBaseUrl;
+  const url = `${basePath}/callcenter/user/update?api_token=${userData.token}&${params.toString()}`;
+
+  try {
+    const response = await axios.put(url);
+    console.log("apiBaseUrl updateUserData",`${basePath}/callcenter/user`);
+
+    // console.log("User updated:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating user:", error);
+    throw error;
+  }
+};
+
+export const deleteAddress = async (id,token,apiBaseUrl) => {
+  try {
+    const basePath = typeof window !== "undefined" && window.location.origin.includes("localhost")
+    ? "/api"
+    : apiBaseUrl;
+    const response = await axios.delete(
+      `${basePath}/callcenter/user/address/delete?api_token=${token}&id=${id}`
+    );
+    const messages = response.data.messages || response.data.data;
+
+    //   if (messages.length > 0) {
+    //     toast.success(messages[0]);
+    //   }
+    console.log("apiBaseUrl deleteAddress",apiBaseUrl);
+
+    return response.data;
+  } catch (error) {
+    toast.error(`Failed to delete : ${error}`);
+    throw error;
+  }
+};
+
+
+export const fetchAreas = async (apiBaseUrl) => {
+  try {
+    const basePath = typeof window !== "undefined" && window.location.origin.includes("localhost")
+      ? "/api"
+      : apiBaseUrl;
+    // const response = await axios.get(`${apiBaseUrl}/api/areas/?city=1`);
+    const response = await axios.get(`${basePath}/areas/?city=1`);
+    // console.log("areas:", response.data.data.areas);
+    return response.data.data.areas;
+  } catch (error) {
+    console.error("Error fetching areas:", error);
+
     throw error;
   }
 };

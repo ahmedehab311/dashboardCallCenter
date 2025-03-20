@@ -69,6 +69,7 @@ import { FiSearch } from "react-icons/fi";
 import { Admin } from "@/components/icons/index";
 import { Textarea } from "@/components/ui/textarea";
 import { useSidebar } from "@/store/index";
+import { useSubdomin } from "@/provider/SubdomainContext";
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   phone: z.string().regex(/^\d{3,15}$/, "Invalid phone number"),
@@ -206,7 +207,8 @@ function CreateOrder() {
     },
   });
   // console.log("errorsCreateOrder", errorsCreateOrder);
-
+  const { apiBaseUrl } = useSubdomin()
+  console.log("apiBaseUrl from create order", apiBaseUrl);
   const { theme } = useTheme();
   const setCollapsed = useSidebar((state) => state.setCollapsed);
 
@@ -232,7 +234,7 @@ function CreateOrder() {
   } = useQuery({
     queryKey: ["RestaurantsList"],
     // queryFn: fetchRestaurantsList(token),
-    queryFn: () => fetchRestaurantsList(token),
+    queryFn: () => fetchRestaurantsList(token,apiBaseUrl),
     enabled: !!token,
   });
   const {
@@ -243,7 +245,7 @@ function CreateOrder() {
   } = useQuery({
     queryKey: ["BranchesList", selectedRestaurantId, selectedAddress?.area],
     queryFn: () =>
-      fetchBranches(selectedRestaurantId, selectedAddress?.area, token),
+      fetchBranches(selectedRestaurantId, selectedAddress?.area, token,apiBaseUrl),
     enabled: !!selectedRestaurantId && !!selectedAddress?.area && !!token,
   });
 
@@ -253,7 +255,7 @@ function CreateOrder() {
     errorAreas,
   } = useQuery({
     queryKey: ["AreasList"],
-    queryFn: fetchAreas,
+    queryFn: () => fetchAreas(apiBaseUrl),
   });
 
   const {
@@ -262,7 +264,7 @@ function CreateOrder() {
     errororderSource,
   } = useQuery({
     queryKey: ["OrderSourceeList", selectedRestaurantId],
-    queryFn: () => fetchorderSource(selectedRestaurantId, token),
+    queryFn: () => fetchorderSource(selectedRestaurantId, token,apiBaseUrl),
     enabled: !!token,
   });
   const {
@@ -271,7 +273,7 @@ function CreateOrder() {
     errosTax,
   } = useQuery({
     queryKey: ["TaxList"],
-    queryFn: fetchTax,
+    queryFn:()=> fetchTax(apiBaseUrl),
   });
   // console.log("Tax in basic", Tax);
   // console.log("orderType in basic", orderType);
@@ -284,7 +286,7 @@ function CreateOrder() {
   } = useQuery({
     queryKey: ["menuList", selectedRestaurantId, SelectedBranchPriceist],
     queryFn: () =>
-      fetchMenu(selectedRestaurantId, SelectedBranchPriceist, token),
+      fetchMenu(selectedRestaurantId, SelectedBranchPriceist, token,apiBaseUrl),
     enabled: !!selectedRestaurantId && !!SelectedBranchPriceist && !!token,
     staleTime: 1000 * 60 * 5,
     cacheTime: 1000 * 60 * 10,
@@ -317,7 +319,7 @@ function CreateOrder() {
     errorUserDataForSearch,
   } = useQuery({
     queryKey: ["userSearch", phone],
-    queryFn: () => fetchUserByPhone(phone, token),
+    queryFn: () => fetchUserByPhone(phone, token,apiBaseUrl),
     enabled: !!phone,
     onSuccess: (data) => {
       if (data) {
@@ -396,7 +398,7 @@ function CreateOrder() {
       const response = await fetchViewItem(
         savedBranch?.value || selectedBranchInSelected.value,
         item.id,
-        token
+        token,apiBaseUrl
       );
       // console.log("response",response)
 
@@ -1430,7 +1432,7 @@ function CreateOrder() {
       phone: data.phone,
       phone2: data.phone2,
       userId: selectedUser?.id,
-      token: token,
+      token: token,apiBaseUrl
     }).reduce((acc, [key, value]) => {
       if (value) acc[key] = value;
       return acc;
@@ -1456,7 +1458,6 @@ function CreateOrder() {
         setSelectedAddress((prevSelectedAddress) => ({
           ...prevSelectedAddress,
           address_name: data.address_name || prevSelectedAddress.address_name,
-          // أي حقل آخر تحتاج تحديثه
         }));
         setOpenEditDialog(false);
       } else {
@@ -1523,7 +1524,8 @@ function CreateOrder() {
         data.username,
         data.phone,
         data.phone2,
-        token
+        token,
+        apiBaseUrl
       );
 
       if (!userId) throw new Error("User ID not received");
@@ -1544,7 +1546,8 @@ function CreateOrder() {
         data.additionalInfo,
         // data.name
         nameValue,
-        token
+        token,
+        apiBaseUrl
       );
       setIsNewUserDialogOpen(false);
       resetAddNewUser();
@@ -1579,7 +1582,7 @@ function CreateOrder() {
         data.additionalInfo,
         // data.name
         nameValue,
-        token
+        token,apiBaseUrl
       );
 
       queryClient.invalidateQueries(["userSearch", phone]);
@@ -1609,7 +1612,7 @@ function CreateOrder() {
       apt: data.apt || "",
       additional_info: data.additionalInfo || "",
       address_name: nameValue,
-      token: token,
+      token: token,apiBaseUrl
     };
 
     // console.log("Formatted Data to Send:", formattedData); // تحقق من البيانات
@@ -1635,7 +1638,7 @@ function CreateOrder() {
   const handleDeleteAddress = async (id) => {
     // console.log("id remove", id);
     try {
-      const response = await deleteAddress(id, token);
+      const response = await deleteAddress(id, token,apiBaseUrl);
 
       toast.success("Address deleted successfully");
       queryClient.invalidateQueries(["userSearch", phone]);
@@ -1679,7 +1682,7 @@ function CreateOrder() {
         lng: 0,
         branch: savedBranch?.value,
         restaurant: selectedRestaurantId,
-        token,
+        token,apiBaseUrl
       });
 
       toast.success("Order created successfully");

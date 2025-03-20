@@ -8,7 +8,7 @@ import Cookies from "js-cookie";
 // const language = useSelector((state) => state.language.language);
 const apiInstance = axios.create({
   // baseURL: "http://tenant1.ordrz.test/api",
-  baseURL: BASE_URL,
+  baseURL: BASE_URL(),
 });
 
 apiInstance.interceptors.request.use(

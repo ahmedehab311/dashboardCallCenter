@@ -2,9 +2,18 @@
 import { useSubdomin } from "@/provider/SubdomainContext";
 
 const SubdomainDisplay = () => {
-  const subdomain = useSubdomin();
+  const { subdomain, apiBaseUrl } = useSubdomin(); 
+  return (
+<>
+<div className="bg-black text-white">
+     subdomain: {subdomain}
+    </div>
+    <div>
+    apiBaseUrl: {apiBaseUrl}
+    </div>
+</>
+  )
 
-  return <div>Subdomain: {subdomain || "No subdomain"}</div>;
 };
 
 export default SubdomainDisplay;

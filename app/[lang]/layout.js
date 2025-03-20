@@ -78,7 +78,7 @@ import AuthProvider from "@/provider/auth.provider";
 import { LanguageProvider } from "@/provider/LanguageContext";
 import DirectionProvider from "@/provider/direction.provider";
 import { SubdominProvider } from "@/provider/SubdomainContext";
-// import SubdomainDisplay from "@/hooks/SubdomainDisplay";
+import SubdomainDisplay from "@/hooks/SubdomainDisplay";
 import { getDictionary } from "../dictionaries";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { setLanguage } from "@/store/slices/languageSlice";
@@ -91,7 +91,7 @@ export default function RootLayout({ children, params: { lang } }) {
   return (
     <QueryClientProvider client={queryClient}>
       <SubdominProvider>
-        {/* <SubdomainDisplay /> */}
+        <SubdomainDisplay />
         <LayoutContent lang={lang}>{children}</LayoutContent>
       </SubdominProvider>
     </QueryClientProvider>
