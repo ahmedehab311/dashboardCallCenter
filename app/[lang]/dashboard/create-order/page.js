@@ -70,6 +70,7 @@ import { Admin } from "@/components/icons/index";
 import { Textarea } from "@/components/ui/textarea";
 import { useSidebar } from "@/store/index";
 import { useSubdomin } from "@/provider/SubdomainContext";
+import Link from "next/link";
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   phone: z.string().regex(/^\d{3,15}$/, "Invalid phone number"),
@@ -354,6 +355,8 @@ function CreateOrder() {
   const [massegeNotSerachPhone, setMassegeNotSerachPhone] = useState(null);
   const [massegeNotSelectedBranch, setMassegeNotSelectedBranch] =
     useState(null);
+  const [massegeInvaildToken, setMassegeInvaildToken] =
+    useState(null);
   const [isBranchManuallySelected, setIsBranchManuallySelected] =
     useState(false);
 
@@ -383,9 +386,6 @@ function CreateOrder() {
       return;
     }
 
-    //     const branchId = selectedBranchNew?.id || selectedBranchInSelected?.value;
-    // console.log(" savedBranch?.value", savedBranch?.value)
-    // console.log(" isBranchManuallySelected", isBranchManuallySelected)
     if (
       (deliveryMethod === "pickup" && !isBranchManuallySelected) ||
       savedBranch?.value === null
@@ -400,30 +400,37 @@ function CreateOrder() {
         item.id,
         token,apiBaseUrl
       );
-      // console.log("response",response)
+      console.log("Response from fetchViewItem:", response); // تأكيد البيانات المسترجعة
 
-      if (response) {
-        const firstInfo = response?.info?.[0] || null;
+      if (response?.response === false) {
+        console.log("Setting error message:", response.message); // تأكيد عرض الرسالة في الكونسول
+        setMassegeInvaildToken(response.message);
+        return;
+      }
+      setMassegeInvaildToken(null);
+      if (response?.item) {
+        const firstInfo = response?.item?.info?.[0] || null;
 
         setSelectedItem({
-          id: response.id,
-          name: response.name_en,
-          description: response.description_en,
-          image: response.image,
+          id: response.item.id,
+          name: response.item.name_en,
+          description: response.item.description_en,
+          image: response.item.image,
           price: firstInfo?.price?.price,
           availability: firstInfo?.availability?.availability,
-          info: response?.info || [],
+          info: response?.item?.info || [],
           selectedInfo: firstInfo?.size_en || "",
           selectedIdSize: firstInfo?.id || "",
           selectedMainExtras: [],
           selectedMainExtrasIds: [],
-          mainExtras: response?.item_extras?.[0]?.data || [],
+          mainExtras: response?.item?.item_extras?.[0]?.data || [],
           itemExtras: firstInfo?.item_extras || [],
           extrasData: firstInfo?.item_extras[0]?.data || [],
           selectedExtras: [],
           selectedExtrasIds: [],
         });
       }
+    
     } catch (error) {
       console.error("Error fetching item details:", error);
     }
@@ -2250,6 +2257,14 @@ function CreateOrder() {
                                 ? massegeNotSelectedBranch
                                 : ""}
                             </p>
+                            {massegeInvaildToken && (
+  <p className="text-sm font-semibold text-red-500 mr-1">
+    {massegeInvaildToken}{" "}
+    <Link href="/en/login" className="text-blue-500 underline ml-1">
+      Login here
+    </Link>
+  </p>
+)}
 
                             <Button
                               type="submit"

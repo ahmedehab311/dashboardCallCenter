@@ -181,7 +181,7 @@ const ProfileInfo = () => {
         <DropdownMenuSeparator className="mb-0 dark:bg-background" />
         <DropdownMenuItem
          onSelect={() => {
-    console.log("🚀 Logging out... Removing tokens!");
+    // console.log("🚀 Logging out... Removing tokens!");
 
     Cookies.remove("access_token");
     Cookies.remove("token");
@@ -193,8 +193,8 @@ Cookies.remove("access_token", { domain: "ordrz.me", path: "/" });
     const currentLanguage =
       localStorage.getItem("language") || Cookies.get("language");
 
-    console.log("🔍 Checking Cookies after removal:", Cookies.get("token"), Cookies.get("access_token"));
-    console.log("🔍 Checking Local Storage after removal:", localStorage.getItem("token"));
+    // console.log("🔍 Checking Cookies after removal:", Cookies.get("token"), Cookies.get("access_token"));
+    // console.log("🔍 Checking Local Storage after removal:", localStorage.getItem("token"));
 
     router.push(`/${currentLanguage}/login`);
   }}
