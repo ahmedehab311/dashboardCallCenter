@@ -24,6 +24,7 @@ import { getDictionary } from "@/app/dictionaries.js";
 import { useLanguage } from "@/provider/LanguageContext";
 import img from "/public/logo.png"
 import Image from "next/image";
+import { useSubdomin } from "@/provider/SubdomainContext";
 
 const schema = z.object({
   email: z.string().email({ message: "Your email is invalid." }),
@@ -31,6 +32,7 @@ const schema = z.object({
 });
 
 const LogInForm = ({ children }) => {
+    const { apiBaseUrl,subdomain } = useSubdomin()
   const router = useRouter();
   const dispatch = useDispatch();
   const { currentLang } = useLanguage();
@@ -244,7 +246,7 @@ const LogInForm = ({ children }) => {
 
       try {
         const resultAction = await dispatch(
-          loginUser({ credentials: requestData })
+          loginUser({ credentials: requestData,apiBaseUrl,subdomain })
         );
 
         if (loginUser.fulfilled.match(resultAction)) {

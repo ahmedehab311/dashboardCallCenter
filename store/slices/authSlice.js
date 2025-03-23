@@ -80,9 +80,9 @@ const initialState = {
 
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
-  async ({ credentials }, { rejectWithValue }) => {
+  async ({ credentials,apiBaseUrl,subdomain }, { rejectWithValue }) => {
     try {
-      const userData = await loginUserService(credentials);
+      const userData = await loginUserService(credentials,apiBaseUrl,subdomain);
       return userData;
     } catch (error) {
       return rejectWithValue(

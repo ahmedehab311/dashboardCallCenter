@@ -22,16 +22,14 @@ export const SubdominProvider = ({ children }) => {
 
   useEffect(() => {
     if (subdomain) {
-      const baseUrl = BASE_URL(); // ✅ احصل على `baseUrl` الصحيح
+      const baseUrl = BASE_URL(); 
   
-      // **إزالة `/api/` إذا كان مضافًا تلقائيًا**
-      let cleanedBaseUrl = baseUrl.replace(/\/api\/?$/, ""); 
+      let cleanedBaseUrl = baseUrl?.replace(/\/api\/?$/, ""); 
   
       setApiBaseUrl(`${cleanedBaseUrl}/${subdomain}/api`);
     }
   }, [subdomain]);
   ;
-  
   
 
   return (

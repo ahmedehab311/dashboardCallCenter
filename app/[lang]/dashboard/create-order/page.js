@@ -58,7 +58,8 @@ import {
   createOrder,
   fetchUserByPhone,
 } from "./apICallCenter/apisUser";
-import { BASE_URL_iamge } from "@/api/BaseUrl";
+// import { BASE_URL_iamge } from "@/api/BaseUrl";
+import { BASE_URL } from "@/api/BaseUrl";
 import { z } from "zod";
 import { useForm, Controller, set } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -208,8 +209,9 @@ function CreateOrder() {
     },
   });
   // console.log("errorsCreateOrder", errorsCreateOrder);
-  const { apiBaseUrl } = useSubdomin()
+  const { apiBaseUrl,subdomain } = useSubdomin()
   console.log("apiBaseUrl from create order", apiBaseUrl);
+  console.log("subdomain from create order", subdomain);
   const { theme } = useTheme();
   const setCollapsed = useSidebar((state) => state.setCollapsed);
 
@@ -310,7 +312,7 @@ function CreateOrder() {
         section: section.id, // كل عنصر مرتبط بالقسم الخاص به
         image: item.image?.startsWith("http")
           ? item.image
-          : `${BASE_URL_iamge}/${item.image}`,
+          : `${BASE_URL()}/${subdomain}/${item.image}`,
       }))
     ) || [];
 
