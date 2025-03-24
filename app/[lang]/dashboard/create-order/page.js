@@ -72,6 +72,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useSidebar } from "@/store/index";
 import { useSubdomin } from "@/provider/SubdomainContext";
 import Link from "next/link";
+import { useSelector } from "react-redux";
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   phone: z.string().regex(/^\d{3,15}$/, "Invalid phone number"),
@@ -209,6 +210,9 @@ function CreateOrder() {
     },
   });
   // console.log("errorsCreateOrder", errorsCreateOrder);
+  const language = localStorage.getItem("language") 
+  // || "en";
+  // console.log("language order", language);
   const { apiBaseUrl,subdomain } = useSubdomin()
   console.log("apiBaseUrl from create order", apiBaseUrl);
   console.log("subdomain from create order", subdomain);
@@ -297,7 +301,7 @@ function CreateOrder() {
     keepPreviousData: true,
   });
 
-  // console.log("menu from create", menu);
+  console.log("menu from create", menu);
   const sections = menu?.sections
     ? [{ id: "all", name_en: "All", name_ar: "الكل" }, ...menu.sections]
     : [{ id: "all", name_en: "All", name_ar: "الكل" }];
@@ -306,10 +310,11 @@ function CreateOrder() {
     menu?.sections?.flatMap((section) =>
       section.items_and_offer.map((item) => ({
         id: item.id,
-        name: item.name_en, // يمكنك استبدالها بـ item.name_ar إذا كنت تريد العربية
+        // name: item.name_en, 
+        name_en: item.name_en, 
+        name_ar: item.name_ar,
         price: item.sizes?.[0]?.prices?.[0]?.price,
-        // image: item.image, // تأكد أن الصورة تأتي من API
-        section: section.id, // كل عنصر مرتبط بالقسم الخاص به
+        section: section.id,
         image: item.image?.startsWith("http")
           ? item.image
           : `${BASE_URL()}/${subdomain}/${item.image}`,
@@ -416,7 +421,8 @@ function CreateOrder() {
         setSelectedItem({
           id: response.item.id,
           name: response.item.name_en,
-          description: response.item.description_en,
+          description_en: response.item.description_en,
+          description_ar: response.item.description_ar,
           image: response.item.image,
           price: firstInfo?.price?.price,
           availability: firstInfo?.availability?.availability,
@@ -522,16 +528,36 @@ function CreateOrder() {
   const [searchQuery, setSearchQuery] = useState("");
   const handleClearSearch = () => setSearchQuery("");
 
+  // const displayedItems = useMemo(() => {
+  //   return items.filter((item) => {
+  //     //  const itemName = language === "en" ? item.name_en : item.name_ar;
+  //     const matchesSearch = item.name
+  //       .toLowerCase()
+  //       .includes(searchQuery.toLowerCase());
+  //     const matchesSection =
+  //       activeSection === "all" || item.section === activeSection;
+  //     return matchesSearch && matchesSection;
+  //   });
+  // }, [items, searchQuery, activeSection]);
   const displayedItems = useMemo(() => {
     return items.filter((item) => {
-      const matchesSearch = item.name
+      const itemName = language === "en" ? item.name_en : item.name_ar;
+  
+      if (!itemName) return false; // تأكد من وجود الاسم
+  
+      const matchesSearch = itemName
         .toLowerCase()
-        .includes(searchQuery.toLowerCase());
+        .includes(searchQuery?.toLowerCase()); 
+  
       const matchesSection =
         activeSection === "all" || item.section === activeSection;
+  
       return matchesSearch && matchesSection;
     });
-  }, [items, searchQuery, activeSection]);
+  }, [items, searchQuery, activeSection, language]); 
+  
+console.log("displayedItems",selectedItem);
+// console.log("items",items);
 
   // استخراج الأقسام التي تحتوي فقط على العناصر المفلترة
   // const filteredSections = sections.filter(
@@ -1914,7 +1940,8 @@ function CreateOrder() {
       `}
                     onClick={() => setActiveSection(section.id)}
                   >
-                    {section.name_en}
+                    {/* {section.name_en} */}
+                    {language === "en" ? section.name_en : section.name_ar}
                   </button>
                 ))}
               </div>
@@ -1937,7 +1964,9 @@ function CreateOrder() {
                     </div>
                     <div className="flex justify-between items-center gap-3 p-3">
                       <h3 className="text-sm text-muted-foreground mt-2">
-                        {item?.name}
+                        {/* {item?.name} */}
+                    {language === "en" ? item.name_en : item.name_ar}
+
                       </h3>
                       <p className=" text-sm text-[#000] dark:text-[#fff] ">
                         {item?.price?.toFixed(2)} EGP
@@ -2003,6 +2032,8 @@ function CreateOrder() {
                       <div className="items-center">
                         <h3 className="font-medium ">
                           {selectedItem?.description}
+                    {language === "en" ? selectedItem?.description_en : selectedItem?.description_ar}
+
                         </h3>
                       </div>
                       <hr className="my-2" />
@@ -2262,7 +2293,7 @@ function CreateOrder() {
                             {massegeInvaildToken && (
   <p className="text-sm font-semibold text-red-500 mr-1">
     {massegeInvaildToken}{" "}
-    <Link href="/en/login" className="text-blue-500 underline ml-1">
+    <Link href= {`/${language}/login`} className="text-blue-500 underline ml-1">
       Login here
     </Link>
   </p>
@@ -2276,7 +2307,7 @@ function CreateOrder() {
                                 !selectedUser ||
                                 (deliveryMethod === "pickup" &&
                                   !isBranchManuallySelected) ||
-                                !selectedItem?.description
+                                !selectedItem?.selectedInfo
                               }
                             >
                               Add to Cart

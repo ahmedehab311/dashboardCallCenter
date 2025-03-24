@@ -22,7 +22,7 @@ import { fetchSettings } from "@/store/slices/systemSlice";
 import { FaSpinner } from "react-icons/fa";
 import { getDictionary } from "@/app/dictionaries.js";
 import { useLanguage } from "@/provider/LanguageContext";
-import img from "/public/logo.png"
+import img from "/public/logo.png";
 import Image from "next/image";
 import { useSubdomin } from "@/provider/SubdomainContext";
 
@@ -32,7 +32,7 @@ const schema = z.object({
 });
 
 const LogInForm = ({ children }) => {
-    const { apiBaseUrl,subdomain } = useSubdomin()
+  const { apiBaseUrl, subdomain } = useSubdomin();
   const router = useRouter();
   const dispatch = useDispatch();
   const { currentLang } = useLanguage();
@@ -42,10 +42,13 @@ const LogInForm = ({ children }) => {
   const [isVisible, setIsVisible] = React.useState(false);
   const [isLoadings, setIsLoadings] = useState(false);
   const isDesktop2xl = useMediaQuery("(max-width: 1530px)");
-  const language = useSelector(
-    (state) => state.language.language,
-    (prev, next) => prev === next
-  );
+  // const language = useSelector(
+  //   (state) => state.language.language,
+  //   (prev, next) => prev === next
+  // );
+  // const language = localStorage.getItem("language");
+  const language =
+    typeof window !== "undefined" ? localStorage.getItem("language") : null;
 
   const {
     register,
@@ -174,11 +177,11 @@ const LogInForm = ({ children }) => {
   //   Cookies.remove("access_token");
   //   localStorage.removeItem("token");
   //   localStorage.removeItem("user");
-  
+
   //   console.log("🚀 Removed all stored tokens and data!");
   //   console.log("🔍 Token after remove:", Cookies.get("token"), localStorage.getItem("token"));
   // }, []);
-  
+
   // const onSubmit = async (data) => {
   //   setIsLoadings(true);
 
@@ -234,44 +237,49 @@ const LogInForm = ({ children }) => {
   //   setIsLoadings(false);
   //   reset();
   // };
-    const onSubmit = async (data) => {
-      setIsLoadings(true);
+  const onSubmit = async (data) => {
+    setIsLoadings(true);
 
-      const requestData = {
-        login: data.email,
-        password: data.password,
-      };
+    const requestData = {
+      login: data.email,
+      password: data.password,
+    };
 
-      console.log("🔹 Submitting login form with:", requestData);
+    console.log("🔹 Submitting login form with:", requestData);
 
-      try {
-        const resultAction = await dispatch(
-          loginUser({ credentials: requestData,apiBaseUrl,subdomain })
-        );
+    try {
+      const resultAction = await dispatch(
+        loginUser({ credentials: requestData, apiBaseUrl, subdomain })
+      );
 
-        if (loginUser.fulfilled.match(resultAction)) {
-          console.log("🎉 Login successful:", resultAction.payload);
-
+      if (loginUser.fulfilled.match(resultAction)) {
+        console.log("🎉 Login successful:", resultAction.payload);
+        const payload = resultAction.payload;
+        if (payload?.token) {
           toast.success("Login successful");
           router.push(`/${language}/dashboard/create-order`);
-
-          const messages = resultAction.payload?.messages || [];
-          // messages.forEach((message) => toast.success(message));
         } else {
-          console.error("Login failed:", resultAction);
-
-          const messages = resultAction.payload?.messages ||
-            resultAction.error?.messages || ["An unexpected error occurred"];
-            // .forEach((message) => toast.error(message));
+          const massegeError = payload?.messages || ["Login failed"];
+          toast.error(massegeError);
         }
-      } catch (error) {
-        console.error(" Unexpected error:", error);
-        toast.error("An unexpected error occurred");
-      }
 
-      setIsLoadings(false);
-      reset();
-    };
+        const messages = resultAction.payload?.messages || [];
+        // messages.forEach((message) => toast.success(message));
+      } else {
+        console.error("Login failed:", resultAction);
+
+        const messages = resultAction.payload?.messages ||
+          resultAction.error?.messages || ["An unexpected error occurred"];
+        // .forEach((message) => toast.error(message));
+      }
+    } catch (error) {
+      console.error(" Unexpected error:", error);
+      toast.error("An unexpected error occurred");
+    }
+
+    setIsLoadings(false);
+    reset();
+  };
 
   return (
     <>
@@ -297,7 +305,7 @@ const LogInForm = ({ children }) => {
           </div>
         )}
       </div> */}
- <Image src={img}   width={100} height={100}  alt="logo"   />
+        <Image src={img} width={100} height={100} alt="logo" />
         <div className="2xl:mt-5 mt-6 2xl:text-3xl text-2xl font-bold text-default-900">
           Hey, Hello 👋
         </div>

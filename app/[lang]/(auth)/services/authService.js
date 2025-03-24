@@ -10,7 +10,6 @@ export const loginUser = async (credentials,apiBaseUrl,subdomain) => {
     const response = await axios.post(url);
     if (process.env.NODE_ENV === "development") {
       console.log("API Content:", response);
-      console.log("API Content lookup_id:", response.data.data.userData.lookup_id);
     }
 
     const { messages } = response;
