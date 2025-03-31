@@ -74,6 +74,7 @@ import { useSubdomin } from "@/provider/SubdomainContext";
 import Link from "next/link";
 import { useSelector } from "react-redux";
 import DialogItemForMenu from "./components/dialogItemForMenu";
+import NewAddressDialog from "./components/NewAddressDialog";
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   phone: z.string().regex(/^\d{3,15}$/, "Invalid phone number"),
@@ -107,19 +108,7 @@ const addUserSchema = z.object({
   apt: z.string().optional(),
   additionalInfo: z.string().optional(),
 });
-const addAddressSchema = z.object({
-  area: z.object(
-    { value: z.number(), label: z.string() },
-    { required_error: "Area is required" }
-  ),
-  street: z.string().min(1, "Street name is required"),
-  name: z.string().optional(),
 
-  building: z.string().min(1, "Building number is required").or(z.literal("")),
-  floor: z.string().optional(),
-  apt: z.string().optional(),
-  additionalInfo: z.string().optional(),
-});
 const editUserAddressSchema = z.object({
   area: z.object(
     { value: z.number(), label: z.string() },
@@ -175,14 +164,7 @@ function CreateOrder() {
     trigger,
     formState: { errors: errorsAddNewUser },
   } = useForm({ resolver: zodResolver(addUserSchema), mode: "onSubmit" });
-  const {
-    control: controlAddress,
-    register: registerAddNewAddress,
-    handleSubmit: handleSubmitAddNewAddress,
-    setValue: setValueAddNewAddress,
-    reset: resetAddNewAddress,
-    formState: { errors: errorsAddNewAddress },
-  } = useForm({ resolver: zodResolver(addAddressSchema), mode: "onSubmit" });
+
   const {
     control: controlEditAddress,
     register: registerEditAddressUser,
@@ -211,10 +193,10 @@ function CreateOrder() {
     },
   });
   // console.log("errorsCreateOrder", errorsCreateOrder);
-  const language = localStorage.getItem("language") 
+  const language = localStorage.getItem("language");
   // || "en";
   // console.log("language order", language);
-  const { apiBaseUrl,subdomain } = useSubdomin()
+  const { apiBaseUrl, subdomain } = useSubdomin();
   console.log("apiBaseUrl from create order", apiBaseUrl);
   console.log("subdomain from create order", subdomain);
   const { theme } = useTheme();
@@ -242,7 +224,7 @@ function CreateOrder() {
   } = useQuery({
     queryKey: ["RestaurantsList"],
     // queryFn: fetchRestaurantsList(token),
-    queryFn: () => fetchRestaurantsList(token,apiBaseUrl),
+    queryFn: () => fetchRestaurantsList(token, apiBaseUrl),
     enabled: !!token,
   });
   const {
@@ -253,7 +235,12 @@ function CreateOrder() {
   } = useQuery({
     queryKey: ["BranchesList", selectedRestaurantId, selectedAddress?.area],
     queryFn: () =>
-      fetchBranches(selectedRestaurantId, selectedAddress?.area, token,apiBaseUrl),
+      fetchBranches(
+        selectedRestaurantId,
+        selectedAddress?.area,
+        token,
+        apiBaseUrl
+      ),
     enabled: !!selectedRestaurantId && !!selectedAddress?.area && !!token,
   });
 
@@ -272,7 +259,7 @@ function CreateOrder() {
     errororderSource,
   } = useQuery({
     queryKey: ["OrderSourceeList", selectedRestaurantId],
-    queryFn: () => fetchorderSource(selectedRestaurantId, token,apiBaseUrl),
+    queryFn: () => fetchorderSource(selectedRestaurantId, token, apiBaseUrl),
     enabled: !!token,
   });
   const {
@@ -281,7 +268,7 @@ function CreateOrder() {
     errosTax,
   } = useQuery({
     queryKey: ["TaxList"],
-    queryFn:()=> fetchTax(apiBaseUrl),
+    queryFn: () => fetchTax(apiBaseUrl),
   });
   // console.log("Tax in basic", Tax);
   // console.log("orderType in basic", orderType);
@@ -294,7 +281,12 @@ function CreateOrder() {
   } = useQuery({
     queryKey: ["menuList", selectedRestaurantId, SelectedBranchPriceist],
     queryFn: () =>
-      fetchMenu(selectedRestaurantId, SelectedBranchPriceist, token,apiBaseUrl),
+      fetchMenu(
+        selectedRestaurantId,
+        SelectedBranchPriceist,
+        token,
+        apiBaseUrl
+      ),
     enabled: !!selectedRestaurantId && !!SelectedBranchPriceist && !!token,
     staleTime: 1000 * 60 * 5,
     cacheTime: 1000 * 60 * 10,
@@ -311,8 +303,8 @@ function CreateOrder() {
     menu?.sections?.flatMap((section) =>
       section.items_and_offer.map((item) => ({
         id: item.id,
-        // name: item.name_en, 
-        name_en: item.name_en, 
+        // name: item.name_en,
+        name_en: item.name_en,
         name_ar: item.name_ar,
         price: item.sizes?.[0]?.prices?.[0]?.price,
         section: section.id,
@@ -328,7 +320,7 @@ function CreateOrder() {
     errorUserDataForSearch,
   } = useQuery({
     queryKey: ["userSearch", phone],
-    queryFn: () => fetchUserByPhone(phone, token,apiBaseUrl),
+    queryFn: () => fetchUserByPhone(phone, token, apiBaseUrl),
     enabled: !!phone,
     onSuccess: (data) => {
       if (data) {
@@ -363,8 +355,7 @@ function CreateOrder() {
   const [massegeNotSerachPhone, setMassegeNotSerachPhone] = useState(null);
   const [massegeNotSelectedBranch, setMassegeNotSelectedBranch] =
     useState(null);
-  const [massegeInvaildToken, setMassegeInvaildToken] =
-    useState(null);
+  const [massegeInvaildToken, setMassegeInvaildToken] = useState(null);
   const [isBranchManuallySelected, setIsBranchManuallySelected] =
     useState(false);
 
@@ -406,7 +397,8 @@ function CreateOrder() {
       const response = await fetchViewItem(
         savedBranch?.value || selectedBranchInSelected.value,
         item.id,
-        token,apiBaseUrl
+        token,
+        apiBaseUrl
       );
       console.log("Response from fetchViewItem:", response); // تأكيد البيانات المسترجعة
 
@@ -439,7 +431,6 @@ function CreateOrder() {
           selectedExtrasIds: [],
         });
       }
-    
     } catch (error) {
       console.error("Error fetching item details:", error);
     }
@@ -543,22 +534,22 @@ function CreateOrder() {
   const displayedItems = useMemo(() => {
     return items.filter((item) => {
       const itemName = language === "en" ? item.name_en : item.name_ar;
-  
+
       if (!itemName) return false; // تأكد من وجود الاسم
-  
+
       const matchesSearch = itemName
         .toLowerCase()
-        .includes(searchQuery?.toLowerCase()); 
-  
+        .includes(searchQuery?.toLowerCase());
+
       const matchesSection =
         activeSection === "all" || item.section === activeSection;
-  
+
       return matchesSearch && matchesSection;
     });
-  }, [items, searchQuery, activeSection, language]); 
-  
-console.log("displayedItems",selectedItem);
-// console.log("items",items);
+  }, [items, searchQuery, activeSection, language]);
+
+  console.log("displayedItems", selectedItem);
+  // console.log("items",items);
 
   // استخراج الأقسام التي تحتوي فقط على العناصر المفلترة
   // const filteredSections = sections.filter(
@@ -1468,7 +1459,8 @@ console.log("displayedItems",selectedItem);
       phone: data.phone,
       phone2: data.phone2,
       userId: selectedUser?.id,
-      token: token,apiBaseUrl
+      token: token,
+      apiBaseUrl,
     }).reduce((acc, [key, value]) => {
       if (value) acc[key] = value;
       return acc;
@@ -1533,24 +1525,7 @@ console.log("displayedItems",selectedItem);
     trigger("name");
   };
 
-  useEffect(() => {
-    if (selectedAddressType !== "other") {
-      setValueAddNewAddress("name", selectedAddressType);
-    } else {
-      setValueAddNewAddress("name", "");
-    }
-    trigger("name");
-  }, [selectedAddressType]);
-
-  const handleAddressTypeAdd = (type) => {
-    setaddAddressType(type);
-    if (type !== "other") {
-      setValueAddNewAddress("name", type);
-    } else {
-      setValueAddNewAddress("name", "");
-    }
-    trigger("name");
-  };
+  
 
   const onSubmitAddUserData = async (data) => {
     // console.log("data", data);
@@ -1596,44 +1571,7 @@ console.log("displayedItems",selectedItem);
       setLoading(false);
     }
   };
-  const onSubmitAddAddress = async (data) => {
-    // console.log("data", data);
-    setLoading(true);
-    const userId = selectedUser?.id;
-    try {
-      // if (!userId) throw new Error("User ID not received");
-      // console.log("userId from onSubmitAddUserData ", userId);
-      // const nameValue = data.name.trim() === "" ? "home" : data.name;
-      const nameValue =
-        typeof data.name === "string" && data.name.trim() !== ""
-          ? data.name
-          : "home";
-      await createAddress(
-        userId,
-        data.area.value,
-        data.street,
-        data.building,
-        data.floor,
-        data.apt,
-        data.additionalInfo,
-        // data.name
-        nameValue,
-        token,apiBaseUrl
-      );
-
-      queryClient.invalidateQueries(["userSearch", phone]);
-      setIsNewAddressDialogOpen(false);
-      toast.success("Address added successfully");
-      resetAddNewAddress();
-      setaddAddressType("home");
-    } catch (error) {
-      const errorMessage = error.message || "Unexpected error";
-      console.error(error);
-      // toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
   const onSubmitEditUserAddress = async (data) => {
     const nameValue =
       typeof data.name === "string" && data.name.trim() !== ""
@@ -1648,7 +1586,8 @@ console.log("displayedItems",selectedItem);
       apt: data.apt || "",
       additional_info: data.additionalInfo || "",
       address_name: nameValue,
-      token: token,apiBaseUrl
+      token: token,
+      apiBaseUrl,
     };
 
     // console.log("Formatted Data to Send:", formattedData); // تحقق من البيانات
@@ -1674,7 +1613,7 @@ console.log("displayedItems",selectedItem);
   const handleDeleteAddress = async (id) => {
     // console.log("id remove", id);
     try {
-      const response = await deleteAddress(id, token,apiBaseUrl);
+      const response = await deleteAddress(id, token, apiBaseUrl);
 
       toast.success("Address deleted successfully");
       queryClient.invalidateQueries(["userSearch", phone]);
@@ -1718,7 +1657,8 @@ console.log("displayedItems",selectedItem);
         lng: 0,
         branch: savedBranch?.value,
         restaurant: selectedRestaurantId,
-        token,apiBaseUrl
+        token,
+        apiBaseUrl,
       });
 
       toast.success("Order created successfully");
@@ -1854,7 +1794,6 @@ console.log("displayedItems",selectedItem);
   if (errorBranchs) return <p>Error loading branches: {error.message}</p>;
   return (
     <div className="flex flex-col gap-4">
-  
       <AlertDialog
         open={showRestaurantChangeAlert}
         onOpenChange={setShowRestaurantChangeAlert}
@@ -1953,8 +1892,7 @@ console.log("displayedItems",selectedItem);
                     <div className="flex justify-between items-center gap-3 p-3">
                       <h3 className="text-sm text-muted-foreground mt-2">
                         {/* {item?.name} */}
-                    {language === "en" ? item.name_en : item.name_ar}
-
+                        {language === "en" ? item.name_en : item.name_ar}
                       </h3>
                       <p className=" text-sm text-[#000] dark:text-[#fff] ">
                         {item?.price?.toFixed(2)} EGP
@@ -1962,30 +1900,29 @@ console.log("displayedItems",selectedItem);
                     </div>
                   </Card>
                 ))}
-           
+
                 {isItemDialogOpen && (
-                 
-                <DialogItemForMenu 
-                  isItemDialogOpen={isItemDialogOpen}
-                  setIsItemDialogOpen={setIsItemDialogOpen}
-                  selectedItem={selectedItem}
-                  counter={counter}
-                  setCounter={setCounter}
-                  toggleExtrasMainExtra={toggleExtrasMainExtra}
-                  toggleExtras={toggleExtras}
-                  language={language}
-                  note={note}
-                  setNote={setNote}
-                  totalExtrasPrice={totalExtrasPrice} 
-                  setTotalExtrasPrice={setTotalExtrasPrice}
-                  isBranchManuallySelected={isBranchManuallySelected}
-                  massegeNotSelectedBranch={massegeNotSelectedBranch}
-                  deliveryMethod={deliveryMethod}
-                  selectedUser={selectedUser}
-                  massegeNotSerachPhone ={massegeNotSerachPhone }
-                  handleAddToCart={handleAddToCart}
-                  massegeInvaildToken={massegeInvaildToken}
-                />
+                  <DialogItemForMenu
+                    isItemDialogOpen={isItemDialogOpen}
+                    setIsItemDialogOpen={setIsItemDialogOpen}
+                    selectedItem={selectedItem}
+                    counter={counter}
+                    setCounter={setCounter}
+                    toggleExtrasMainExtra={toggleExtrasMainExtra}
+                    toggleExtras={toggleExtras}
+                    language={language}
+                    note={note}
+                    setNote={setNote}
+                    totalExtrasPrice={totalExtrasPrice}
+                    setTotalExtrasPrice={setTotalExtrasPrice}
+                    isBranchManuallySelected={isBranchManuallySelected}
+                    massegeNotSelectedBranch={massegeNotSelectedBranch}
+                    deliveryMethod={deliveryMethod}
+                    selectedUser={selectedUser}
+                    massegeNotSerachPhone={massegeNotSerachPhone}
+                    handleAddToCart={handleAddToCart}
+                    massegeInvaildToken={massegeInvaildToken}
+                  />
                 )}
                 <>
                   {isNewUserDialogOpen && (
@@ -2188,154 +2125,23 @@ console.log("displayedItems",selectedItem);
                     </Dialog>
                   )}
                   {isNewAddressDialogOpen && (
-                    <Dialog
-                      open={isNewAddressDialogOpen}
-                      onOpenChange={setIsNewAddressDialogOpen}
-                    >
-                      <DialogContent size="3xl">
-                        <DialogHeader>
-                          <DialogTitle className="text-base font-medium text-default-700">
-                            Create New Address
-                          </DialogTitle>
-                        </DialogHeader>
-                        <div className="text-sm text-default-500 space-y-4">
-                          <form
-                            onSubmit={handleSubmitAddNewAddress(
-                              onSubmitAddAddress
-                            )}
-                          >
-                            <Controller
-                              name="area"
-                              control={controlAddress}
-                              rules={{ required: "Area is required" }}
-                              render={({ field }) => (
-                                <Select
-                                  {...field}
-                                  options={areasOptions || []}
-                                  placeholder="Area"
-                                  className="react-select w-full my-3 mb-4"
-                                  classNamePrefix="select"
-                                  // onChange={handleChangeArea}
-                                  onChange={(selectedOption) => {
-                                    field.onChange(selectedOption);
-                                    handleChangeArea(selectedOption);
-                                  }}
-                                  styles={selectStyles(theme, color)}
-                                />
-                              )}
-                            />
-                            {errorsAddNewAddress.area && (
-                              <p className="text-red-500 text-sm">
-                                {errorsAddNewAddress.area.message}
-                              </p>
-                            )}
-
-                            <div className="flex gap-2 items-center my-3 mb-4">
-                              <div className="flex-1">
-                                <Input
-                                  type="text"
-                                  placeholder="Street"
-                                  {...registerAddNewAddress("street")}
-                                  className="w-full text-[#000] dark:text-[#fff] "
-                                />
-                                <p
-                                  className={`text-red-500 text-sm mt-1 transition-all duration-200 ${
-                                    errorsAddNewAddress.street
-                                      ? "h-auto opacity-100"
-                                      : "h-0 opacity-0"
-                                  }`}
-                                >
-                                  {errorsAddNewAddress.street?.message}
-                                </p>
-                              </div>
-
-                              <div className="flex-1">
-                                <Input
-                                  type="text"
-                                  placeholder="Building"
-                                  {...registerAddNewAddress("building")}
-                                  className="w-full  text-[#000] dark:text-[#fff]"
-                                />
-                                {errorsAddNewAddress.street && (
-                                  <div className="h-[20px]"></div>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="flex gap-2 items- my- mb-4">
-                              <Input
-                                type="text"
-                                placeholder="Floor"
-                                {...registerAddNewAddress("floor")}
-                                // className="mb-4"
-                                // className={`${
-                                //   registerAddNewAddress.floor ? "mb-1" : "mb-4"
-                                // }`}
-                                className=" text-[#000] dark:text-[#fff]"
-                              />
-
-                              <Input
-                                type="text"
-                                placeholder="Apt"
-                                {...registerAddNewAddress("apt")}
-                                className="mb-  text-[#000] dark:text-[#fff]"
-                              />
-                            </div>
-                            <Input
-                              type="text"
-                              placeholder="Land mark"
-                              {...registerAddNewAddress("additionalInfo")}
-                              className="mb-  text-[#000] dark:text-[#fff]"
-                            />
-
-                            <div className="space-y-1">
-                              <div className="flex gap-4 items-center">
-                                {["home", "work", "other"].map((type) => (
-                                  <label
-                                    key={type}
-                                    className="flex items-center gap-2"
-                                  >
-                                    <Input
-                                      type="checkbox"
-                                      name="addressType"
-                                      className="mt-1"
-                                      value={type}
-                                      checked={addAddressType === type}
-                                      onChange={() =>
-                                        handleAddressTypeAdd(type)
-                                      }
-                                    />
-                                    {type.charAt(0).toUpperCase() +
-                                      type.slice(1)}{" "}
-                                  </label>
-                                ))}
-                              </div>
-
-                              {addAddressType === "other" && (
-                                <Input
-                                  type="text"
-                                  placeholder="Enter address name"
-                                  {...registerAddNewAddress("name")}
-                                  className="text-[#000] dark:text-[#fff]"
-                                />
-                              )}
-                            </div>
-                            <DialogFooter className="mt-8">
-                              <DialogClose asChild>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => setIsNewUserDialogOpen(false)}
-                                >
-                                  Close
-                                </Button>
-                              </DialogClose>
-
-                              <Button type="submit">Add address</Button>
-                            </DialogFooter>
-                          </form>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    <NewAddressDialog
+                      isNewAddressDialogOpen={isNewAddressDialogOpen}
+                      setIsNewAddressDialogOpen={setIsNewAddressDialogOpen}
+                      setIsNewUserDialogOpen={setIsNewUserDialogOpen}
+                      addAddressType={addAddressType}
+                      areasOptions={areasOptions}
+                      handleChangeArea={handleChangeArea}
+                      theme={theme}
+                      color={color}
+                      setLoading={setLoading}
+                      selectedUser={selectedUser}
+                      token={token}
+                      phone={phone}
+                      setaddAddressType={setaddAddressType}
+                      QueryClient={queryClient}
+                      selectedAddressType={selectedAddressType}
+                    />
                   )}
                 </>
               </div>

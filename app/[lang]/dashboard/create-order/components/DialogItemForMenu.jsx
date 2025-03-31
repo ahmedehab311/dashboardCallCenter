@@ -1,32 +1,10 @@
 "use client";
-import React from "react";
-import { useState, useEffect, useRef, useMemo } from "react";
-import { useTheme } from "next-themes";
-import Select from "react-select";
 import { Label } from "@radix-ui/react-label";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { FaMinus, FaPlus } from "react-icons/fa";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import Link from "next/link";
+import { FaMinus, FaPlus } from "react-icons/fa";
 
 function DialogItemForMenu({
   isItemDialogOpen,
