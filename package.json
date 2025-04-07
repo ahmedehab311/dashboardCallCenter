@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "NODE_ENV=production node app.js",
+    "start": "NODE_ENV=production node callcenter.js",
     "lint": "next lint",
     "export": "next export"
   },

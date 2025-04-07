@@ -21,7 +21,7 @@ export const fetchUserByPhone = async (phone,token,apiBaseUrl) => {
 export const createUser = async (name, phone,phone2,token,apiBaseUrl) => {
   try {
     const cleanedBaseUrl = apiBaseUrl.replace(/\/api$/, "");
-    const response = await apiInstance.post(
+    const response = await axios.post(
       `${cleanedBaseUrl}/api/callcenter/user/create?api_token=${token}`,
       null,
       {
@@ -60,9 +60,10 @@ export const createAddress = async (
   // console.log("userId",userId)
   // console.log("apt",apt)
   // console.log("additionalInfo",additionalInfo)
+  
   try {
     const cleanedBaseUrl = apiBaseUrl.replace(/\/api$/, "");
-    const response = await apiInstance.post(
+    const response = await axios.post(
       `${cleanedBaseUrl}/api/callcenter/user/address/add?api_token=${token}`,
       null,
       {
@@ -81,7 +82,7 @@ export const createAddress = async (
       }
     );
 
-    // console.log("Address created successfully:", response.data);
+    // console.log("Address created successfully:", response);
     return response.data;
     // return response?.data?.messages[0];
   } catch (error) {
@@ -121,15 +122,15 @@ export const createOrder = async ({
       special: item.note || "",
     })),
   };
-  console.log("formattedItems:", formattedItems); 
-  console.log("📦 items being sent:", JSON.stringify(formattedItems, null, 2));
+  // console.log("formattedItems:", formattedItems); 
+  // console.log("📦 items being sent:", JSON.stringify(formattedItems, null, 2));
 
-  const apiUrl = `/callcenter/order/create?api_token=${token}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${time || ""}&source=${source}&status=${status}&payment=${payment}&coins=${insertpoints || "00.00"}&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}&restaurant=${restaurant}&branch=${branch}`;
+  // const apiUrl = `/callcenter/order/create?api_token=${token}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${time || ""}&source=${source}&status=${status}&payment=${payment}&coins=${insertpoints || "00.00"}&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}&restaurant=${restaurant}&branch=${branch}`;
 
-console.log("Final API URL:", apiUrl); 
+// console.log("Final API URL:", apiUrl); 
 
   try {
-    const response = await apiInstance.post(
+    const response = await axios.post(
       `${apiBaseUrl}/callcenter/order/create?api_token=${token}`,
       null,
       {
@@ -241,11 +242,9 @@ export const deleteAddress = async (id,token,apiBaseUrl) => {
 
 export const fetchAreas = async (apiBaseUrl) => {
   try {
-    const basePath = typeof window !== "undefined" && window.location.origin.includes("localhost")
-      ? "/api"
-      : apiBaseUrl;
+
     // const response = await axios.get(`${apiBaseUrl}/api/areas/?city=1`);
-    const response = await axios.get(`${basePath}/areas/?city=1`);
+    const response = await axios.get(`${apiBaseUrl}/areas?city=1`);
     // console.log("areas:", response.data.data.areas);
     return response.data.data.areas;
   } catch (error) {
