@@ -193,8 +193,10 @@ function CreateOrder() {
   // || "en";
   // console.log("language order", language);
   const { apiBaseUrl, subdomain } = useSubdomin();
-  console.log("apiBaseUrl from create order", apiBaseUrl);
-  console.log("subdomain from create order", subdomain);
+  // if (process.env.NODE_ENV === "development") {
+  //   console.log("apiBaseUrl from create order", apiBaseUrl);
+  //   console.log("subdomain from create order", subdomain);
+  // }
   const { theme } = useTheme();
   const setCollapsed = useSidebar((state) => state.setCollapsed);
 
@@ -290,7 +292,7 @@ function CreateOrder() {
     keepPreviousData: true,
   });
 
-  console.log("menu from create", menu);
+  // console.log("menu from create", menu);
   const sections = menu?.sections
     ? [{ id: "all", name_en: "All", name_ar: "الكل" }, ...menu.sections]
     : [{ id: "all", name_en: "All", name_ar: "الكل" }];
@@ -396,10 +398,10 @@ function CreateOrder() {
         token,
         apiBaseUrl
       );
-      console.log("Response from fetchViewItem:", response); // تأكيد البيانات المسترجعة
+      // console.log("Response from fetchViewItem:", response); 
 
       if (response?.response === false) {
-        console.log("Setting error message:", response.message); // تأكيد عرض الرسالة في الكونسول
+        console.log("Setting error message:", response.message);
         setMassegeInvaildToken(response.message);
         return;
       }
@@ -519,7 +521,7 @@ function CreateOrder() {
     });
   }, [items, searchQuery, activeSection, language]);
 
-  console.log("displayedItems", selectedItem);
+  // console.log("displayedItems", selectedItem);
   // console.log("items",items);
 
   const filteredSections = useMemo(() => {
@@ -1571,7 +1573,7 @@ function CreateOrder() {
                     </div>
                     <div className="flex justify-between items-center gap-3 p-3">
                       <h3 className="text-sm text-muted-foreground mt-2">
-                        {/* {item?.name} */}
+                        
                         {language === "en" ? item.name_en : item.name_ar}
                       </h3>
                       <p className=" text-sm text-[#000] dark:text-[#fff] ">

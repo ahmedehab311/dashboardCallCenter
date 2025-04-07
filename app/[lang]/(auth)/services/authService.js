@@ -5,7 +5,9 @@ import Cookies from "js-cookie";
 
 export const loginUser = async (credentials,apiBaseUrl,subdomain) => {
   try {
-    console.log("apiBaseUrl from login ",apiBaseUrl)
+    if (process.env.NODE_ENV === "development") {
+      console.log("apiBaseUrl from login ",apiBaseUrl)
+    }
     const url = `${apiBaseUrl}/callcenter/login?email=${credentials.login}&password=${credentials.password}`;
     const response = await axios.post(url);
     if (process.env.NODE_ENV === "development") {

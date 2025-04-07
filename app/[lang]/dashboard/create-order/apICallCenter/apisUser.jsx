@@ -29,9 +29,9 @@ export const createUser = async (name, phone,phone2,token,apiBaseUrl) => {
       }
     );
 
-    console.log(" apiBaseUrl FROM :", apiBaseUrl);
-    console.log("User ID response:", response);
-    console.log("User ID response:", response?.data);
+    // console.log(" apiBaseUrl FROM :", apiBaseUrl);
+    // console.log("User ID response:", response);
+    // console.log("User ID response:", response?.data);
     // console.log("User ID response id:", response?.data?.user?.id);
     // console.log("User ID response messages:", response?.data?.messages);
     if (!response?.data?.response) {
