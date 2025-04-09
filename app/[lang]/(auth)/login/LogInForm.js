@@ -47,9 +47,9 @@ const LogInForm = ({ children }) => {
   //   (prev, next) => prev === next
   // );
   // const language = localStorage.getItem("language");
+
   const language =
     typeof window !== "undefined" ? localStorage.getItem("language") : null;
-
   const {
     register,
     handleSubmit,
@@ -241,11 +241,11 @@ const LogInForm = ({ children }) => {
     setIsLoadings(true);
 
     const requestData = {
-      login: data.email,
+      email: data.email,
       password: data.password,
     };
 
-    console.log("🔹 Submitting login form with:", requestData);
+    // console.log("🔹 Submitting login form with:", requestData);
 
     try {
       const resultAction = await dispatch(
@@ -253,9 +253,12 @@ const LogInForm = ({ children }) => {
       );
 
       if (loginUser.fulfilled.match(resultAction)) {
-        console.log("🎉 Login successful:", resultAction.payload);
+        console.log("Login successful:", resultAction.payload);
         const payload = resultAction.payload;
         if (payload?.token) {
+          localStorage.setItem("language","en");
+          const language =
+    typeof window !== "undefined" ? localStorage.getItem("language") : null;
           toast.success("Login successful");
           router.push(`/${language}/dashboard/create-order`);
         } else {

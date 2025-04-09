@@ -54,6 +54,7 @@ import {
   createUser,
   createAddress,
   updateUserAddress,
+  updateUserAddress2,
   deleteAddress,
   createOrder,
   fetchUserByPhone,
@@ -78,6 +79,9 @@ import NewAddressDialog from "./components/NewAddressDialog";
 import NewUserDialog from "./components/newUserDialog";
 import EditAddressDiaolg from "./components/EditAddressDiaolg";
 import DeleteAddressFotUser from "./components/DeleteAddressFotUser";
+import Cookies from "js-cookie";
+
+
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   phone: z.string().regex(/^\d{3,15}$/, "Invalid phone number"),
@@ -95,7 +99,25 @@ const editUserDataSchema = z.object({
       message: "Invalid email address",
     }),
 });
-
+const editUserAddressSchema = z.object({
+  area: z.object(
+    { value: z.number(), label: z.string() },
+    { required_error: "Area is required" }
+  ),
+  street: z.string().min(1, "Street name is required"),
+  name: z.string().optional(),
+  building: z.string().min(1, "Building number is required").or(z.literal("")),
+  building: z.string().min(1, "Building number is required").or(z.literal("")),
+  floor: z
+    .union([z.string(), z.number()])
+    .optional()
+    .transform((val) => val || ""),
+  apt: z
+    .union([z.string(), z.number()])
+    .optional()
+    .transform((val) => val || ""),
+  additionalInfo: z.string().optional(),
+});
 const createOrderSchema = z.object({
   ordertype: z.number({ required_error: "Order type is required" }),
   ordersource: z.string().optional(),
@@ -110,15 +132,62 @@ const createOrderSchema = z.object({
   discountPercentage: z.number().optional(),
   notes: z.string().optional(),
 });
+const addUserSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters long"),
+  phone: z.string().regex(/^\d{3,15}$/, "Invalid phone number"),
+  phone2: z.string().optional(),
+  area: z.object(
+    { value: z.number(), label: z.string() },
+    { required_error: "Area is required" }
+  ),
+  street: z.string().min(1, "Street is required"),
+  name: z.string().optional(),
 
+  building: z.string().min(1, "Building number is required").or(z.literal("")),
+  floor: z.string().optional(),
+  apt: z.string().optional(),
+  additionalInfo: z.string().optional(),
+});
+const addAddressSchema = z.object({
+  area: z.object(
+    { value: z.number(), label: z.string() },
+    { required_error: "Area is required" }
+  ),
+  street: z.string().min(1, "Street name is required"),
+  name: z.string().optional(),
+
+  building: z.string().min(1, "Building number is required").or(z.literal("")),
+  floor: z.string().optional(),
+  apt: z.string().optional(),
+  additionalInfo: z.string().optional(),
+});
 function CreateOrder() {
+    const {
+      control: controlEditAddress,
+      register: registerEditAddressUser,
+      handleSubmit: handleEditAddressUser,
+      setValue: setValueEditAddressUser,
+      formState: { errors: errorsEditAddressUser },
+    } = useForm({
+      resolver: zodResolver(editUserAddressSchema),
+      mode: "onSubmit",
+    });
+  
   const {
     register: registerEdit,
     handleSubmit: handleSubmitEdit,
     setValue: setValueEdit,
     formState: { errors: errorsEdit },
   } = useForm({ resolver: zodResolver(editUserDataSchema), mode: "onSubmit" });
-
+  const {
+    control: controlAddress,
+    register: registerAddNewAddress,
+    handleSubmit: handleSubmitAddNewAddress,
+    setValue: setValueAddNewAddress,
+    reset: resetAddNewAddress,
+    trigger,
+    formState: { errors: errorsAddNewAddress },
+  } = useForm({ resolver: zodResolver(addAddressSchema), mode: "onSubmit" });
   const {
     control: controlCreateOrder,
     register: registerCreateOrder,
@@ -133,11 +202,20 @@ function CreateOrder() {
     defaultValues: {
       orderpayment: 1,
       ordersource: "",
+      notes: "",
     },
   });
+    const {
+      control,
+      register: registerAddNewUser,
+      handleSubmit: handleSubmitAddNewUser,
+      setValue: setValueAddNewUser,
+      reset: resetAddNewUser,
+      // trigger,
+      formState: { errors: errorsAddNewUser },
+    } = useForm({ resolver: zodResolver(addUserSchema), mode: "onSubmit" });
   // console.log("errorsCreateOrder", errorsCreateOrder);
-  const language = localStorage.getItem("language");
-  // || "en";
+  const language = localStorage.getItem("language")|| "en";
   // console.log("language order", language);
   const { apiBaseUrl, subdomain } = useSubdomin();
   // if (process.env.NODE_ENV === "development") {
@@ -1002,7 +1080,13 @@ function CreateOrder() {
   // console.log("setSelectedBranchInSelected",selectedBranchInSelected);
 
   const [selectedOrderPaymeny, setSelectedOrderPaymeny] = useState(null);
-  const orderPaymenyOptions = [{ value: 1, label: "Cash" }];
+  const [notesOrderNotes, setNotesOrderNotes] = useState("");
+  const [isNoteModified, setIsNoteModified] = useState(false);
+  const orderPaymenyOptions = [
+    { value: 1, label: "Cash" },
+    { value: 2, label: "Visa" }
+
+  ];
 
   useEffect(() => {
     const defaultValue = orderPaymenyOptions[0];
@@ -1010,6 +1094,37 @@ function CreateOrder() {
     setValueCreateOrder("orderpayment", orderPaymenyOptions[0].value);
   }, [setValueCreateOrder]);
 
+  // useEffect(() => {
+  //   if (selectedOrderPaymeny?.value === 2) {
+  //     setNotesOrderNotes("الدفع فيزا");
+  //     setValueCreateOrder("notes", "الدفع فيزا");
+  //   } else {
+  //     setNotesOrderNotes("");
+  //     setValueCreateOrder("notes", ""); 
+  //   }
+  // }, [selectedOrderPaymeny, setValueCreateOrder]);
+  // const handleTextareaChange = (e) => {
+  //   setNotesOrderNotes(e.target.value);
+  //   setValueCreateOrder("notes", e.target.value); 
+  // };
+  useEffect(() => {
+    if (!isNoteModified) {
+      if (selectedOrderPaymeny?.value === 2) {
+        setNotesOrderNotes("الدفع فيزا");
+        setValueCreateOrder("notes", "الدفع فيزا");
+      } else {
+        setNotesOrderNotes("");
+        setValueCreateOrder("notes", "");
+      }
+    }
+  }, [selectedOrderPaymeny, setValueCreateOrder, isNoteModified]);
+  
+  const handleTextareaChange = (e) => {
+    const value = e.target.value;
+    setIsNoteModified(true); // المستخدم عدل على الحقل
+    setNotesOrderNotes(value);
+    setValueCreateOrder("notes", value);
+  };
   // console.log("selectedOrderPaymeny", selectedOrderPaymeny);
   const [selectedOrderStatus, setSelectedOrderStatus] = useState(null);
   const orderStatusOptions = [
@@ -1046,6 +1161,38 @@ function CreateOrder() {
       setValueEdit("email", selectedUser.email || "");
     }
   }, [selectedUser, selectedAddress, setValueEdit]);
+
+
+
+    useEffect(() => {
+      if (selectedEditAddress) {
+        const selectedAreaOption = areasOptions?.find(
+          (option) => option.value === selectedEditAddress.area
+        );
+  
+        setValueEditAddressUser("area", selectedAreaOption);
+  
+        if (["home", "work"].includes(selectedEditAddress.address_name)) {
+          seEditAddressType(selectedEditAddress.address_name);
+          setCustomAddressName("");
+        } else {
+          seEditAddressType("other");
+          setCustomAddressName(selectedEditAddress.address_name);
+        }
+  
+        setValueEditAddressUser("street", selectedEditAddress.street);
+        setValueEditAddressUser("building", selectedEditAddress.building || "");
+        setValueEditAddressUser("floor", selectedEditAddress.floor || "");
+        setValueEditAddressUser("apt", selectedEditAddress.apt || "");
+        setValueEditAddressUser(
+          "additionalInfo",
+          selectedEditAddress.additionalInfo || ""
+        );
+      }
+    }, [selectedEditAddress, setValueEditAddressUser]);
+
+
+
 
   const [totalExtrasPrice, setTotalExtrasPrice] = useState(0);
   // console.log("totalExtrasPrice", totalExtrasPrice);
@@ -1102,6 +1249,108 @@ function CreateOrder() {
   const [isOpenAddress, setIsOpenAddress] = useState(false);
   const [isOpenUserData, setIsOpenUserData] = useState(true);
 
+  console.log("apiBaseUrl create order",apiBaseUrl);
+  const onSubmitEditUserAddress = async (data) => {
+    console.log("apiBaseUrl onSubmitEditUserAddress",apiBaseUrl);
+    
+    const nameValue =
+      typeof data.name === "string" && data.name.trim() !== ""
+        ? data.name
+        : "home";
+    try {
+      console.log("token onSubmitEditUserAddress:", token);
+      // const response = await updateUserAddress(formattedData);
+      const response = await updateUserAddress({
+        id: selectedEditAddress.id,
+        area: data.area.value,
+        street: data.street || "", 
+        building: data.building || "",
+        floor: data.floor || "",
+        apt: data.apt || "",
+        additional_info: data.additionalInfo || "",
+        address_name: nameValue,
+         token,
+        apiBaseUrl
+      });
+
+      if (response) {
+        toast.success("Address updated successfully");
+
+        queryClient.invalidateQueries(["userSearch", phone]);
+        setOpenEditAddressDialog(false);
+      } else {
+        toast.error("Something went wrong");
+      }
+
+      // console.log("Response onSubmit:", response);
+    } catch (error) {
+      console.error("Error updating user address:", error);
+      toast.error("Failed to update address. Please try again.");
+    }
+  };
+  
+    useEffect(() => {
+      if (selectedAddressType !== "other") {
+        setValueAddNewAddress("name", selectedAddressType);
+      } else {
+        setValueAddNewAddress("name", "");
+      }
+      trigger("name");
+    }, [selectedAddressType]);
+  
+    const handleAddressTypeAdd = (type) => {
+      setaddAddressType(type);
+      if (type !== "other") {
+        setValueAddNewAddress("name", type);
+      } else {
+        setValueAddNewAddress("name", "");
+      }
+      trigger("name");
+    };
+    useEffect(() => {
+      if (selectedAddressType !== "other") {
+        setValueAddNewUser("name", selectedAddressType);
+      } else {
+        setValueAddNewUser("name", "");
+      }
+      trigger("name");
+    }, [selectedAddressType]);
+  const onSubmitAddAddress = async (data) => {
+    // console.log("data", data);
+    setLoading(true);
+    const userId = selectedUser?.id;
+    try {
+      const nameValue =
+        typeof data.name === "string" && data.name.trim() !== ""
+          ? data.name
+          : "home";
+      await createAddress(
+        userId,
+        data.area.value,
+        data.street,
+        data.building,
+        data.floor,
+        data.apt,
+        data.additionalInfo,
+        // data.name
+        nameValue,
+        token,
+        apiBaseUrl
+      );
+
+      queryClient.invalidateQueries(["userSearch", phone]);
+      setIsNewAddressDialogOpen(false);
+      toast.success("Address added successfully");
+      resetAddNewAddress();
+      setaddAddressType("home");
+    } catch (error) {
+      const errorMessage = error.message || "Unexpected error";
+      console.error(error);
+      // toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
   const onSubmithandleCreateOrder = async (data) => {
     // console.log(" بيانات الطلب:", data);
     // console.log("branchId", branchId);
@@ -1167,7 +1416,71 @@ function CreateOrder() {
       setLoading(false);
     }
   };
+  const handleAddressTypeChange = (type) => {
+    setSelectedAddressType(type);
+    if (type !== "other") {
+      setValueAddNewUser("name", type);
+    } else {
+      setValueAddNewUser("name", "");
+    }
+    trigger("name");
+  };
+  const onSubmitAddUserData = async (data) => {
+    // console.log("data", data);
+    setLoading(true);
+    try {
+      const userId = await createUser(
+        data.username,
+        data.phone,
+        data.phone2,
+        token,
+        apiBaseUrl
+      );
 
+      if (!userId) throw new Error("User ID not received");
+      // console.log("userId from onSubmitAddUserData ", userId);
+      // const nameValue = data?.name?.trim() === "" ? "home" : data?.name;
+      const nameValue =
+        typeof data.name === "string" && data.name.trim() !== ""
+          ? data.name
+          : "home";
+
+      await createAddress(
+        userId,
+        data.area.value,
+        data.street,
+        data.building,
+        data.floor,
+        data.apt,
+        data.additionalInfo,
+        // data.name
+        nameValue,
+        token,
+        apiBaseUrl
+      );
+      setIsNewUserDialogOpen(false);
+      resetAddNewUser();
+      toast.success("User added successfully");
+    } catch (error) {
+      const errorMessage = error.message || "Unexpected error";
+      console.error(error);
+      // toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleEditAddressTypeChange = (type) => {
+    seEditAddressType(type);
+
+    if (type === "other") {
+      setCustomAddressName("");
+      setValueEditAddressUser("name", "");
+    } else {
+      setCustomAddressName("");
+      setValueEditAddressUser("name", type);
+    }
+  };
+ 
   const grandTotal = cartItems.reduce((sum, item) => {
     const itemPrice = parseFloat(item.price) || 0;
     const itemQuantity = parseFloat(item.quantity) || 0;
@@ -1245,6 +1558,33 @@ function CreateOrder() {
     setCartItems([]);
     setIsOpenUserData(true);
     setSelectedBranchPriceList(1);
+  };
+  const handleEditAddress = (address) => {
+    setSelectedEditAddress(address);
+    setOpenEditAddressDialog(true);
+  };
+  const handleDeleteAddress = async (id) => {
+    // console.log("id remove", id);
+    try {
+      const response = await deleteAddress(id, token, apiBaseUrl);
+
+      toast.success("Address deleted successfully");
+      queryClient.invalidateQueries(["userSearch", phone]);
+      // console.log("Response onSubmit delete:", response);
+    } catch (error) {
+      console.error("Error updating user address:", error);
+      toast.error("Failed to update address. Please try again.");
+    }
+    const updatedAddresses = selectedAddressArray.filter(
+      (addr) => addr.id !== id
+    );
+    setSelectedAddressArray(updatedAddresses);
+
+    if (selectedAddress?.id === id) {
+      setSelectedAddress(
+        updatedAddresses.length > 0 ? updatedAddresses[0] : null
+      );
+    }
   };
 
   if (isLoadingBranchs) return <p>Loading branches...</p>;
@@ -1356,8 +1696,7 @@ function CreateOrder() {
                   </Card>
                 ))}
 
-                {isItemDialogOpen && (
-                  <DialogItemForMenu
+                  {/* <DialogItemForMenu
                     isItemDialogOpen={isItemDialogOpen}
                     setIsItemDialogOpen={setIsItemDialogOpen}
                     selectedItem={selectedItem}
@@ -1377,11 +1716,324 @@ function CreateOrder() {
                     massegeNotSerachPhone={massegeNotSerachPhone}
                     handleAddToCart={handleAddToCart}
                     massegeInvaildToken={massegeInvaildToken}
-                  />
+                  /> */}
+                {isItemDialogOpen && (
+                      <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
+                        <DialogContent size="3xl" hiddenCloseIcon={true}>
+                          <div className=" flex justify-between items-center space-y-4">
+                            <p className="text-xl">{selectedItem?.name}</p>
+                  
+                            <div className="flex items-center space-">
+                              {/* السعر الإجمالي */}
+                              <p className="text-sm font-semibold text-gray-">
+                                {(selectedItem?.price * counter).toFixed(2)} EGP
+                              </p>
+                  
+                              <button
+                                onClick={() => setCounter((prev) => (prev > 1 ? prev - 1 : 1))}
+                                className="px-2 py-1 bg-red-500 text-white rounded-[6px] hover:bg-red-600 transition-colors mr-1 ml-4"
+                              >
+                                <FaMinus />
+                              </button>
+                  
+                              <input
+                                type="number"
+                                step="0.001"
+                                value={counter}
+                                onInput={(e) => {
+                                  if (e.target.value.length > 4) {
+                                    e.target.value = e.target.value.slice(0, 4); // اقتصاص القيمة إلى 4 أرق
+                                  }
+                                }}
+                                onChange={(e) => {
+                                  const value = parseFloat(e.target.value);
+                                  if (!isNaN(value) && value >= 0.1) {
+                                    // السماح بالأرقام العشرية وعدم السماح بالقيم السالبة
+                                    setCounter(value);
+                                  }
+                                }}
+                                className="w-16 text-center border border-gray-300 rounded-[6px] focus:outline-none focus:ring-2 focus:-blue-500 focus:border-transparent "
+                              />
+                              <button
+                                onClick={() => setCounter((prev) => prev + 1)}
+                                className="px-2 py-1 bg-green-500 text-white rounded-[6px] hover:bg-green-600 transition-colors ml5 mr-2 ml-1"
+                              >
+                                <FaPlus />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="items-center">
+                            <h3 className="font-medium ">
+                              {selectedItem?.description}
+                              {language === "en"
+                                ? selectedItem?.description_en
+                                : selectedItem?.description_ar}
+                            </h3>
+                          </div>
+                          <hr className="my-2" />
+                          <div className="mt-4">
+                            <div className="flex flex-c gap-5">
+                              {selectedItem?.info?.map((size, index) => (
+                                <label key={index} className="flex items-center space-x-2">
+                                  <input
+                                    type="radio"
+                                    name="size"
+                                    value={size?.size_en}
+                                    checked={selectedItem?.selectedInfo === size?.size_en}
+                                    onChange={() =>
+                                      setSelectedItem((prev) => {
+                                        const newItemExtras = size?.item_extras || [];
+                                        const newExtrasData = size?.item_extras?.[0]?.data || [];
+                  
+                                        return {
+                                          ...prev,
+                                          selectedInfo: size?.size_en,
+                                          itemExtras: newItemExtras,
+                                          extrasData: newExtrasData,
+                                          selectedItemExtras: [],
+                                          price: size?.price?.price,
+                                          selectedIdSize: size?.id,
+                                        };
+                                      })
+                                    }
+                                  />
+                                  <span>
+                                    {size?.size_en} ({selectedItem?.availability})
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                  
+                          {selectedItem?.extrasData?.length > 0 && (
+                            <div className="border rounded-lg overflow-hidden shadow-md mt-3">
+                              <div
+                                className="p-3 bg-gray- cursor-pointer flex justify-between items-center"
+                                onClick={toggleExtras}
+                              >
+                                <h3 className="font-bold text-[16px]">
+                                  {selectedItem?.itemExtras?.category_ar} (Choose up to{" "}
+                                  {selectedItem?.extrasData?.length} Items)
+                                </h3>
+                                <span className="text-gray-600">{isOpen ? "▲" : "▼"}</span>
+                              </div>
+                  
+                              {/* العناصر المختارة */}
+                              {selectedItem?.selectedExtras?.length > 0 && (
+                                <div className="p-3 bg-gray- border-t">
+                                  <span className="text-[#000] dark:text-[#fff] font-medium">
+                                    {selectedItem.selectedExtras
+                                      .map((extra) => extra.name_en)
+                                      .join(", ")}
+                                  </span>
+                                </div>
+                              )}
+                  
+                              {/* الاختيارات */}
+                              <div
+                                className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                                  isOpen ? "max-h-96" : "max-h-0"
+                                }`}
+                              >
+                                <div className="p-3 flex flex- flex-wrap gap-2">
+                                  {selectedItem?.extrasData?.map((extra, index) => (
+                                    <label key={index} className="flex items-center space-x-2">
+                                      <input
+                                        type="radio"
+                                        value={extra.name_en}
+                                        checked={
+                                          selectedItem.selectedExtras.length > 0 &&
+                                          selectedItem.selectedExtras[0].id === extra.id
+                                        }
+                                        onChange={() => {
+                                          setSelectedItem((prev) => ({
+                                            ...prev,
+                                            selectedExtras: [extra], // السماح باختيار واحد فقط
+                                            selectedExtrasIds: [extra.id], // تحديث قائمة الـ IDs
+                                          }));
+                                          setIsOpen(false); // إغلاق القائمة بعد الاختيار
+                                        }}
+                                      />
+                                      <span className="text-[#000] dark:text-[#fff]">
+                                        {extra.name_en}
+                                      </span>
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                  
+                          {selectedItem?.mainExtras?.length > 0 && (
+                            <div className="border rounded-lg overflow-hidden shadow-md">
+                              <div
+                                className="p-3 bg-gray- cursor-pointer flex justify-between items-center"
+                                onClick={toggleExtrasMainExtra}
+                              >
+                                <h3 className="font-bold text-[16px] ">
+                                  {selectedItem?.mainExtras?.category_ar} (Choose up to{" "}
+                                  {selectedItem?.mainExtras?.length} Items)
+                                </h3>
+                                <span className="text-gray-600">
+                                  {isOpenMainExtra ? "▲" : "▼"}
+                                </span>
+                              </div>
+                  
+                              {/* العناصر المختارة */}
+                              {selectedItem?.selectedMainExtras?.length > 0 && (
+                                <div className="p-3 bg-gray- border-t">
+                                  <span className="text-[#000] dark:text-[#fff] font-medium">
+                                    {selectedItem.selectedMainExtras
+                                      .map((extra) => extra.name_en)
+                                      .join(", ")}
+                                  </span>
+                                </div>
+                              )}
+                  
+                              {/* الاختيارات */}
+                              <div
+                                className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                                  isOpenMainExtra ? "max-h-96" : "max-h-0"
+                                }`}
+                              >
+                                <div className="p-3 flex flex- flex-wrap gap-2">
+                                  {selectedItem?.mainExtras?.map((extra, index) => (
+                                    <label key={index} className="flex items-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        value={extra.name_en}
+                                        checked={selectedItem.selectedMainExtras.some(
+                                          (ex) => ex.id === extra.id
+                                        )}
+                                        onChange={(e) => {
+                                          const checked = e.target.checked;
+                                          setSelectedItem((prev) => {
+                                            let updatedExtras = checked
+                                              ? [...prev.selectedMainExtras, extra]
+                                              : prev.selectedMainExtras.filter(
+                                                  (ex) => ex.id !== extra.id
+                                                );
+                  
+                                            let updatedExtrasIds = updatedExtras.map(
+                                              (ex) => ex.id
+                                            ); // تخزين الـ ID فقط
+                  
+                                            // حساب السعر الإجمالي الجديد
+                                            const newTotalPrice = updatedExtras.reduce(
+                                              (acc, curr) =>
+                                                acc + parseFloat(curr.price_en || "0"), // تحويل السعر إلى رقم مع معالجة القيم الفارغة
+                                              0
+                                            );
+                  
+                                            // console.log(
+                                            //   "Selected Extras:",
+                                            //   updatedExtras
+                                            // );
+                                            // console.log(
+                                            //   "Total Price:",
+                                            //   newTotalPrice
+                                            // );
+                                            setTotalExtrasPrice(newTotalPrice);
+                                            return {
+                                              ...prev,
+                                              selectedMainExtras: updatedExtras,
+                                              selectedMainExtrasIds: updatedExtrasIds, // تحديث قائمة الـ IDs
+                                            };
+                                          });
+                                        }}
+                                      />
+                                      <span className="text-[#000] dark:text-[#fff]">
+                                        {extra.name_en}
+                                      </span>
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                  
+                          <div className="flex flex-col lg:flex-row lg:items-center gap-2 my-4">
+                            <Label className="lg:min-w-[100px]">Note:</Label>
+                            <Input
+                              value={note}
+                              onChange={(e) => setNote(e.target.value)}
+                              type="text"
+                              placeholder="Note"
+                              className="w-full text-[#000] dark:text-[#fff]"
+                            />
+                          </div>
+                          <div className="flex justify-end">
+                            <p className="text-sm font-semibold mr-1 ">Subtoal: </p>
+                            <p className="text-sm font-semibold ">
+                              {(selectedItem?.price * counter + totalExtrasPrice).toFixed(2)}
+                              EGP
+                            </p>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <div className="text-sm font-semibold flex flex-wrap max-w-[300px]">
+                              <p>
+                                {[
+                                  selectedItem?.selectedInfo,
+                                  ...(selectedItem?.selectedExtras || []).map(
+                                    (extra) => extra.name_en
+                                  ),
+                                  ...(selectedItem?.selectedMainExtras || []).map(
+                                    (extra) => extra.name_en
+                                  ),
+                                ]
+                                  .filter(Boolean)
+                                  .join(", ")}
+                              </p>
+                            </div>
+                  
+                            <DialogFooter className="mt-4">
+                              <div className="flex items-center gap-4">
+                                {/* <p className="text-sm font-semibold mr-1 ">
+                                                {selectedUser ? massegeNotSerachPhone : ""} 
+                                                </p> */}
+                                {!selectedUser && massegeNotSerachPhone && (
+                                  <p className="text-sm font-semibold mr-1">
+                                    {massegeNotSerachPhone}
+                                  </p>
+                                )}
+                  
+                                <p className="text-sm font-semibold mr-1 ">
+                                  {deliveryMethod === "pickup" && !isBranchManuallySelected
+                                    ? massegeNotSelectedBranch
+                                    : ""}
+                                </p>
+                                {massegeInvaildToken && (
+                                  <p className="text-sm font-semibold text-red-500 mr-1">
+                                    {massegeInvaildToken}{" "}
+                                    <Link
+                                      href={`/${language}/login`}
+                                      className="text-blue-500 underline ml-1"
+                                    >
+                                      Login here
+                                    </Link>
+                                  </p>
+                                )}
+                  
+                                <Button
+                                  type="submit"
+                                  color="success"
+                                  onClick={handleAddToCart}
+                                  disabled={
+                                    !selectedUser ||
+                                    (deliveryMethod === "pickup" && !isBranchManuallySelected) ||
+                                    !selectedItem?.selectedInfo
+                                  }
+                                >
+                                  Add to Cart
+                                </Button>
+                              </div>
+                            </DialogFooter>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                 )}
                 <>
-                  {isNewUserDialogOpen && (
-                    <NewUserDialog
+                    {/* <NewUserDialog
                       isNewUserDialogOpen={isNewUserDialogOpen}
                       setIsNewUserDialogOpen={setIsNewUserDialogOpen}
                       selectedAddressType={selectedAddressType}
@@ -1391,10 +2043,188 @@ function CreateOrder() {
                       color={color}
                       setLoading={setLoading}
                       token={token}
-                    />
+                    /> */}
+                  {isNewUserDialogOpen && (
+                     <Dialog open={isNewUserDialogOpen} onOpenChange={setIsNewUserDialogOpen}>
+                          <DialogContent size="3xl">
+                            <DialogHeader>
+                              <DialogTitle className="text-base font-medium text-default-700">
+                                Create New User
+                              </DialogTitle>
+                            </DialogHeader>
+                            <div className="text-sm text-default-500 space-y-4">
+                              <form onSubmit={handleSubmitAddNewUser(onSubmitAddUserData)}>
+                                <div className="flex gap-2 items-start mb-4">
+                                  {/* Username Input */}
+                                  <div className="flex-1 flex flex-col">
+                                    <Input
+                                      type="text"
+                                      placeholder="Username"
+                                      {...registerAddNewUser("username")}
+                                      className="w-full text-[#000] dark:text-[#fff]"
+                                    />
+                                    {errorsAddNewUser.username && (
+                                      <p className="text-red-500 text-sm h-[20px] mt-2">
+                                        {errorsAddNewUser.username.message}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="flex-1 flex flex-col">
+                                    <Controller
+                                      name="area"
+                                      control={control}
+                                      rules={{ required: "Area is required" }}
+                                      render={({ field }) => (
+                                        <Select
+                                          {...field}
+                                          options={areasOptions || []}
+                                          placeholder="Area"
+                                          className="react-select w-full mb"
+                                          classNamePrefix="select"
+                                          // onChange={handleChangeArea}
+                                          onChange={(selectedOption) => {
+                                            field.onChange(selectedOption);
+                                            handleChangeArea(selectedOption);
+                                          }}
+                                          styles={selectStyles(theme, color)}
+                                        />
+                                      )}
+                                    />
+                                    {errorsAddNewUser.area && (
+                                      <p className="text-red-500 text-sm h-[20px]">
+                                        {errorsAddNewUser.area.message}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {/* Phone Input */}
+                                </div>
+                                <div className="flex gap-2 items-start mb-4">
+                                  <div className="flex-1 flex flex-col">
+                                    <Input
+                                      type="number"
+                                      placeholder="Phone"
+                                      {...registerAddNewUser("phone")}
+                                      className="w-full  text-[#000] dark:text-[#fff]"
+                                    />
+                                    {errorsAddNewUser.phone && (
+                                      <p className="text-red-500 text-sm h-[20px] mt-2">
+                                        {errorsAddNewUser.phone.message}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="flex-1 flex flex-col">
+                                    <Input
+                                      type="number"
+                                      placeholder="Phone 2"
+                                      {...registerAddNewUser("phone2")}
+                                      className="w-full text-[#000] dark:text-[#fff]"
+                                    />
+                                    {/* {errorsAddNewUser.phone2 && (
+                                      <p className="text-red-500 text-sm h-[20px] mt-2">
+                                        {errorsAddNewUser.phone2.message}
+                                      </p>
+                                    )} */}
+                                  </div>
+                                </div>
+                    
+                                <div className="flex gap-2 items-center my-3 mb-4">
+                                  {/* Street Input */}
+                                  <div className="flex-1">
+                                    <Input
+                                      type="text"
+                                      placeholder="Street"
+                                      {...registerAddNewUser("street")}
+                                      className="w-full text-[#000] dark:text-[#fff]"
+                                    />
+                                    <p
+                                      className={`text-red-500 text-sm mt-1 transition-all duration-200 ${
+                                        errorsAddNewUser.street
+                                          ? "h-auto opacity-100"
+                                          : "h-0 opacity-0"
+                                      }`}
+                                    >
+                                      {errorsAddNewUser.street?.message}
+                                    </p>
+                                  </div>
+                    
+                                  {/* Building Input */}
+                                  <div className="flex-1">
+                                    <Input
+                                      type="text"
+                                      placeholder="Building"
+                                      {...registerAddNewUser("building")}
+                                      className="w-full text-[#000] dark:text-[#fff]"
+                                    />
+                                    {errorsAddNewUser.street && <div className="h-[20px]"></div>}
+                                  </div>
+                                </div>
+                    
+                                <div className="flex gap-2 items- my-3 mb-4">
+                                  <Input
+                                    type="text"
+                                    placeholder="Floor"
+                                    {...registerAddNewUser("floor")}
+                                    className=" text-[#000] dark:text-[#fff]"
+                                  />
+                    
+                                  <Input
+                                    type="text"
+                                    placeholder="Apt"
+                                    {...registerAddNewUser("apt")}
+                                    className="mb-1 text-[#000] dark:text-[#fff]"
+                                  />
+                                </div>
+                                <Input
+                                  type="text"
+                                  placeholder="Land mark"
+                                  {...registerAddNewUser("additionalInfo")}
+                                  className="mb-4 text-[#000] dark:text-[#fff]"
+                                />
+                    
+                                <div className="space-y-1">
+                                  {/* Checkboxes */}
+                                  <div className="flex gap-4 items-center">
+                                    {["home", "work", "other"].map((type) => (
+                                      <label key={type} className="flex items-center gap-2 ">
+                                        <Input
+                                          type="checkbox"
+                                          name="addressType"
+                                          className="mt-1"
+                                          value={type}
+                                          checked={selectedAddressType === type}
+                                          onChange={() => handleAddressTypeChange(type)}
+                                        />
+                                        {type.charAt(0).toUpperCase() + type.slice(1)}{" "}
+                                      </label>
+                                    ))}
+                                  </div>
+                    
+                                  {selectedAddressType === "other" && (
+                                    <Input
+                                      type="text"
+                                      placeholder="Enter address name"
+                                      {...registerAddNewUser("name")}
+                                      className="text-[#000] dark:text-[#fff]"
+                                    />
+                                  )}
+                                </div>
+                                <DialogFooter className="mt-8">
+                                  <DialogClose asChild>
+                                    <Button
+                                      variant="outline"
+                                      onClick={() => setIsNewUserDialogOpen(false)}
+                                    >
+                                      Close
+                                    </Button>
+                                  </DialogClose>
+                                  <Button type="submit">Create User</Button>
+                                </DialogFooter>
+                              </form>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                   )}
-                  {isNewAddressDialogOpen && (
-                    <NewAddressDialog
+                    {/* <NewAddressDialog
                       isNewAddressDialogOpen={isNewAddressDialogOpen}
                       setIsNewAddressDialogOpen={setIsNewAddressDialogOpen}
                       setIsNewUserDialogOpen={setIsNewUserDialogOpen}
@@ -1410,7 +2240,144 @@ function CreateOrder() {
                       setaddAddressType={setaddAddressType}
                       QueryClient={queryClient}
                       selectedAddressType={selectedAddressType}
-                    />
+                    /> */}
+                  {isNewAddressDialogOpen && (
+                     <Dialog
+                          open={isNewAddressDialogOpen}
+                          onOpenChange={setIsNewAddressDialogOpen}
+                        >
+                          <DialogContent size="3xl">
+                            <DialogHeader>
+                              <DialogTitle className="text-base font-medium text-default-700">
+                                Create New Address
+                              </DialogTitle>
+                            </DialogHeader>
+                            <div className="text-sm text-default-500 space-y-4">
+                              <form onSubmit={handleSubmitAddNewAddress(onSubmitAddAddress)}>
+                                <Controller
+                                  name="area"
+                                  control={controlAddress}
+                                  rules={{ required: "Area is required" }}
+                                  render={({ field }) => (
+                                    <Select
+                                      {...field}
+                                      options={areasOptions || []}
+                                      placeholder="Area"
+                                      className="react-select w-full my-3 mb-4"
+                                      classNamePrefix="select"
+                                      // onChange={handleChangeArea}
+                                      onChange={(selectedOption) => {
+                                        field.onChange(selectedOption);
+                                        handleChangeArea(selectedOption);
+                                      }}
+                                      styles={selectStyles(theme, color)}
+                                    />
+                                  )}
+                                />
+                                {errorsAddNewAddress.area && (
+                                  <p className="text-red-500 text-sm">
+                                    {errorsAddNewAddress.area.message}
+                                  </p>
+                                )}
+                    
+                                <div className="flex gap-2 items-center my-3 mb-4">
+                                  <div className="flex-1">
+                                    <Input
+                                      type="text"
+                                      placeholder="Street"
+                                      {...registerAddNewAddress("street")}
+                                      className="w-full text-[#000] dark:text-[#fff] "
+                                    />
+                                    <p
+                                      className={`text-red-500 text-sm mt-1 transition-all duration-200 ${
+                                        errorsAddNewAddress.street
+                                          ? "h-auto opacity-100"
+                                          : "h-0 opacity-0"
+                                      }`}
+                                    >
+                                      {errorsAddNewAddress.street?.message}
+                                    </p>
+                                  </div>
+                    
+                                  <div className="flex-1">
+                                    <Input
+                                      type="text"
+                                      placeholder="Building"
+                                      {...registerAddNewAddress("building")}
+                                      className="w-full  text-[#000] dark:text-[#fff]"
+                                    />
+                                    {errorsAddNewAddress.street && <div className="h-[20px]"></div>}
+                                  </div>
+                                </div>
+                    
+                                <div className="flex gap-2 items- my- mb-4">
+                                  <Input
+                                    type="text"
+                                    placeholder="Floor"
+                                    {...registerAddNewAddress("floor")}
+                                    // className="mb-4"
+                                    // className={`${
+                                    //   registerAddNewAddress.floor ? "mb-1" : "mb-4"
+                                    // }`}
+                                    className=" text-[#000] dark:text-[#fff]"
+                                  />
+                    
+                                  <Input
+                                    type="text"
+                                    placeholder="Apt"
+                                    {...registerAddNewAddress("apt")}
+                                    className="mb-  text-[#000] dark:text-[#fff]"
+                                  />
+                                </div>
+                                <Input
+                                  type="text"
+                                  placeholder="Land mark"
+                                  {...registerAddNewAddress("additionalInfo")}
+                                  className="mb-  text-[#000] dark:text-[#fff]"
+                                />
+                    
+                                <div className="space-y-1">
+                                  <div className="flex gap-4 items-center">
+                                    {["home", "work", "other"].map((type) => (
+                                      <label key={type} className="flex items-center gap-2">
+                                        <Input
+                                          type="checkbox"
+                                          name="addressType"
+                                          className="mt-1"
+                                          value={type}
+                                          checked={addAddressType === type}
+                                          onChange={() => handleAddressTypeAdd(type)}
+                                        />
+                                        {type.charAt(0).toUpperCase() + type.slice(1)}{" "}
+                                      </label>
+                                    ))}
+                                  </div>
+                    
+                                  {addAddressType === "other" && (
+                                    <Input
+                                      type="text"
+                                      placeholder="Enter address name"
+                                      {...registerAddNewAddress("name")}
+                                      className="text-[#000] dark:text-[#fff]"
+                                    />
+                                  )}
+                                </div>
+                                <DialogFooter className="mt-8">
+                                  <DialogClose asChild>
+                                    <Button
+                                      variant="outline"
+                                      onClick={() => setIsNewUserDialogOpen(false)}
+                                    >
+                                      Close
+                                    </Button>
+                                  </DialogClose>
+                    
+                                  <Button type="submit">Add address</Button>
+                                </DialogFooter>
+                              </form>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                   )}
                 </>
               </div>
@@ -1610,7 +2577,7 @@ function CreateOrder() {
                                 {address.address_name}
                               </label>
                             </div>
-                            <DeleteAddressFotUser
+                            {/* <DeleteAddressFotUser
                               open={openEditAddressDialog}
                               setOpen={setOpenEditAddressDialog}
                               token={token}
@@ -1624,7 +2591,41 @@ function CreateOrder() {
                               setSelectedAddress={setSelectedAddress}
                               phone={phone}
                               setSelectedEditAddress={setSelectedEditAddress}
-                            />
+                            /> */}
+                              <div className="flex gap-3 ml-auto mb-3">
+                                  <button size="icon" onClick={() => handleEditAddress(address)}>
+                                    <FiEdit className="mr-1 text-xs" />
+                                  </button>
+                            
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <button className="flex items-center text-red-500 gap-[2px]">
+                                        <FiTrash2 className="text-xs" />
+                                      </button>
+                                    </AlertDialogTrigger>
+                            
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This action cannot be undone. This will permanently delete this
+                                          address.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel type="button" variant="outline" color="info">
+                                          Cancel
+                                        </AlertDialogCancel>
+                                        <AlertDialogAction
+                                          className="bg-destructive hover:bg-destructive/80"
+                                          onClick={() => handleDeleteAddress(address.id)}
+                                        >
+                                          Ok
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
                           </div>
                         ))}
                       </div>
@@ -1922,35 +2923,31 @@ function CreateOrder() {
                                   </label>
 
                                   <Controller
-                                    name="orderpayment"
-                                    control={controlCreateOrder}
-                                    rules={{
-                                      required: "Order payment is required",
-                                    }}
-                                    render={({ field }) => (
-                                      <Select
-                                        {...field}
-                                        options={orderPaymenyOptions}
-                                        placeholder="Select Order Payment"
-                                        className="react-select"
-                                        classNamePrefix="select"
-                                        value={
-                                          orderPaymenyOptions.find(
-                                            (option) =>
-                                              option.value === field.value
-                                          ) || null
-                                        } // ✅ تصحيح القيمة
-                                        onChange={(selectedOption) => {
-                                          field.onChange(selectedOption.value);
-                                          setValueCreateOrder(
-                                            "orderpayment",
-                                            selectedOption.value
-                                          );
-                                        }}
-                                        styles={selectStyles(theme, color)}
-                                      />
-                                    )}
-                                  />
+        name="orderpayment"
+        control={controlCreateOrder}
+        rules={{
+          required: "Order payment is required",
+        }}
+        render={({ field }) => (
+          <Select
+            {...field}
+            options={orderPaymenyOptions}
+            placeholder="Select Order Payment"
+            className="react-select"
+            classNamePrefix="select"
+            value={
+              orderPaymenyOptions.find(
+                (option) => option.value === field.value
+              ) || null
+            }
+            onChange={(selectedOption) => {
+              field.onChange(selectedOption.value);
+              setSelectedOrderPaymeny(selectedOption); // تحديث القيمة المختارة
+            }}
+            styles={selectStyles(theme, color)}
+          />
+        )}
+      />
                                 </div>
                                 <div className="flex flex-col w-1/2">
                                   <label className="text-gray-700 dark:text-gray-200 font-medium mb-1">
@@ -1977,7 +2974,7 @@ function CreateOrder() {
                                           ) || null
                                         }
                                         onChange={(selectedOption) => {
-                                          field.onChange(selectedOption.label); //  تخزين label فقط
+                                          field.onChange(selectedOption.label); 
                                           setValueCreateOrder(
                                             "ordersource",
                                             selectedOption.label,
@@ -1985,7 +2982,7 @@ function CreateOrder() {
                                           );
                                           setOrderSourceSelected(
                                             selectedOption
-                                          ); // ✅ تحديث useState
+                                          );
                                         }}
                                         styles={selectStyles(theme, color)}
                                       />
@@ -2244,12 +3241,14 @@ function CreateOrder() {
                                     Order notes
                                   </label>
                                   <div className="flex-1 w-full">
-                                    <Textarea
-                                      type="text"
-                                      placeholder="Order notes"
-                                      className="border p-2  h-full resize-none !w-full"
-                                      {...registerCreateOrder("notes")}
-                                    />
+                                  <Textarea
+            type="text"
+            placeholder="Order notes"
+            onChange={handleTextareaChange}
+            className="border p-2 h-full resize-none !w-full"
+            {...registerCreateOrder("notes")}
+            // value={notesOrderNotes} 
+          />
                                   </div>
                                 </div>
                               </div>
@@ -2474,8 +3473,7 @@ function CreateOrder() {
               </DialogContent>
             </Dialog>
           )}
-          {openEditAddressDialog && selectedEditAddress && (
-            <EditAddressDiaolg
+            {/* <EditAddressDiaolg
               open={openEditAddressDialog}
               setOpen={setOpenEditAddressDialog}
               color={color}
@@ -2491,7 +3489,143 @@ function CreateOrder() {
               editAddressType={editAddressType}
               customAddressName={customAddressName}
               apiBaseUrl={apiBaseUrl}
-            />
+            /> */}
+          {openEditAddressDialog && selectedEditAddress && (
+             <Dialog  open={openEditAddressDialog} onOpenChange={setOpenEditAddressDialog}>
+                  <DialogContent size="3xl">
+                    <DialogHeader>
+                      <DialogTitle>Edit User Address</DialogTitle>
+                    </DialogHeader>
+            
+                    <form
+                      onSubmit={handleEditAddressUser(onSubmitEditUserAddress)}
+                      className="space-y-4"
+                    >
+                      {/* Select Field */}
+                      <div>
+                        <label className="block mb-1">Area</label>
+                        <Controller
+                          name="area"
+                          control={controlEditAddress}
+                          rules={{ required: "Area is required" }}
+                          render={({ field }) => (
+                            <Select
+                              {...field}
+                              options={areasOptions || []}
+                              placeholder="Area"
+                              className="react-select w-full"
+                              classNamePrefix="select"
+                              value={
+                                areasOptions?.find(
+                                  (option) => option.value === field.value?.value
+                                ) || null
+                              }
+                              onChange={(selectedOption) => {
+                                field.onChange(selectedOption);
+                                handleChangeArea(selectedOption);
+                              }}
+                              styles={selectStyles(theme, color)}
+                            />
+                          )}
+                        />
+                      </div>
+                      {errorsEditAddressUser.area && (
+                        <p className="text-red-500 text-sm">
+                          {errorsEditAddressUser.area.message}
+                        </p>
+                      )}
+            
+                      {/* Input Fields */}
+                      <div className="flex gap-2 items-center my-3">
+                        <div className="flex-1">
+                          <label className="block mb-1">Street</label>
+                          <Input
+                            type="text"
+                            {...registerEditAddressUser("street")}
+                            className="w-full text-[#000] dark:text-[#fff]"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block mb-1">Building</label>
+                          <Input
+                            type="text"
+                            {...registerEditAddressUser("building")}
+                            className="w-full text-[#000] dark:text-[#fff]"
+                          />
+                        </div>
+                      </div>
+            
+                      <div className="flex gap-2 items-center my-3">
+                        <div className="flex-1">
+                          <label className="block mb-1">Floor</label>
+                          <Input
+                            type="text"
+                            {...registerEditAddressUser("floor")}
+                            className="w-full text-[#000] dark:text-[#fff]"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block mb-1">Apt</label>
+                          <Input
+                            type="text"
+                            {...registerEditAddressUser("apt")}
+                            className="w-full text-[#000] dark:text-[#fff]"
+                          />
+                        </div>
+                      </div>
+            
+                      <div>
+                        <label className="block mb-1">Landmark</label>
+                        <Input
+                          type="text"
+                          {...registerEditAddressUser("additionalInfo")}
+                          className="w-full text-[#000] dark:text-[#fff]"
+                        />
+                      </div>
+            
+                      <div className="space-y-1">
+                        <div className="flex gap-4 items-center">
+                          {["home", "work", "other"].map((type) => (
+                            <label key={type} className="flex items-center gap-2">
+                              <Input
+                                type="checkbox"
+                                name="addressType"
+                                className="mt-1"
+                                value={type}
+                                checked={editAddressType === type}
+                                onChange={() => handleEditAddressTypeChange(type)}
+                              />
+                              {type.charAt(0).toUpperCase() + type.slice(1)}
+                            </label>
+                          ))}
+                        </div>
+            
+                        {editAddressType === "other" && (
+                          <Input
+                            type="text"
+                            placeholder="Enter address name"
+                            value={customAddressName}
+                            onChange={(e) => {
+                              setCustomAddressName(e.target.value);
+                              setValueEditAddressUser("name", e.target.value);
+                            }}
+                            className="text-[#000] dark:text-[#fff]"
+                          />
+                        )}
+                      </div>
+            
+                      {/* Buttons */}
+                      <DialogFooter className="flex justify-end gap-4">
+                        <DialogClose asChild>
+                          <Button variant="outline" onClick={() => setOpenEditAddressDialog(false)}>
+                            Close
+                          </Button>
+                        </DialogClose>
+                        <Button type="submit">Save Changes</Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
           )}
         </>
       </div>

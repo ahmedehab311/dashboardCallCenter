@@ -8,7 +8,7 @@ export const loginUser = async (credentials,apiBaseUrl,subdomain) => {
     if (process.env.NODE_ENV === "development") {
       console.log("apiBaseUrl from login ",apiBaseUrl)
     }
-    const url = `${apiBaseUrl}/callcenter/login?email=${credentials.login}&password=${credentials.password}`;
+    const url = `${apiBaseUrl}/callcenter/login?email=${credentials.email}&password=${credentials.password}&login_field=email`;
     const response = await axios.post(url);
     if (process.env.NODE_ENV === "development") {
       console.log("API Content:", response);
@@ -27,6 +27,7 @@ export const loginUser = async (credentials,apiBaseUrl,subdomain) => {
       
  
       localStorage.setItem("user", JSON.stringify(response.data.data.user));
+      
       return {
         user: response.data.data.user,
         token: response.data.data.token,

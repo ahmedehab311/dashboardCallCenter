@@ -2,11 +2,9 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 const apiInstance = axios.create({
-  // baseURL: "https://myres.me/thmdev/api",
-  baseURL: "https://myres.me/thmdev/api",
-  // headers: {
-  //   "Content-Type": "application/json",
-  // },
+  headers: {
+    "Accept": "application/json",
+  },
 });
 
 apiInstance.interceptors.request.use(

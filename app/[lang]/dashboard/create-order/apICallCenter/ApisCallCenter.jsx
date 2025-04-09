@@ -85,13 +85,35 @@ export const fetchTax = async (apiBaseUrl) => {
     throw error;
   }
 };
+// export const fetchorderSource = async (restaurantId,token,apiBaseUrl) => {
+//   try {
+//     const response = await axios.get(
+//       `${apiBaseUrl}/callcenter/get/sources?api_token=${token}&restaurantId=${restaurantId}`
+//     );
+//     console.log("API Response sources:", response);
+//     console.log("API Response sources restaurantId:", restaurantId);
+
+//     return response.data.messages.sources;
+//   } catch (error) {
+//     console.error("Error fetching fetch Order Type:", error);
+//     throw error;
+//   }
+// };
 export const fetchorderSource = async (restaurantId,token,apiBaseUrl) => {
   try {
-    const response = await axios.get(
+    const response = await fetch(
       `${apiBaseUrl}/callcenter/get/sources?api_token=${token}&restaurantId=${restaurantId}`
     );
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to fetch sources: ${errorText}`);
+    }
+    const data = await response.json(); 
 
-    return response.data.messages.sources;
+    // console.log("API Response sources:", data);
+    // console.log("API Response sources restaurantId:", restaurantId);
+
+    return data.messages.sources;
   } catch (error) {
     console.error("Error fetching fetch Order Type:", error);
     throw error;

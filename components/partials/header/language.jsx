@@ -166,7 +166,7 @@ const Language = () => {
     const storedLanguage =
       Cookies.get("language") ||
       localStorage.getItem("language") ||
-      "en"; // الافتراضي إنجليزي
+      "en"; 
 
     const langObj = languages.find((l) => l.code === storedLanguage);
     if (langObj) {
@@ -179,14 +179,14 @@ const Language = () => {
   const handleSelected = (langCode) => {
     const langObj = languages.find((l) => l.code === langCode);
     if (langObj) {
-      // تحديث الحالة وتخزين اللغة
+
       setSelectedLanguage(langObj);
       dispatch(setLanguage(langObj.code));
       localStorage.setItem("language", langObj.code);
       Cookies.set("language", langObj.code);
       setRtl(langObj.dir === "rtl")
 
-      // تحديث المسار
+ 
       const newPathname = `/${langObj.code}${pathname.substring(3)}`;
       router.push(newPathname);
     }
