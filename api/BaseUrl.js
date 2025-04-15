@@ -8,7 +8,7 @@
       const host = window.location.hostname;
       const parts = host.split(".");
       
-      if (host === "localhost") return "thmdev"; 
+      if (host === "localhost") return "thm"; 
       return parts.length > 2 ? parts[0] : "";
     };
     
