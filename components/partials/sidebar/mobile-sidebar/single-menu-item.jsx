@@ -20,6 +20,9 @@ const SingleMenuItem = ({ item, collapsed, lang }) => {
       createOrder: "create-order",
       orders: "orders",
     };
+    if (match === "dashboard" && pathname.startsWith("/dashboard")) {
+      return href.includes("/dashboard");
+    }
 
     if (pathname === `/${lang}/dashboard` || pathname === "/dashboard") {
       return href === `/${lang}/dashboard` || href === `/dashboard`;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import CountUp from "react-countup";
-export default function StatCard({ icon: Icon, number, label,onClick,bg }) {
+export default function StatCard({ icon: Icon, number, label,onClick,bg,isLoadingorders,errororders }) {
   const [displayNumber, setDisplayNumber] = useState(0);
   const [isReal, setIsReal] = useState(false);
 
@@ -12,9 +12,20 @@ export default function StatCard({ icon: Icon, number, label,onClick,bg }) {
       setIsReal(true);
     }
   }, [number]);
-
   useEffect(() => {
-    if (!isReal) {
+    if (
+      !isLoadingorders &&
+      !errororders &&
+      number !== undefined &&
+      number !== null
+    ) {
+      setIsReal(true);
+    } else {
+      setIsReal(false);
+    }
+  }, [number, isLoadingorders, errororders]);
+  useEffect(() => {
+    if (!isReal && isLoadingorders) {
       const interval = setInterval(() => {
         const random = Math.floor(Math.random() * 500) + 1; 
         setDisplayNumber(random);
@@ -22,9 +33,20 @@ export default function StatCard({ icon: Icon, number, label,onClick,bg }) {
 
       return () => clearInterval(interval); 
     }
-  }, [isReal]);
+  }, [isReal , isLoadingorders]);
   
 
+  const renderContent = () => {
+    if (isLoadingorders) {
+      return displayNumber;
+    }
+
+    if (errororders) {
+      return "Error";
+    }
+
+    return <CountUp end={number} duration={1.5} />;
+  };
 
   return (
 
@@ -33,9 +55,12 @@ export default function StatCard({ icon: Icon, number, label,onClick,bg }) {
     className={`flex items-center justify-between p-4 rounded-xl shadow hover:opacity-90 transition w-full ${bg} cursor-pointer`}
   >
     <div className="flex flex-col text-left">
-      <span className="text-xl font-bold text-[#000]">
+      {/* <span className="text-xl font-bold text-[#000]">
         {isReal ? <CountUp end={number} duration={1.5} /> : displayNumber}
-      </span>
+      </span> */}
+      <span className="text-xl font-bold text-[#000]">
+          {renderContent()}
+        </span>
       <span className="text-sm text-[#000]">{label}</span>
     </div>
     <div className="text-blue-500">

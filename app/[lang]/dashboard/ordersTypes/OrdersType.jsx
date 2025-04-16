@@ -9,30 +9,44 @@ import {
   CheckCheck,
 } from "lucide-react";
 import { useSubdomin } from "@/provider/SubdomainContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchOrders } from "./apisOrders";
+import { fetchOrders, fetchUserByPhoneAndId } from "./apisOrders";
 import UserDeviceReport from "./UserDeviceReport";
 import TableOrder from "./tableOrder/TableOrder";
 function OrdersType() {
   const { apiBaseUrl, subdomain } = useSubdomin();
   const [selectedStatus, setSelectedStatus] = useState("Total");
-
+  const [selectedDayNumber, setSelectedDayNumber] = useState(0);
   const [token, setToken] = useState(null);
-  // useEffect(() => {
-  //   console.log("Status changed:", selectedStatus);
-  // }, [selectedStatus]);
+
   const {
     data: orders,
-    isLoadingorders,
-    errororders,
-    refetch: refetchorders,
+    isLoading: isLoadingorders,
+    isError: errororders,
   } = useQuery({
-    queryKey: ["ordersList"],
-    queryFn: () => fetchOrders(token, apiBaseUrl),
+    queryKey: ["ordersList", selectedDayNumber],
+    queryFn: () => fetchOrders(token, apiBaseUrl, selectedDayNumber),
     enabled: !!token,
+    onSuccess: (data) => {
+      setAllOrders(data); // تخزين الأوردات الأصلية
+      setDisplayOrders(data); // عرض الأوردات الأصلية في الجدول
+    },
   });
-  // console.log("orders", orders);
+  const [orderIdOrPhone, setOrderIdOrPhone] = useState(""); // قيمة البحث
+  const [searchTrigger, setSearchTrigger] = useState(false); // لتفعيل البحث عند الضغط على Enter
+
+  const {
+    data: searchUser,
+    isLoading: isLoadingSearchUser,
+    isError: errorUserSearchUser,
+    refetch: refetchSearchUser,
+  } = useQuery({
+    queryKey: ["userSearch", orderIdOrPhone],
+    queryFn: () => fetchUserByPhoneAndId(orderIdOrPhone, token, apiBaseUrl),
+    enabled: false, 
+   
+  });
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     if (storedToken) {
@@ -111,6 +125,8 @@ function OrdersType() {
               }}
               bg={stat.bg}
               language={language}
+              errororders={errororders}
+              isLoadingorders={isLoadingorders}
             />
           ))}
         </div>
@@ -126,13 +142,32 @@ function OrdersType() {
               <UserDeviceReport
                 orders={orders}
                 selectedStatus={selectedStatus}
+                errororders={errororders}
+                isLoadingorders={isLoadingorders}
               />
             </div>
           </CardContent>
         </Card>
       </div>
       <div>
-        <TableOrder orders={orders} selectedStatus={selectedStatus} />
+        <Card className="col-span- h-full mt-0 p-3">
+          <TableOrder
+            orders={orders}
+            selectedStatus={selectedStatus}
+            selectedDayNumber={selectedDayNumber}
+            setSelectedDayNumber={setSelectedDayNumber}
+            errororders={errororders}
+            isLoadingorders={isLoadingorders}
+            isLoadingSearchUser={isLoadingSearchUser}
+            errorUserSearchUser={errorUserSearchUser}
+            orderIdOrPhone={orderIdOrPhone}
+            setOrderIdOrPhone={setOrderIdOrPhone}
+            searchTrigger={searchTrigger}
+            setSearchTrigger={setSearchTrigger}
+            searchUser={searchUser}
+            refetchSearchUser={refetchSearchUser}
+          />
+        </Card>
       </div>
     </>
   );
