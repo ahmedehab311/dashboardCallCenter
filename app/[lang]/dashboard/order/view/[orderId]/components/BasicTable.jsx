@@ -35,9 +35,7 @@ const BasicTable = ({ OrderDetails, OrderDetailsItem }) => {
               {OrderDetailsItem?.special || "—"}
             </TableCell>
             <TableCell className="text-[#000] dark:text-[#fff]">
-              {parseFloat(OrderDetailsItem?.info?.price?.price || 0).toFixed(
-                2
-              )}
+              {parseFloat(OrderDetailsItem?.info?.price?.price || 0).toFixed(2)}
             </TableCell>
             <TableCell className="text-[#000] dark:text-[#fff]">
               {parseFloat(OrderDetailsItem?.total_price || 0).toFixed(2)}
@@ -48,6 +46,7 @@ const BasicTable = ({ OrderDetails, OrderDetailsItem }) => {
       <div className="flex gap-6  my-4 mx-2 justify-between">
         <p>Delivery fees: {OrderDetails?.delivery_fees}</p>
         <p>Tax fees: {OrderDetails?.tax_fees}</p>
+        <p>Tax fees: {OrderDetails?.payment_method === 1 ? "Cash" : "Visa"}</p>
       </div>
       <div className="flex gap-6 justi my-2  mx-2 justify-between">
         <p>

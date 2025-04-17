@@ -107,12 +107,12 @@ export default function OrderViewPage({ params }) {
       setColor("#000");
     }
   }, [theme]);
-
+  const handlePrint = () => {
+    window.print();
+  };
   if (!OrderDetails) {
     return <div>Loading...</div>;
   }
-
-  console.log("Order", OrderDetails);
 
   return (
     <>
@@ -211,7 +211,9 @@ export default function OrderViewPage({ params }) {
                 <Button className="py-[6px]">
                   <FiEdit />
                 </Button>
-                <Button className="py-[6px]">Print</Button>
+                <Button className="py-[6px]" onClick={() => handlePrint()}>
+                  Print
+                </Button>
               </div>
             </div>
           </div>
