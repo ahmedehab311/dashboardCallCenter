@@ -46,7 +46,7 @@ export function BasicDataTable({
   isLoadingSearchUser,
   refetchSearchUser,
 }) {
-  console.log("searchUser", searchUser);
+  // console.log("searchUser", searchUser);
   const language =
     typeof window !== "undefined" ? localStorage.getItem("language") : null;
   const router = useRouter();
@@ -345,7 +345,6 @@ export function BasicDataTable({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* وضع الـ Select أخيرًا */}
           <Select
             placeholder="Select day"
             className="react-select w-[3] mb-0"

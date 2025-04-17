@@ -29,12 +29,12 @@ function OrdersType() {
     queryFn: () => fetchOrders(token, apiBaseUrl, selectedDayNumber),
     enabled: !!token,
     onSuccess: (data) => {
-      setAllOrders(data); // تخزين الأوردات الأصلية
-      setDisplayOrders(data); // عرض الأوردات الأصلية في الجدول
+      setAllOrders(data); 
+      setDisplayOrders(data); 
     },
   });
-  const [orderIdOrPhone, setOrderIdOrPhone] = useState(""); // قيمة البحث
-  const [searchTrigger, setSearchTrigger] = useState(false); // لتفعيل البحث عند الضغط على Enter
+  const [orderIdOrPhone, setOrderIdOrPhone] = useState("");
+  const [searchTrigger, setSearchTrigger] = useState(false); 
 
   const {
     data: searchUser,
