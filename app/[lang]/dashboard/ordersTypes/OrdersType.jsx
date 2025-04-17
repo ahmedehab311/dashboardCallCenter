@@ -45,7 +45,6 @@ function OrdersType() {
     queryKey: ["userSearch", orderIdOrPhone],
     queryFn: () => fetchUserByPhoneAndId(orderIdOrPhone, token, apiBaseUrl),
     enabled: false, 
-   
   });
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
