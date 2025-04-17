@@ -69,6 +69,7 @@ const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) 
     },
     legend: {
       position: "bottom",
+      offsetY: -15, 
       labels: {
         colors: `hsl(${
           theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel

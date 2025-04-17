@@ -12,10 +12,11 @@ import { useSubdomin } from "@/provider/SubdomainContext";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchOrders, fetchUserByPhoneAndId } from "./apisOrders";
-import UserDeviceReport from "./UserDeviceReport";
+import UserDeviceReport from "./SourceReport";
+import PickupReport from "./pickupReport";
 import TableOrder from "./tableOrder/TableOrder";
 function OrdersType() {
-  const { apiBaseUrl, subdomain } = useSubdomin();
+  const { apiBaseUrl } = useSubdomin();
   const [selectedStatus, setSelectedStatus] = useState("Total");
   const [selectedDayNumber, setSelectedDayNumber] = useState(0);
   const [token, setToken] = useState(null);
@@ -29,12 +30,12 @@ function OrdersType() {
     queryFn: () => fetchOrders(token, apiBaseUrl, selectedDayNumber),
     enabled: !!token,
     onSuccess: (data) => {
-      setAllOrders(data); 
-      setDisplayOrders(data); 
+      setAllOrders(data);
+      setDisplayOrders(data);
     },
   });
   const [orderIdOrPhone, setOrderIdOrPhone] = useState("");
-  const [searchTrigger, setSearchTrigger] = useState(false); 
+  const [searchTrigger, setSearchTrigger] = useState(false);
 
   const {
     data: searchUser,
@@ -44,7 +45,7 @@ function OrdersType() {
   } = useQuery({
     queryKey: ["userSearch", orderIdOrPhone],
     queryFn: () => fetchUserByPhoneAndId(orderIdOrPhone, token, apiBaseUrl),
-    enabled: false, 
+    enabled: false,
   });
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -109,7 +110,7 @@ function OrdersType() {
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 w-full p-2 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 w-full p-2 mb-">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 col-span-3">
           {stats.map((stat, index) => (
             <StatCard
@@ -118,9 +119,7 @@ function OrdersType() {
               number={stat.number}
               label={stat.label}
               onClick={() => {
-                // console.log("StatusKey:", stat.statusKey);
                 setSelectedStatus(stat.statusKey);
-                // console.log("Selected status:", stat.statusKey);
               }}
               bg={stat.bg}
               language={language}
@@ -147,9 +146,26 @@ function OrdersType() {
             </div>
           </CardContent>
         </Card>
+        <Card className="col-span- h-ful mt-1">
+          <CardHeader className="border-none p-6 pt-5 ">
+            {/* <CardTitle className="text-lg font-semibold text-default-900 p-0">
+        Device Breakdown
+      </CardTitle> */}
+          </CardHeader>
+          <CardContent>
+            <div className="dashtail-legend">
+              <PickupReport
+                orders={orders}
+                selectedStatus={selectedStatus}
+                errororders={errororders}
+                isLoadingorders={isLoadingorders}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
       <div>
-        <Card className="col-span- h-full mt-0 p-3">
+        <Card className="col-span- h-full mt- p-3">
           <TableOrder
             orders={orders}
             selectedStatus={selectedStatus}

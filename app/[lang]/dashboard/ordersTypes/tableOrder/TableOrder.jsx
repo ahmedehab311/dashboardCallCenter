@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, useMemo } from "react";
-import { ChevronDown, MoreHorizontal } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import Select from "react-select";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
@@ -30,7 +30,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Icon } from "@iconify/react";
-import { useQuery } from "@tanstack/react-query";
 export function BasicDataTable({
   orders,
   searchUser,
@@ -41,12 +40,9 @@ export function BasicDataTable({
   errororders,
   orderIdOrPhone,
   setOrderIdOrPhone,
-  searchTrigger,
-  setSearchTrigger,
   isLoadingSearchUser,
   refetchSearchUser,
 }) {
-  // console.log("searchUser", searchUser);
   const language =
     typeof window !== "undefined" ? localStorage.getItem("language") : null;
   const router = useRouter();
@@ -67,37 +63,6 @@ export function BasicDataTable({
     { value: 7, label: "7 Days" },
     { value: 30, label: "30 Days" },
   ];
-
-  const sources = orders?.sources || {};
-
-  // const formattedOrders = useMemo(() => {
-  //   const sources = orders?.sources || {};
-  //   const mergedOrders = Object.values(sources).flat();
-  //   const filteredOrders =
-  //     selectedStatus === "Total"
-  //       ? mergedOrders
-  //       : mergedOrders.filter((order) => order?.status === selectedStatus);
-
-  //   return filteredOrders.map((order) => {
-  //     return {
-  //       "Invoice Id": order?.order_id,
-  //       status: order?.status,
-  //       Restaurant: order.restaurant_name,
-  //       Date: order?.created_at || "-",
-  //       Branch: order?.branch[0]?.name_en || "-",
-  //       Customer: order?.user?.user_name || "-",
-  //       Phone: order.user?.phone || "-",
-  //       Address: order.address?.[0]?.address1 || "-",
-  //       Total: order.total,
-  //       source: order?.source,
-  //       // TotalAmount: order.total,
-  //       TotalAmount: isNaN(parseFloat(order?.total))
-  //         ? 0
-  //         : parseFloat(order?.total).toFixed(2),
-  //       paymentMethod: order.payment_method,
-  //     };
-  //   });
-  // }, [orders, selectedStatus]);
 
   const isSearching = !!orderIdOrPhone;
   const isEmptySearchResult =
@@ -283,9 +248,7 @@ export function BasicDataTable({
   const handleInputChange = (event) => {
     setOrderIdOrPhone(event.target.value);
   };
-  console.log("orderIdOrPhone", orderIdOrPhone);
   const handleClearSearch = () => setOrderIdOrPhone("");
-
 
   const handleEditOrderClick = (orderId) => {
     const url = `/${language}/dashboard/order/view/${orderId}`;
@@ -316,7 +279,6 @@ export function BasicDataTable({
           )}
         </div>
 
-   
         <div className="flex gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -420,6 +382,7 @@ export function BasicDataTable({
               table.getPaginationRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
+                  className="cursor-pointer"
                   data-state={row.getIsSelected() && "selected"}
                   onClick={() =>
                     handleEditOrderClick(row.original["Invoice Id"])
@@ -452,8 +415,6 @@ export function BasicDataTable({
       </div>
 
       <div className="flex items-center flex-wrap  justify-center gap-4 px-4 py-4">
-        {/* <div className="flex-1 text-sm text-muted-foreground whitespace-nowrap"></div> */}
-
         <div className="flex gap-2 items-center">
           <Button
             variant="outline"
@@ -478,6 +439,18 @@ export function BasicDataTable({
               {pageIdx + 1}
             </Button>
           ))}
+          {endPage < totalPages && (
+            <>
+              <span className="text-gray-500">...</span>
+              <Button
+                onClick={() => table.setPageIndex(totalPages - 1)}
+                variant={currentPage === totalPages - 1 ? "" : "outline"}
+                className="w-8 h-8"
+              >
+                {totalPages}
+              </Button>
+            </>
+          )}
 
           <Button
             onClick={() => table.nextPage()}

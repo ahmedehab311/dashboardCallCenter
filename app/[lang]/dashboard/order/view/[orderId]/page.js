@@ -16,7 +16,6 @@ export default function OrderViewPage({ params }) {
   const { orderId } = params;
   const { theme } = useTheme();
   const [color, setColor] = useState("");
-
   const { apiBaseUrl, subdomain } = useSubdomin();
   const [OrderDetails, setOrderDetails] = useState([]);
   const [OrderDetailsItem, setOrderDetailsItem] = useState([]);
@@ -73,9 +72,6 @@ export default function OrderViewPage({ params }) {
 
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
-  console.log("branchOptions:", branchOptions);
-  console.log("statusOptions:", statusOptions);
-  console.log("selectedStatus:", selectedStatus);
   useEffect(() => {
     if (branches?.length > 0) {
       setBranchOptions(
