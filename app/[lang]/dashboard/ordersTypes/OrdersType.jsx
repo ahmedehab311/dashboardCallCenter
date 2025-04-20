@@ -107,7 +107,7 @@ function OrdersType() {
       bg: "bg-emerald-100",
     },
   ];
-
+ 
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 w-full p-2 mb-">

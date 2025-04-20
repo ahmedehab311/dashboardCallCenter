@@ -15,8 +15,10 @@ import { useQuery } from "@tanstack/react-query";
 export default function OrderViewPage({ params }) {
   const { orderId } = params;
   const { theme } = useTheme();
+  const router = useRouter();
   const [color, setColor] = useState("");
   const { apiBaseUrl, subdomain } = useSubdomin();
+  const [Order, setOrder] = useState([]);
   const [OrderDetails, setOrderDetails] = useState([]);
   const [OrderDetailsItem, setOrderDetailsItem] = useState([]);
   const language =
@@ -28,13 +30,15 @@ export default function OrderViewPage({ params }) {
       const response = await fetchViewOrder(token, apiBaseUrl, orderId);
       console.log("response", response);
       if (response) {
+        setOrder(response)
         setOrderDetails(response.details);
         setOrderDetailsItem(response.items);
       }
     };
     fetchdata();
   }, [apiBaseUrl, orderId, token]);
-
+  
+  console.log("Orderfrom view", Order);
   const {
     data: branches,
     isLoadingBranches,
@@ -109,6 +113,12 @@ export default function OrderViewPage({ params }) {
   }, [theme]);
   const handlePrint = () => {
     window.print();
+  };
+  const handleEditOrder = () => {
+    console.log("editclick");
+
+    localStorage.setItem("order", JSON.stringify(Order));
+    router.push(`/${language}/dashboard/create-order`);
   };
   if (!OrderDetails) {
     return <div>Loading...</div>;
@@ -208,7 +218,7 @@ export default function OrderViewPage({ params }) {
           <div className="flex justify-end ">
             <div className="flex justify-end w-1/2">
               <div className="flex gap-2 items-end">
-                <Button className="py-[6px]">
+                <Button className="py-[6px]" onClick={handleEditOrder}>
                   <FiEdit />
                 </Button>
                 <Button className="py-[6px]" onClick={() => handlePrint()}>
@@ -243,7 +253,7 @@ export default function OrderViewPage({ params }) {
           </div>
         </Card>
         <Card title="Order Details" className="w-1/2 p-4">
-          <h2>Delivery details:</h2>
+          <h2>Delivery details</h2>
           <div className="flex justify-between mt-4 my-2">
             <p>Name : {OrderDetails?.delivery?.delivery_details?.user_name}</p>
             <p>

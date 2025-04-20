@@ -83,7 +83,7 @@ import { getDictionary } from "../dictionaries";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { setLanguage } from "@/store/slices/languageSlice";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-
+import { usePathname } from 'next/navigation';  
 const inter = Inter({ subsets: ["latin"] });
 const queryClient = new QueryClient();
 
@@ -101,6 +101,7 @@ export default function RootLayout({ children, params: { lang } }) {
 function LayoutContentComponent({ lang, children }) {
   const dispatch = useDispatch();
   const router = useRouter();
+  const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -134,6 +135,12 @@ function LayoutContentComponent({ lang, children }) {
     // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang, dispatch]);
+  useEffect(() => {
+    // لو خرج من صفحة create-order
+    if (pathname !== `/${lang}/dashboard/create-order`) {
+      localStorage.removeItem('order');
+    }
+  }, [pathname]);
 
   // console.log("Current Language:", lang);
   return (
