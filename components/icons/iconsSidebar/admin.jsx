@@ -2,7 +2,7 @@ import { useTheme } from "next-themes";
 
 const Admin = () => {
   const { theme } = useTheme();
-  const iconColor = theme === "dark" ? "#fff" : "#B197FC";
+  const iconColor = theme === "dark" ? "#fff" : "#fff";
 
   return (
     <svg

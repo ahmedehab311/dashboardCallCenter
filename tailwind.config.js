@@ -70,7 +70,7 @@ module.exports = {
           800: "hsl(var(--primary-800) / <alpha-value>)",
           900: "hsl(var(--primary-900) / <alpha-value>)",
           950: "hsl(var(--primary-950) / <alpha-value>)",
-          DEFAULT: "hsl(var(--primary) / <alpha-value>)",
+          DEFAULT: "#f39c12",
           foreground: "hsl(var(--primary-foreground) / <alpha-value>)",
         },
         secondary: {

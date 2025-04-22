@@ -344,10 +344,11 @@ function CreateOrder() {
     data: selectedUser,
     isLoadingUserDataForSerach,
     errorUserDataForSearch,
+    refetch
   } = useQuery({
     queryKey: ["userSearch", phone],
     queryFn: () => fetchUserByPhone(phone, token, apiBaseUrl),
-    enabled: !!phone,
+    enabled: false,
     onSuccess: (data) => {
       if (data) {
         setAllUserData(data);
@@ -646,13 +647,31 @@ function CreateOrder() {
     };
   }, [search]);
 
-  const handleSearch = () => {
-    if (search) {
-      setPhone(search);
+  // const handleSearch = () => {
+  //   if (search) {
+  //     setPhone(search);
+  //     if (selectedUser?.address?.length > 0 && !selectedAddress) {
+  //       setSelectedAddress(selectedUser.address[0]);
+  //     }
+  //      refetch()
+  //     setErrorSearchUser("");
+  //     if (selectedBranch) {
+  //       setSelectedBranchPriceList(selectedBranch.price_list);
+  //     }
+  //   } else {
+  //     setErrorSearchUser("Please enter a valid search term.");
+  //   }
+  // };
+  const handleSearch = (value = search) => {
+    if (value.trim()) {
+      setPhone(value.trim()); // حفظ الرقم في الحالة
+      refetch(); // تنفيذ البحث
+      setErrorSearchUser(""); // مسح أي رسائل خطأ
+  
       if (selectedUser?.address?.length > 0 && !selectedAddress) {
         setSelectedAddress(selectedUser.address[0]);
       }
-      setErrorSearchUser("");
+  
       if (selectedBranch) {
         setSelectedBranchPriceList(selectedBranch.price_list);
       }
@@ -660,6 +679,7 @@ function CreateOrder() {
       setErrorSearchUser("Please enter a valid search term.");
     }
   };
+    
  
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
@@ -1181,12 +1201,12 @@ function CreateOrder() {
       }
 
       setValueEditAddressUser("street", selectedEditAddress.street);
-      setValueEditAddressUser("building", selectedEditAddress.building || "");
-      setValueEditAddressUser("floor", selectedEditAddress.floor || "");
-      setValueEditAddressUser("apt", selectedEditAddress.apt || "");
+      setValueEditAddressUser("building", selectedEditAddress.building );
+      setValueEditAddressUser("floor", selectedEditAddress.floor );
+      setValueEditAddressUser("apt", selectedEditAddress.apartment );
       setValueEditAddressUser(
         "additionalInfo",
-        selectedEditAddress.additionalInfo || ""
+        selectedEditAddress.additional 
       );
     }
   }, [selectedEditAddress, setValueEditAddressUser]);
@@ -1499,15 +1519,17 @@ function CreateOrder() {
   const [discountValue, setDiscountValue] = useState("");
   const [discountPercentage, setDiscountPercentage] = useState("");
   const [order, setOrder] = useState(null);
-  const vatAmount = parseFloat(grandTotal * (parseFloat(Tax) / 100));
+  // const vatAmount = parseFloat(grandTotal * (parseFloat(Tax) / 100)); // .14
+
   const discount = 0;
-
+  
   const Delivery =
-    selectedOrderType?.value === 2
-      ? 0
-      : parseFloat(savedBranch?.deliveryFees) || 0;
-
-  const totalAmount = grandTotal + vatAmount + Delivery - discount;
+  selectedOrderType?.value === 2
+  ? 0
+  : parseFloat(savedBranch?.deliveryFees) || 0; 
+  
+ const vatAmount = ((grandTotal - discount) + Delivery) * 0.14; 
+  const totalAmount = (grandTotal - discount) + vatAmount + Delivery;
 
   const finalTotal = useMemo(() => {
     let total =
@@ -1585,52 +1607,102 @@ function CreateOrder() {
     }
   };
   const [isEditMode, setIsEditMode] = useState(false);
-  useEffect(() => {
-    const orderData = localStorage.getItem("order");
-    setIsEditMode(true)
-    if (orderData) {
-      const parsedOrder = JSON.parse(orderData);
-      const phone = parsedOrder?.details?.user_data?.phone;
-      console.log("parsedOrder.items", parsedOrder.items);
+  // const searchRef = useRef(false);
+  // useEffect(() => {
+  //   const orderData = localStorage.getItem("order");
+  //   if (orderData) {
+  //     setIsEditMode(true)
+  //     const parsedOrder = JSON.parse(orderData);
+  //     const phone = parsedOrder?.details?.user_data?.phone;
+  //     console.log("parsedOrder.items", parsedOrder.items);
 
   
-      if (phone) {
-        setSearch(phone); // حط القيمة في الـ input
-        handleSearch(phone); // اعمل الفيتش
-      }
+  //     if (phone) {
+  //       setSearch(phone); 
+  //       handleSearch(phone); 
+  //       refetch(); 
+  //     }
    
-    
-    }
-    // console.log("order:", orderData?.details?.user_data?.phone);
-  }, []);
+  //   }
+  //   // console.log("order:", orderData?.details?.user_data?.phone);
+  // }, []);
   useEffect(() => {
-  if(selectedUser){
     const orderData = localStorage.getItem("order");
   
     if (orderData) {
+      setIsEditMode(true);
       const parsedOrder = JSON.parse(orderData);
-      const item = parsedOrder?.items;
+      const phoneFromOrder = parsedOrder?.details?.user_data?.phone;
   
-      if (item && typeof item === "object") {
-        const transformedItem = {
-          id: `${item?.info?.id}`,
-          quantity: item?.count || 1,
-          price: parseFloat(item?.info?.price?.price || item?.total_price || item?.sub_total || 0),
-          selectedInfo: item?.info?.price?.size_en || item?.info?.size_en || "",
-          selectedExtras: item?.extras || [],
-          selectedMainExtras: [],
-          note: item?.special || "",
-        };
+      if (phoneFromOrder) {
+        setSearch(phoneFromOrder);
+        setPhone(phoneFromOrder);
   
-        console.log("loaded cart item:", transformedItem);
-        setCartItems([transformedItem]);
-      } else {
-        console.log("No valid item found in parsedOrder.");
+        setTimeout(() => {
+          handleSearch(phoneFromOrder);
+        }, 0);
       }
     }
-  }
+  }, []);
+  
+  // useEffect(() => {
+  // if(selectedUser){
+  //   const orderData = localStorage.getItem("order");
+  
+  //   if (orderData) {
+  //     const parsedOrder = JSON.parse(orderData);
+  //     const item = parsedOrder?.items;
+  
+  //     if (item && typeof item === "object") {
+  //       const transformedItem = {
+  //         id: `${item?.info?.id}`,
+  //         quantity: item?.count || 1,
+  //         price: parseFloat(item?.info?.price?.price || item?.total_price || item?.sub_total || 0),
+  //         selectedInfo: item?.info?.price?.size_en || item?.info?.size_en || "",
+  //         selectedExtras: item?.extras || [],
+  //         selectedMainExtras: [],
+  //         note: item?.special || "",
+  //       };
+  
+  //       console.log("loaded cart item:", transformedItem);
+  //       setCartItems([transformedItem]);
+  //     } else {
+  //       console.log("No valid item found in parsedOrder.");
+  //     }
+  //   }
+  // }
+  // }, [selectedUser]);
+  useEffect(() => {
+    if (selectedUser) {
+      const orderData = localStorage.getItem("order");
+  
+      if (orderData) {
+        const parsedOrder = JSON.parse(orderData);
+        const items = parsedOrder?.items;
+  
+        if (Array.isArray(items)) {
+          const transformedItems = items.map((item) => ({
+            id: `${item?.info?.id}`,
+            quantity: item?.count || 1,
+            price: parseFloat(
+              item?.info?.price?.price || item?.total_price || item?.sub_total || 0
+            ),
+            selectedInfo:
+              item?.info?.price?.size_en || item?.info?.size_en || "",
+            selectedExtras: item?.extras || [],
+            selectedMainExtras: [],
+            note: item?.special || "",
+          }));
+  
+          console.log("loaded cart items:", transformedItems);
+          setCartItems(transformedItems);
+        } else {
+          console.log("No valid items array found in parsedOrder.");
+        }
+      }
+    }
   }, [selectedUser]);
-
+  
   useEffect(() => {
     const handleRouteChange = () => {
       localStorage.removeItem("order");
@@ -1694,18 +1766,18 @@ function CreateOrder() {
   
   
   
-  useEffect(() => {
-    // تحقق إذا كان الرقم موجود في search
-    if (search) {
-      // إذا كان رقم الهاتف في order موجود، نفذ البحث
-      if (order?.details?.user_data?.phone) {
-        handleSearch();
-      } else {
-        // إذا ما في order، نفذ البحث مباشرة مع الرقم المدخل في search
-        handleSearch();
-      }
-    }
-  }, [search, order]);
+  // useEffect(() => {
+  //   // تحقق إذا كان الرقم موجود في search
+  //   if (search) {
+  //     // إذا كان رقم الهاتف في order موجود، نفذ البحث
+  //     if (order?.details?.user_data?.phone) {
+  //       handleSearch();
+  //     } else {
+  //       // إذا ما في order، نفذ البحث مباشرة مع الرقم المدخل في search
+  //       handleSearch();
+  //     }
+  //   }
+  // }, [search, order]);
   // useEffect(() => {
   
   //   console.log("orderphone:", order?.user_data?.phone);
@@ -2582,6 +2654,7 @@ function CreateOrder() {
                   <Search className="w-4 h-4 text-gray-500" />
                 </span>
 
+
                 <Input
                   type="text"
                   placeholder="Enter phone number"
@@ -2599,7 +2672,6 @@ function CreateOrder() {
                   </button>
                 )}
               </div>
-
               <div className="flex gap-2">
                 <Button
                   onClick={handleSearch}
@@ -2660,7 +2732,8 @@ function CreateOrder() {
                     className="my3"
                     onClick={() => setOpenEditDialog(true)}
                   >
-                    <FiEdit className=" " />
+                    <FiEdit  />
+                    
                   </Button>
                 </div>
                 <div className="mt-2">
@@ -3043,13 +3116,13 @@ function CreateOrder() {
                           </TableRow>
                           <TableRow>
                             <TableCell className="text-[#000] dark:text-[#fff]">
-                              VAT
+                              Discount
                             </TableCell>
                             <TableCell className="text-[#000] dark:text-[#fff]">
-                              {Tax}%
+                              0%
                             </TableCell>
                             <TableCell className="text-[#000] dark:text-[#fff]">
-                              {(grandTotal * (Tax / 100)).toFixed(2)}
+                              0
                             </TableCell>
                           </TableRow>
                           <TableRow>
@@ -3063,15 +3136,21 @@ function CreateOrder() {
                           </TableRow>
                           <TableRow>
                             <TableCell className="text-[#000] dark:text-[#fff]">
-                              Discount
+                              VAT
                             </TableCell>
                             <TableCell className="text-[#000] dark:text-[#fff]">
-                              0%
+                              {Tax}%
                             </TableCell>
                             <TableCell className="text-[#000] dark:text-[#fff]">
-                              0
+                              {/* {(grandTotal + Delivery * (Tax / 100)).toFixed(2)} */}
+{
+   ((grandTotal + Delivery) * (Tax / 100)).toFixed(2)
+
+}
                             </TableCell>
                           </TableRow>
+                 
+                
                         </TableBody>
                         <TableFooter className="bg-default-100 border-t border-default-300">
                           <TableRow>
@@ -3489,7 +3568,8 @@ function CreateOrder() {
 
                                 <DialogFooter>
                                   <DialogClose asChild></DialogClose>
-                                  <Button type="submit">Send order</Button>
+                                  {/* <Button type="submit">Send order</Button> */}
+                                  <Button type="submit">  {isEditMode ? "Edit order" : "Send order"}</Button>
                                 </DialogFooter>
                               </div>
                             </form>
@@ -3538,7 +3618,8 @@ function CreateOrder() {
                         color="success"
                         onClick={() => setCreateOrderDialogOpen(true)}
                       >
-                        Checkout
+                        {/* Checkout */}
+                        {isEditMode ? "Edit" : "CheckOut"}
                       </Button>
                     </div>
                   </>
@@ -3810,7 +3891,7 @@ function CreateOrder() {
                     )}
                   </div>
 
-                  {/* Buttons */}
+                 
                   <DialogFooter className="flex justify-end gap-4">
                     <DialogClose asChild>
                       <Button

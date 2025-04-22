@@ -38,7 +38,6 @@ export default function OrderViewPage({ params }) {
     fetchdata();
   }, [apiBaseUrl, orderId, token]);
   
-  console.log("Orderfrom view", Order);
   const {
     data: branches,
     isLoadingBranches,
@@ -73,6 +72,7 @@ export default function OrderViewPage({ params }) {
     { value: "Canceled", label: "Canceled" },
     { value: "Rejected", label: "Rejected" },
   ]);
+  const [dispatchersOptions, setdispatchersOptions] = useState([]);
 
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
@@ -189,7 +189,7 @@ export default function OrderViewPage({ params }) {
             <p>Order id: {OrderDetails?.order_id}</p>
           </div>
 
-          <div className="flex gap- justify-between my-2">
+          <div className="flex gap-2 justify-between my-2">
             <div className="w-[40%]">
               <p className="mb-1 text-sm ">Change branch:</p>
               <Select
@@ -206,6 +206,18 @@ export default function OrderViewPage({ params }) {
               <p className="mb-1 text-sm ">Change status:</p>
               <Select
                 placeholder="Change Status"
+                className="react-select "
+                classNamePrefix="select"
+                styles={selectStyles(theme, color)}
+                options={statusOptions}
+                onChange={(selected) => setSelectedStatus(selected)}
+                value={selectedStatus}
+              />
+            </div>
+            <div className="w-[40%]">
+              <p className="mb-1 text-sm ">Change dispatcher:</p>
+              <Select
+                placeholder="Change dispatcher"
                 className="react-select "
                 classNamePrefix="select"
                 styles={selectStyles(theme, color)}

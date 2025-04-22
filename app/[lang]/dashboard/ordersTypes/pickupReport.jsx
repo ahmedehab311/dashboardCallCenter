@@ -23,12 +23,12 @@ const UserDeviceReport = ({
   const deliveryCount = allOrders.filter(
     (order) => order.delivery_type === "1"
   ).length;
-  console.log("deliveryCount", deliveryCount);
+  // console.log("deliveryCount", deliveryCount);
 
   const pickupCount = allOrders.filter(
     (order) => order.delivery_type === "2"
   ).length;
-  console.log("pickupCount", pickupCount);
+  // console.log("pickupCount", pickupCount);
 
   const sourceLabels = ["Delivery", "Pickup"];
   const series = [deliveryCount, pickupCount];
