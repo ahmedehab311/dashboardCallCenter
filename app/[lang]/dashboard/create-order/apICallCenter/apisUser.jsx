@@ -282,7 +282,7 @@ export const updateUserData = async (userData) => {
   const basePath =
     typeof window !== "undefined" &&
     window.location.origin.includes("localhost")
-      ? "/api"
+      ? userData.apiBaseUrl
       : userData.apiBaseUrl;
   const url = `${basePath}/callcenter/user/update?api_token=${
     userData.token

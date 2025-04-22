@@ -663,10 +663,10 @@ function CreateOrder() {
   //   }
   // };
   const handleSearch = (value = search) => {
-    if (value.trim()) {
-      setPhone(value.trim()); // حفظ الرقم في الحالة
-      refetch(); // تنفيذ البحث
-      setErrorSearchUser(""); // مسح أي رسائل خطأ
+    if (value?.trim()) {
+      setPhone(value?.trim()); 
+      refetch(); 
+      setErrorSearchUser(""); 
   
       if (selectedUser?.address?.length > 0 && !selectedAddress) {
         setSelectedAddress(selectedUser.address[0]);
