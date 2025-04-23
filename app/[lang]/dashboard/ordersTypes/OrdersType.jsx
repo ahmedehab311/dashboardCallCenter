@@ -107,10 +107,11 @@ function OrdersType() {
       bg: "bg-emerald-100",
     },
   ];
- 
+
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 w-full p-2 mb-">
+      {selectedStatus === "Total" ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 col-span-3">
           {stats.map((stat, index) => (
             <StatCard
@@ -125,44 +126,79 @@ function OrdersType() {
               language={language}
               errororders={errororders}
               isLoadingorders={isLoadingorders}
+              selectedStatus={selectedStatus}
             />
           ))}
         </div>
-
-        <Card className="col-span- h-full mt-0">
-          <CardHeader className="border-none p-6 pt-5 ">
-            {/* <CardTitle className="text-lg font-semibold text-default-900 p-0">
+) : (
+  <div className="flex flex-wrap gap-4 col-span-5">
+    {stats.map((stat, index) => (
+      <StatCard
+        key={index}
+        icon={stat.icon}
+        number={stat.number}
+        label={stat.label}
+        onClick={() => setSelectedStatus(stat.statusKey)}
+        bg={stat.bg}
+        language={language}
+        errororders={errororders}
+        isLoadingorders={isLoadingorders}
+        selectedStatus={selectedStatus}
+      />
+    ))}
+  </div>
+)}
+        {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 col-span-3">
+          {stats.map((stat, index) => (
+            <StatCard
+              key={index}
+              icon={stat.icon}
+              number={stat.number}
+              label={stat.label}
+              onClick={() => {
+                setSelectedStatus(stat.statusKey);
+              }}
+              bg={stat.bg}
+              language={language}
+              errororders={errororders}
+              isLoadingorders={isLoadingorders}
+              selectedStatus={selectedStatus}
+            />
+          ))}
+        </div> */}
+        {selectedStatus === "Total" && (
+          <Card className="col-span- h-full mt-0">
+            <CardHeader className="border-none p-6 pt-5 "></CardHeader>
+            <CardContent>
+              <div className="dashtail-legend">
+                <UserDeviceReport
+                  orders={orders}
+                  errororders={errororders}
+                  isLoadingorders={isLoadingorders}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {selectedStatus === "Total" && (
+          <Card className="col-span- h-ful mt-1">
+            <CardHeader className="border-none p-6 pt-5 ">
+              {/* <CardTitle className="text-lg font-semibold text-default-900 p-0">
         Device Breakdown
       </CardTitle> */}
-          </CardHeader>
-          <CardContent>
-            <div className="dashtail-legend">
-              <UserDeviceReport
-                orders={orders}
-                selectedStatus={selectedStatus}
-                errororders={errororders}
-                isLoadingorders={isLoadingorders}
-              />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="col-span- h-ful mt-1">
-          <CardHeader className="border-none p-6 pt-5 ">
-            {/* <CardTitle className="text-lg font-semibold text-default-900 p-0">
-        Device Breakdown
-      </CardTitle> */}
-          </CardHeader>
-          <CardContent>
-            <div className="dashtail-legend">
-              <PickupReport
-                orders={orders}
-                selectedStatus={selectedStatus}
-                errororders={errororders}
-                isLoadingorders={isLoadingorders}
-              />
-            </div>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              <div className="dashtail-legend">
+                <PickupReport
+                  orders={orders}
+                  selectedStatus={selectedStatus}
+                  errororders={errororders}
+                  isLoadingorders={isLoadingorders}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
       <div>
         <Card className="col-span- h-full mt- p-3">

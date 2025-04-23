@@ -10,6 +10,7 @@ export default function StatCard({
   onClick,
   bg,
   isLoadingorders,
+  selectedStatus,
   errororders,
 }) {
   const [displayNumber, setDisplayNumber] = useState(0);
@@ -43,29 +44,16 @@ export default function StatCard({
     }
   }, [isReal, isLoadingorders]);
 
-  const renderContent = () => {
-    if (isLoadingorders) {
-      return displayNumber;
-    }
-
-    if (errororders) {
-      return "Error";
-    }
-
-    return <CountUp end={number} duration={1.5} />;
-  };
 
   return (
     <div
       onClick={onClick}
-      className={`flex items-center justify-between p-4 rounded-xl shadow hover:opacity-90 transition w-full ${bg} cursor-pointer`}
+      className={`flex items-center justify-between p-4 rounded-xl shadow hover:opacity-90 transition  ${bg} cursor-pointer  ${
+        selectedStatus === "Total" ? "w-full" : "w-[180px]"
+      } `}
     >
       <div className="flex flex-col text-left">
-        {/* <span className="text-xl font-bold text-[#000]">
-        {isReal ? <CountUp end={number} duration={1.5} /> : displayNumber}
-      </span> */}
-        {/* <span className="text-xl font-bold text-[#000]">{renderContent()}</span> */}
-        <span className="text-xl font-bold text-[#000] flex items-center gap-2">
+        <span className="text-xl font-bold text-[#000] flex items-center gap-2 ">
           {isLoadingorders ? (
             <>
               <svg

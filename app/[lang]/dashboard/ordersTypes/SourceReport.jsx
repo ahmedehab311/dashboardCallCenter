@@ -101,6 +101,7 @@ const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) 
   }
   return (
     <Chart
+    
       options={options}
       series={series}
       type="donut"

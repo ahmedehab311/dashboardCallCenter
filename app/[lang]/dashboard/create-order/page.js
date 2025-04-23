@@ -80,7 +80,7 @@ import NewUserDialog from "./components/newUserDialog";
 import EditAddressDiaolg from "./components/EditAddressDiaolg";
 import DeleteAddressFotUser from "./components/DeleteAddressFotUser";
 import Cookies from "js-cookie";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
@@ -99,6 +99,25 @@ const editUserDataSchema = z.object({
       message: "Invalid email address",
     }),
 });
+// const editUserAddressSchema = z.object({
+//   area: z.object(
+//     { value: z.number(), label: z.string() },
+//     { required_error: "Area is required" }
+//   ),
+//   street: z.string().min(1, "Street name is required"),
+//   name: z.string().optional(),
+//   building: z.string().min(1, "Building number is required").or(z.literal("")),
+//   building: z.string().min(1, "Building number is required").or(z.literal("")),
+//   floor: z
+//     .union([z.string(), z.number()])
+//     .optional()
+//     .transform((val) => val || ""),
+//   apt: z
+//     .union([z.string(), z.number()])
+//     .optional()
+//     .transform((val) => val || ""),
+//   additionalInfo: z.string().optional(),
+// });
 const editUserAddressSchema = z.object({
   area: z.object(
     { value: z.number(), label: z.string() },
@@ -106,18 +125,12 @@ const editUserAddressSchema = z.object({
   ),
   street: z.string().min(1, "Street name is required"),
   name: z.string().optional(),
-  building: z.string().min(1, "Building number is required").or(z.literal("")),
-  building: z.string().min(1, "Building number is required").or(z.literal("")),
-  floor: z
-    .union([z.string(), z.number()])
-    .optional()
-    .transform((val) => val || ""),
-  apt: z
-    .union([z.string(), z.number()])
-    .optional()
-    .transform((val) => val || ""),
+  building: z.string().optional(),
+  floor: z.string().optional(),
+  apt: z.string().optional(),
   additionalInfo: z.string().optional(),
 });
+
 const createOrderSchema = z.object({
   ordertype: z.number({ required_error: "Order type is required" }),
   ordersource: z.string().optional(),
@@ -340,18 +353,42 @@ function CreateOrder() {
       }))
     ) || [];
 
+  // const {
+  //   data: selectedUser,
+  //   isLoadingUserDataForSerach,
+  //   errorUserDataForSearch,
+  //   refetch
+  // } = useQuery({
+  //   queryKey: ["userSearch", phone],
+  //   queryFn: () => fetchUserByPhone(phone, token, apiBaseUrl),
+  //   enabled: false,
+  //   onSuccess: (data) => {
+  //     if (data) {
+  //       setAllUserData(data);
+  //     }
+  //   },
+  //   onError: (error) => {
+  //     setErrorSearchUser("Error fetching user data");
+  //     console.error("Error fetching user:", error);
+  //   },
+  // });
+  const [errorSearchUser, setErrorSearchUser] = useState("");
   const {
     data: selectedUser,
     isLoadingUserDataForSerach,
     errorUserDataForSearch,
-    refetch
+    refetch,
   } = useQuery({
-    queryKey: ["userSearch", phone],
-    queryFn: () => fetchUserByPhone(phone, token, apiBaseUrl),
+    queryKey: ["userSearch"],
+    queryFn: () => fetchUserByPhone(search.trim(), token, apiBaseUrl),
     enabled: false,
     onSuccess: (data) => {
       if (data) {
         setAllUserData(data);
+        setErrorSearchUser("");
+      } else {
+        setAllUserData(null);
+        setErrorSearchUser("No user foundثي");
       }
     },
     onError: (error) => {
@@ -359,6 +396,7 @@ function CreateOrder() {
       console.error("Error fetching user:", error);
     },
   });
+
   // api branches
 
   // if (process.env.NODE_ENV === "development") {
@@ -430,7 +468,7 @@ function CreateOrder() {
       // console.log("Response from fetchViewItem:", response);
 
       if (response?.response === false) {
-        console.log("Setting error message:", response.message);
+        // console.log("Setting error message:", response.message);
         setMassegeInvaildToken(response.message);
         return;
       }
@@ -568,7 +606,7 @@ function CreateOrder() {
   const [search, setSearch] = useState("");
   const [allUserData, setAllUserData] = useState(null);
   const [selectedBranch, setSelectedBranch] = useState(null);
-  const [errorSearchUser, setErrorSearchUser] = useState(null);
+
   const [selectedAddressArray, setSelectedAddressArray] = useState([]);
 
   const [selectedBranchName, setSelectedBranchName] = useState("");
@@ -646,32 +684,26 @@ function CreateOrder() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [search]);
+  useEffect(() => {
+    setAllUserData(null); // لو دي الحالة اللي بتتحكم في selectedUser
+    setPhone("");
+    setSelectedAddress(null);
+    setErrorSearchUser("");
+    return () => {
+      queryClient.removeQueries(["userSearch"]);
+    };
+  }, []);
 
-  // const handleSearch = () => {
-  //   if (search) {
-  //     setPhone(search);
-  //     if (selectedUser?.address?.length > 0 && !selectedAddress) {
-  //       setSelectedAddress(selectedUser.address[0]);
-  //     }
-  //      refetch()
-  //     setErrorSearchUser("");
-  //     if (selectedBranch) {
-  //       setSelectedBranchPriceList(selectedBranch.price_list);
-  //     }
-  //   } else {
-  //     setErrorSearchUser("Please enter a valid search term.");
-  //   }
-  // };
-  const handleSearch = (value = search) => {
-    if (value?.trim()) {
-      setPhone(value?.trim()); 
-      refetch(); 
-      setErrorSearchUser(""); 
-  
+  const handleSearch = () => {
+    if (search) {
+      setPhone(search);
+
       if (selectedUser?.address?.length > 0 && !selectedAddress) {
         setSelectedAddress(selectedUser.address[0]);
       }
-  
+       refetch()
+      setErrorSearchUser("");
+      
       if (selectedBranch) {
         setSelectedBranchPriceList(selectedBranch.price_list);
       }
@@ -679,8 +711,26 @@ function CreateOrder() {
       setErrorSearchUser("Please enter a valid search term.");
     }
   };
-    
- 
+  const [hasSearched, setHasSearched] = useState(false);
+  // const handleSearch = (value = search) => {
+  //   console.log("Button clicked");
+  //   if (value && typeof value === "string" && value.trim()) {
+  //     setHasSearched(true);
+  //     setErrorSearchUser("");
+  //     refetch();
+
+  //     if (selectedUser?.address?.length > 0 && !selectedAddress) {
+  //       setSelectedAddress(selectedUser.address[0]);
+  //     }
+
+  //     if (selectedBranch) {
+  //       setSelectedBranchPriceList(selectedBranch.price_list);
+  //     }
+  //   } else {
+  //     setErrorSearchUser("Please enter a valid search term.");
+  //   }
+  // };
+
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       handleSearch();
@@ -694,6 +744,7 @@ function CreateOrder() {
     setSelectedAddress(null);
     setSelectedAddressArray(null);
     setCartItems([]);
+    queryClient.removeQueries(["userSearch"], { exact: false });
   };
 
   useEffect(() => {
@@ -748,9 +799,8 @@ function CreateOrder() {
     setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
   };
 
-  const [cartItems, setCartItems] = useState([]);
-
   const [note, setNote] = useState("");
+  const [cartItems, setCartItems] = useState([]);
 
   const handleAddToCart = () => {
     setCartItems((prevItems) => {
@@ -783,7 +833,7 @@ function CreateOrder() {
           ...prevItems,
           {
             ...selectedItem,
-            id: `${selectedItem.id}-${Date.now()}`,
+            id: `${selectedItem.id}`,
             quantity: counter,
             total: counter * selectedItem.price,
             mainExtras: Array.isArray(selectedItem.mainExtras)
@@ -807,8 +857,21 @@ function CreateOrder() {
     setNote("");
     setIsItemDialogOpen(false);
   };
+  useEffect(() => {
+    if (!selectedItem) return;
 
-  // console.log("selectedIdSize", selectedItem?.selectedIdSize);
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === selectedItem.id
+          ? {
+              ...item,
+              quantity: counter,
+              total: counter * item.price,
+            }
+          : item
+      )
+    );
+  }, [counter]);
   const handleNoteChange = (e, itemId) => {
     const newNote = e.target.value;
 
@@ -1184,35 +1247,59 @@ function CreateOrder() {
     }
   }, [selectedUser, selectedAddress, setValueEdit]);
 
+  // useEffect(() => {
+  //   if (selectedEditAddress) {
+  //     const selectedAreaOption = areasOptions?.find(
+  //       (option) => option.value === selectedEditAddress.area
+  //     );
+
+  //     setValueEditAddressUser("area", selectedAreaOption);
+
+  //     if (["home", "work"].includes(selectedEditAddress.address_name)) {
+  //       seEditAddressType(selectedEditAddress.address_name);
+  //       setCustomAddressName("");
+  //     } else {
+  //       seEditAddressType("other");
+  //       setCustomAddressName(selectedEditAddress.address_name);
+  //     }
+
+  //     setValueEditAddressUser("street", selectedEditAddress.street);
+  //     setValueEditAddressUser("building", selectedEditAddress.building);
+  //     setValueEditAddressUser("floor", selectedEditAddress.floor);
+  //     setValueEditAddressUser("apt", selectedEditAddress.apartment);
+  //     setValueEditAddressUser("additionalInfo", selectedEditAddress.additional);
+  //   }
+  // }, [selectedEditAddress, setValueEditAddressUser]);
+
   useEffect(() => {
     if (selectedEditAddress) {
+      // تأكد من أن القيمة موجودة أولاً قبل تعيينها
       const selectedAreaOption = areasOptions?.find(
         (option) => option.value === selectedEditAddress.area
       );
-
-      setValueEditAddressUser("area", selectedAreaOption);
-
+  
+      if (selectedAreaOption) {
+        setValueEditAddressUser("area", selectedAreaOption);
+      }
+  
+      // تحقق من وجود القيم قبل تعيينها
       if (["home", "work"].includes(selectedEditAddress.address_name)) {
         seEditAddressType(selectedEditAddress.address_name);
         setCustomAddressName("");
       } else {
         seEditAddressType("other");
-        setCustomAddressName(selectedEditAddress.address_name);
+        setCustomAddressName(selectedEditAddress.address_name || "");
       }
-
-      setValueEditAddressUser("street", selectedEditAddress.street);
-      setValueEditAddressUser("building", selectedEditAddress.building );
-      setValueEditAddressUser("floor", selectedEditAddress.floor );
-      setValueEditAddressUser("apt", selectedEditAddress.apartment );
-      setValueEditAddressUser(
-        "additionalInfo",
-        selectedEditAddress.additional 
-      );
+  
+      setValueEditAddressUser("street", selectedEditAddress.street || "");
+      setValueEditAddressUser("building", selectedEditAddress.building || "");
+      setValueEditAddressUser("floor", selectedEditAddress.floor || "");
+      setValueEditAddressUser("apt", selectedEditAddress.apartment || "");
+      setValueEditAddressUser("additionalInfo", selectedEditAddress.additional || "");
     }
   }, [selectedEditAddress, setValueEditAddressUser]);
-
   const [totalExtrasPrice, setTotalExtrasPrice] = useState(0);
-  // console.log("totalExtrasPrice", totalExtrasPrice);
+  // console.log("selectedEditAddress", selectedEditAddress);
   const [lodaingEditUserData, setLodaingEditUserData] = useState(false);
   const onSubmitEditUserData = async (data) => {
     const formattedData = Object.entries({
@@ -1268,14 +1355,14 @@ function CreateOrder() {
 
   // console.log("apiBaseUrl create order", apiBaseUrl);
   const onSubmitEditUserAddress = async (data) => {
-    // console.log("apiBaseUrl onSubmitEditUserAddress", apiBaseUrl);
+    console.log("apiBaseUrl onSubmitEditUserAddress", data);
 
     const nameValue =
       typeof data.name === "string" && data.name.trim() !== ""
         ? data.name
         : "home";
     try {
-      console.log("token onSubmitEditUserAddress:", token);
+      // console.log("token onSubmitEditUserAddress:", token);
       // const response = await updateUserAddress(formattedData);
       const response = await updateUserAddress({
         id: selectedEditAddress.id,
@@ -1284,7 +1371,7 @@ function CreateOrder() {
         building: data.building || "",
         floor: data.floor || "",
         apt: data.apt || "",
-        additional_info: data.additionalInfo || "",
+        additional: data.additionalInfo || "",
         address_name: nameValue,
         token,
         apiBaseUrl,
@@ -1426,6 +1513,7 @@ function CreateOrder() {
       setCartItems([]);
       setIsOpenUserData(true);
       setSelectedBranchPriceList(1);
+      queryClient.removeQueries(["userSearch"], { exact: false });
     } catch (error) {
       console.error(" خطأ في إنشاء الطلب:", error);
       toast.error(error.message || "حدث خطأ غير متوقع!");
@@ -1522,14 +1610,14 @@ function CreateOrder() {
   // const vatAmount = parseFloat(grandTotal * (parseFloat(Tax) / 100)); // .14
 
   const discount = 0;
-  
+
   const Delivery =
-  selectedOrderType?.value === 2
-  ? 0
-  : parseFloat(savedBranch?.deliveryFees) || 0; 
-  
- const vatAmount = ((grandTotal - discount) + Delivery) * 0.14; 
-  const totalAmount = (grandTotal - discount) + vatAmount + Delivery;
+    selectedOrderType?.value === 2
+      ? 0
+      : parseFloat(savedBranch?.deliveryFees) || 0;
+
+  const vatAmount = (grandTotal - discount + Delivery) * 0.14;
+  const totalAmount = grandTotal - discount + vatAmount + Delivery;
 
   const finalTotal = useMemo(() => {
     let total =
@@ -1578,6 +1666,7 @@ function CreateOrder() {
     setCartItems([]);
     setIsOpenUserData(true);
     setSelectedBranchPriceList(1);
+    queryClient.removeQueries(["userSearch"], { exact: false });
   };
   const handleEditAddress = (address) => {
     setSelectedEditAddress(address);
@@ -1616,76 +1705,60 @@ function CreateOrder() {
   //     const phone = parsedOrder?.details?.user_data?.phone;
   //     console.log("parsedOrder.items", parsedOrder.items);
 
-  
   //     if (phone) {
-  //       setSearch(phone); 
-  //       handleSearch(phone); 
-  //       refetch(); 
+  //       setSearch(phone);
+  //       handleSearch(phone);
+  //       refetch();
   //     }
-   
+
   //   }
   //   // console.log("order:", orderData?.details?.user_data?.phone);
   // }, []);
   useEffect(() => {
     const orderData = localStorage.getItem("order");
-  
+
     if (orderData) {
       setIsEditMode(true);
       const parsedOrder = JSON.parse(orderData);
       const phoneFromOrder = parsedOrder?.details?.user_data?.phone;
-  
+
       if (phoneFromOrder) {
         setSearch(phoneFromOrder);
         setPhone(phoneFromOrder);
-  
+
         setTimeout(() => {
           handleSearch(phoneFromOrder);
         }, 0);
       }
+    } else {
+      setAllUserData(null);
+      setSelectedAddress(null);
+      setPhone("");
+      // setAllUserData(null);
     }
   }, []);
-  
-  // useEffect(() => {
-  // if(selectedUser){
-  //   const orderData = localStorage.getItem("order");
-  
-  //   if (orderData) {
-  //     const parsedOrder = JSON.parse(orderData);
-  //     const item = parsedOrder?.items;
-  
-  //     if (item && typeof item === "object") {
-  //       const transformedItem = {
-  //         id: `${item?.info?.id}`,
-  //         quantity: item?.count || 1,
-  //         price: parseFloat(item?.info?.price?.price || item?.total_price || item?.sub_total || 0),
-  //         selectedInfo: item?.info?.price?.size_en || item?.info?.size_en || "",
-  //         selectedExtras: item?.extras || [],
-  //         selectedMainExtras: [],
-  //         note: item?.special || "",
-  //       };
-  
-  //       console.log("loaded cart item:", transformedItem);
-  //       setCartItems([transformedItem]);
-  //     } else {
-  //       console.log("No valid item found in parsedOrder.");
-  //     }
-  //   }
-  // }
-  // }, [selectedUser]);
+  useEffect(() => {
+    if (isEditMode && search) {
+      refetch();
+    }
+  }, [isEditMode, search]);
   useEffect(() => {
     if (selectedUser) {
       const orderData = localStorage.getItem("order");
-  
+
       if (orderData) {
         const parsedOrder = JSON.parse(orderData);
         const items = parsedOrder?.items;
-  
+
         if (Array.isArray(items)) {
           const transformedItems = items.map((item) => ({
             id: `${item?.info?.id}`,
             quantity: item?.count || 1,
             price: parseFloat(
-              item?.info?.price?.price || item?.total_price || item?.sub_total || 0
+              item?.info?.price?.price ||
+                item?.total_price ||
+                item?.sub_total ||
+                0
             ),
             selectedInfo:
               item?.info?.price?.size_en || item?.info?.size_en || "",
@@ -1693,7 +1766,7 @@ function CreateOrder() {
             selectedMainExtras: [],
             note: item?.special || "",
           }));
-  
+
           console.log("loaded cart items:", transformedItems);
           setCartItems(transformedItems);
         } else {
@@ -1702,23 +1775,32 @@ function CreateOrder() {
       }
     }
   }, [selectedUser]);
-  
+
+  // useEffect(() => {
+  //   const handleRouteChange = () => {
+  //     localStorage.removeItem("order");
+  //     queryClient.removeQueries(["userSearch"]);
+  //   };
+
+  //   router.events?.on("routeChangeStart", handleRouteChange);
+
+  //   return () => {
+  //     router.events?.off("routeChangeStart", handleRouteChange);
+  //   };
+  // }, []);
   useEffect(() => {
     const handleRouteChange = () => {
       localStorage.removeItem("order");
+      queryClient.removeQueries(["userSearch"], { exact: false }); // exact false = يشيل أي query تبدأ بـ userSearch
     };
 
-    // نسمع لتغير الصفحة
     router.events?.on("routeChangeStart", handleRouteChange);
 
     return () => {
       router.events?.off("routeChangeStart", handleRouteChange);
     };
-  }, []);
-  const updateOrder = async ({
-    orderId, 
-    ...rest 
-  }) => {
+  }, [queryClient]);
+  const updateOrder = async ({ orderId, ...rest }) => {
     const formattedItems = {
       items: rest.items.map((item) => ({
         id: item.selectedIdSize,
@@ -1732,7 +1814,7 @@ function CreateOrder() {
         special: item.note || "",
       })),
     };
-  
+
     try {
       const response = await axios.post(
         `${rest.apiBaseUrl}/callcenter/order/update/${orderId}?api_token=${rest.token}`,
@@ -1756,16 +1838,14 @@ function CreateOrder() {
           },
         }
       );
-  
+
       return response.data;
     } catch (error) {
       console.error("Error updating order:", error);
       throw error;
     }
   };
-  
-  
-  
+
   // useEffect(() => {
   //   // تحقق إذا كان الرقم موجود في search
   //   if (search) {
@@ -1779,10 +1859,10 @@ function CreateOrder() {
   //   }
   // }, [search, order]);
   // useEffect(() => {
-  
+
   //   console.log("orderphone:", order?.user_data?.phone);
   // }, []);
-  
+  // console.log("Error Message:", errorSearchUser);
   if (isLoadingBranchs) return <p>Loading branches...</p>;
   if (errorBranchs) return <p>Error loading branches: {error.message}</p>;
   return (
@@ -2654,7 +2734,6 @@ function CreateOrder() {
                   <Search className="w-4 h-4 text-gray-500" />
                 </span>
 
-
                 <Input
                   type="text"
                   placeholder="Enter phone number"
@@ -2732,10 +2811,10 @@ function CreateOrder() {
                     className="my3"
                     onClick={() => setOpenEditDialog(true)}
                   >
-                    <FiEdit  />
-                    
+                    <FiEdit />
                   </Button>
                 </div>
+                {/* {errorSearchUser} */}
                 <div className="mt-2">
                   <p className="mb-2 flex">Phone: {selectedUser.phone}</p>
 
@@ -2750,11 +2829,47 @@ function CreateOrder() {
                 </div>
               </div>
             )}
+              <h3 className="text-lg font-semibold "></h3>
+              {/* {isOpenUserData && (
+  <div className="mt-2 p-2 rounded-md">
+    {selectedUser ? (
+      <>
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">
+            {selectedUser.user_name}
+          </h3>
+          <Button className="my3" onClick={() => setOpenEditDialog(true)}>
+            <FiEdit />
+          </Button>
+        </div>
+
+        <div className="mt-2">
+          <p className="mb-2 flex">Phone: {selectedUser.phone}</p>
+          {selectedUser?.phone2 && <p>Phone2: {selectedUser?.phone2}</p>}
+        </div>
+
+        <div className="flex items-center gap-4 mt-2">
+          <p>Orders Count: {selectedUser.orders_count}</p>
+          <p>Points: {selectedUser.user.points}</p>
+        </div>
+      </>
+    ) : (
+      hasSearched && !isLoadingUserDataForSerach && (
+        <p className="text-red-500 flex justify-between items-center">
+          {errorSearchUser ? errorSearchUser : "No user found"}
+        </p>
+      )
+    )}
+  </div>
+)} */}
+
+
+
+
           </Card>
 
           {selectedAddressArray?.length > 0 && (
             <>
-              <h3 className="text-lg font-semibold "></h3>
               <Card className="p-4 s w-full mt-0">
                 <div
                   className="flex justify-between items-center cursor-pointer"
@@ -3004,9 +3119,32 @@ function CreateOrder() {
                                       >
                                         -
                                       </button>
-                                      <span className="mx-4 text-gray-800 dark:text-gray-200">
-                                        {item.quantity}
-                                      </span>
+
+                                      <input
+                                        type="number"
+                                        step="0.001"
+                                        value={item.quantity}
+                                        onChange={(e) => {
+                                          const value = parseFloat(
+                                            e.target.value
+                                          );
+                                          if (!isNaN(value) && value >= 0.1) {
+                                            setCartItems((prevItems) =>
+                                              prevItems.map((i) =>
+                                                i.id === item.id
+                                                  ? {
+                                                      ...i,
+                                                      quantity: value,
+                                                      total: value * i.price,
+                                                    }
+                                                  : i
+                                              )
+                                            );
+                                          }
+                                        }}
+                                        className="w-16 text-center border border-gray-300 rounded-[6px] mx-2"
+                                      />
+
                                       <button
                                         onClick={() =>
                                           handleIncreaseTable(item.id)
@@ -3019,13 +3157,14 @@ function CreateOrder() {
                                   </div>
                                   <div className="my-3">
                                     <Input
-                                      type="text"
+                                      type="number"
                                       value={item.note || ""}
                                       onChange={(e) =>
                                         handleNoteChange(e, item.id)
                                       }
                                       placeholder="No note added"
                                       className="w-full px-3 py- border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
+                                      //  className="w-16 text-center border border-gray-300 rounded-[6px] focus:outline-none focus:ring-2 focus:-blue-500 focus:border-transparent "
                                     />
                                   </div>
 
@@ -3143,14 +3282,11 @@ function CreateOrder() {
                             </TableCell>
                             <TableCell className="text-[#000] dark:text-[#fff]">
                               {/* {(grandTotal + Delivery * (Tax / 100)).toFixed(2)} */}
-{
-   ((grandTotal + Delivery) * (Tax / 100)).toFixed(2)
-
-}
+                              {((grandTotal + Delivery) * (Tax / 100)).toFixed(
+                                2
+                              )}
                             </TableCell>
                           </TableRow>
-                 
-                
                         </TableBody>
                         <TableFooter className="bg-default-100 border-t border-default-300">
                           <TableRow>
@@ -3569,7 +3705,10 @@ function CreateOrder() {
                                 <DialogFooter>
                                   <DialogClose asChild></DialogClose>
                                   {/* <Button type="submit">Send order</Button> */}
-                                  <Button type="submit">  {isEditMode ? "Edit order" : "Send order"}</Button>
+                                  <Button type="submit">
+                                    {" "}
+                                    {isEditMode ? "Edit order" : "Send order"}
+                                  </Button>
                                 </DialogFooter>
                               </div>
                             </form>
@@ -3891,7 +4030,6 @@ function CreateOrder() {
                     )}
                   </div>
 
-                 
                   <DialogFooter className="flex justify-end gap-4">
                     <DialogClose asChild>
                       <Button

@@ -86,7 +86,7 @@ export function BasicDataTable({
         Branch: order?.branch?.[0]?.name_en || "-",
         Customer: order?.user?.user_name || order?.user_name || "-",
         Phone: order?.user?.phone || order?.phone || "-",
-        Address: order?.address?.[0]?.address1 || "-",
+        Address: order?.address?.[0]?.address1 || "Pickup",
         Total: order?.total,
         source: order?.source,
         TotalAmount: isNaN(parseFloat(order?.total))

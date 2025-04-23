@@ -3,19 +3,54 @@ import axios from "axios";
 import apiInstance from "@/api/axiosInstance";
 import { toast } from "react-hot-toast";
 import request from "superagent";
-// import got from "got";
 export const fetchUserByPhone = async (phone, token, apiBaseUrl) => {
   try {
     const response = await axios.get(
       `${apiBaseUrl}/callcenter/user/search?api_token=${token}&phone=${phone}`
     );
-    // console.log("serach user ", response.data.users);
-    return response.data.users;
+    const userData = response?.data?.users;
+
+    console.log(" response serach user ", response);
+    console.log("serach user ", userData);
+
+    if (!userData || response.data === "" || userData === undefined) {
+      return null;
+    }
+    return userData
   } catch (error) {
     console.error("Error fetching user:", error);
     throw error;
   }
 };
+// export const fetchUserByPhone = async (phone, token, apiBaseUrl) => {
+//   try {
+//     const response = await axios.get(
+//       `${apiBaseUrl}/callcenter/user/search?api_token=${token}&phone=${phone}`
+//     );
+
+//     console.log("response search user", response);
+
+//     const responseData = response?.data;
+
+
+//     if (
+//       typeof responseData !== "object" ||
+//       !responseData.users ||
+//       Object.keys(responseData.users).length === 0
+//     ) {
+//       return null;
+//     }
+
+//     const userData = responseData.users;
+
+//     console.log("search user", userData);
+//     return userData;
+//   } catch (error) {
+//     console.error("Error fetching user:", error);
+//     throw error;
+//   }
+// };
+
 
 export const createUser = async (name, phone, phone2, token, apiBaseUrl) => {
   try {
@@ -163,6 +198,7 @@ export const createOrder = async ({
   }
 };
 
+
 export const updateUserAddress = async ({
   id,
   area,
@@ -170,7 +206,7 @@ export const updateUserAddress = async ({
   building,
   floor,
   apt,
-  additional_info,
+  additional,
   address_name,
   token,
   apiBaseUrl,
@@ -200,7 +236,7 @@ export const updateUserAddress = async ({
           ...(building && { building }),
           ...(floor && { floor }),
           ...(apt && { apt }),
-          ...(additional_info && { additional_info: additional_info }),
+          ...(additional && { additional: additional }),
         },
   
       }

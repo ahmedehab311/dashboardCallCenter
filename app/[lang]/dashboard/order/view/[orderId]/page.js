@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { fetchBranches } from "@/app/[lang]/dashboard/create-order/apICallCenter/ApisCallCenter";
 import { useQuery } from "@tanstack/react-query";
+import { updateStatusOrder } from "./ApisOrder";
+import { toast } from "react-hot-toast";
 export default function OrderViewPage({ params }) {
   const { orderId } = params;
   const { theme } = useTheme();
@@ -30,14 +32,14 @@ export default function OrderViewPage({ params }) {
       const response = await fetchViewOrder(token, apiBaseUrl, orderId);
       console.log("response", response);
       if (response) {
-        setOrder(response)
+        setOrder(response);
         setOrderDetails(response.details);
         setOrderDetailsItem(response.items);
       }
     };
     fetchdata();
   }, [apiBaseUrl, orderId, token]);
-  
+
   const {
     data: branches,
     isLoadingBranches,
@@ -64,7 +66,6 @@ export default function OrderViewPage({ params }) {
   // console.log("Branches", branches);
   const [branchOptions, setBranchOptions] = useState([]);
   const [statusOptions, setstatusOptions] = useState([
-    { value: "New", label: "New" },
     { value: "Pending", label: "Pending" },
     { value: "Processing", label: "Processing" },
     { value: "In-way", label: "In way" },
@@ -72,6 +73,7 @@ export default function OrderViewPage({ params }) {
     { value: "Canceled", label: "Canceled" },
     { value: "Rejected", label: "Rejected" },
   ]);
+
   const [dispatchersOptions, setdispatchersOptions] = useState([]);
 
   const [selectedBranch, setSelectedBranch] = useState(null);
@@ -123,6 +125,34 @@ export default function OrderViewPage({ params }) {
   if (!OrderDetails) {
     return <div>Loading...</div>;
   }
+  const handleChangeStatus = async (selected) => {
+    setSelectedStatus(selected);
+    try {
+      // console.log("selectedStatus.value:", selectedStatus.value);
+      // const response = await updateUserAddress(formattedData);
+      const response = await updateStatusOrder(
+        apiBaseUrl,
+        token,
+        orderId,
+        selectedStatus.value
+      );
+      response.data;
+      // console.log("response",response);
+
+      if (response) {
+        toast.success(response.data.data.message);
+
+        // setOpenEditAddressDialog(false);
+      } else {
+        toast.error("Something went wrong");
+      }
+
+      // console.log("Response onSubmit:", response);
+    } catch (error) {
+      console.error("Error updating user address:", error);
+      toast.error("Failed to update address. Please try again.");
+    }
+  };
 
   return (
     <>
@@ -210,7 +240,7 @@ export default function OrderViewPage({ params }) {
                 classNamePrefix="select"
                 styles={selectStyles(theme, color)}
                 options={statusOptions}
-                onChange={(selected) => setSelectedStatus(selected)}
+                onChange={handleChangeStatus}
                 value={selectedStatus}
               />
             </div>
