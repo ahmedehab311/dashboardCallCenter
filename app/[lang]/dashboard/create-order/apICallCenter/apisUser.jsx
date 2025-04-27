@@ -126,7 +126,81 @@ export const createAddress = async (
   }
 };
 
-export const createOrder = async ({
+
+  export const createOrder = async ({
+    lookupId,
+    address,
+    area,
+    notes,
+    source,
+    status,
+    insertcoupon,
+    insertpoints,
+    payment,
+    delivery_type,
+    branch,
+    items,
+    lng,
+    time,
+    lat,
+    restaurant,
+    token,
+    apiBaseUrl,
+  }) => {
+    const formattedItems = {
+      items: items.map((item) => ({
+        id: item.selectedIdSize,
+        choices: [],
+        options: [],
+        extras: [
+          ...(item.selectedMainExtrasIds || []),
+          ...(item.selectedExtrasIds || []),
+        ],
+        count: item.quantity,
+        special: item.note || "",
+      })),
+    };
+    // console.log("formattedItems:", formattedItems);
+    // console.log("📦 items being sent:", JSON.stringify(formattedItems, null, 2));
+
+    // const apiUrl = `/callcenter/order/create?api_token=${token}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${time || ""}&source=${source}&status=${status}&payment=${payment}&coins=${insertpoints || "00.00"}&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}&restaurant=${restaurant}&branch=${branch}`;
+
+    // console.log("Final API URL:", apiUrl);
+
+    try {
+      const response = await axios.post(
+        `${apiBaseUrl}/callcenter/order/create?api_token=${token}`,
+        null,
+        {
+          params: {
+            lookup_id: lookupId,
+            address,
+            area,
+            items: JSON.stringify(formattedItems),
+            notes,
+            ...(time ? { time } : {}),
+            source,
+            branch,
+            status,
+            payment,
+            lat,
+            lng,
+            delivery_type,
+            restaurant,
+          },
+        }
+      );
+
+      // console.log("Order created successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating order:", error);
+      throw error;
+    }
+  };
+
+
+export const updateOrder = async ({
   lookupId,
   address,
   area,
@@ -135,6 +209,7 @@ export const createOrder = async ({
   status,
   insertcoupon,
   insertpoints,
+  items,
   payment,
   delivery_type,
   branch,
@@ -146,17 +221,30 @@ export const createOrder = async ({
   token,
   apiBaseUrl,
 }) => {
+  // const formattedItems = {
+  //   items: items.map((item) => ({
+  //     id: item.selectedIdSize,
+  //     choices: [],
+  //     options: [],
+  //     extras: [
+  //       ...(item.selectedMainExtrasIds || []),
+  //       ...(item.selectedExtrasIds || []),
+  //     ],
+  //     count: item.quantity,
+  //     special: item.note || "",
+  //   })),
+  // };
   const formattedItems = {
     items: items.map((item) => ({
-      id: item.selectedIdSize,
-      choices: [],
-      options: [],
+      id: item.id,  
+      choices: [],  
+      options: [], 
       extras: [
-        ...(item.selectedMainExtrasIds || []),
-        ...(item.selectedExtrasIds || []),
+        ...(item.total_extras_price ? [item.total_extras_price] : []),  // إضافة extras إذا كانت موجودة
+        ...(item.total_options_price ? [item.total_options_price] : []), // إضافة options إذا كانت موجودة
       ],
-      count: item.quantity,
-      special: item.note || "",
+      count: item.quantity || 1,  
+      special: item.note || "",  
     })),
   };
   // console.log("formattedItems:", formattedItems);

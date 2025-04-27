@@ -11,6 +11,7 @@ export const updateStatusOrder = async (apiBaseUrl, token, orderId, status) => {
     throw error;
   }
 };
+
 export const updatebranchOrder = async (
   apiBaseUrl,
   token,
@@ -27,6 +28,7 @@ export const updatebranchOrder = async (
     throw error;
   }
 };
+
 export const updateDelivery = async (
   apiBaseUrl,
   token,
@@ -43,6 +45,7 @@ export const updateDelivery = async (
     throw error;
   }
 };
+
 export const getDeliveries = async (apiBaseUrl, token) => {
   try {
     const response = await axios.get(

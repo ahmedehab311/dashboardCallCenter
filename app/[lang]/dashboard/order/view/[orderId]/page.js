@@ -153,7 +153,7 @@ export default function OrderViewPage({ params }) {
     localStorage.setItem("order", JSON.stringify(Order));
     router.push(`/${language}/dashboard/create-order`);
   };
-
+  
   const handleChangeStatus = async (selected) => {
     if (selected.value === selectedStatus?.value) {
       return; 
@@ -206,7 +206,6 @@ export default function OrderViewPage({ params }) {
       toast.error("Failed to update branch. Please try again.");
     }
   };
-
   const handleChangeDelivery = async (selected) => {
     if (selected.value === selectedDelivery?.value) {
       return; 
