@@ -4,8 +4,7 @@ import Cookies from "js-cookie";
 
 // axiosInstance
 
-
-export const fetchRestaurantsList = async (token,apiBaseUrl) => {
+export const fetchRestaurantsList = async (token, apiBaseUrl) => {
   try {
     const response = await axios.get(
       `${apiBaseUrl}/callcenter/get/restaurants?api_token=${token}`
@@ -19,12 +18,12 @@ export const fetchRestaurantsList = async (token,apiBaseUrl) => {
   }
 };
 
-export const fetchBranches = async (restaurantId,area,token,apiBaseUrl) => {
+export const fetchBranches = async (restaurantId, area, token, apiBaseUrl) => {
   try {
     const response = await axios.get(
       `${apiBaseUrl}/callcenter/get/branches?api_token=${token}&restaurantId=${restaurantId}&areaId=${area}`
     );
-    
+
     // console.log("API Response branches:", response);
     // console.log("API Response.data branches:", response.data.data);
     // // console.log("API Response branches:", response.data.messages.branches);
@@ -37,7 +36,7 @@ export const fetchBranches = async (restaurantId,area,token,apiBaseUrl) => {
   }
 };
 
-export const fetchMenu = async (restaurantId, priceList,token,apiBaseUrl) => {
+export const fetchMenu = async (restaurantId, priceList, token, apiBaseUrl) => {
   try {
     const response = await axios.get(
       `${apiBaseUrl}/callcenter/get/restaurant/menus?api_token=${token}&restaurantId=${restaurantId}&priceList=${priceList}`,
@@ -58,14 +57,13 @@ export const fetchMenu = async (restaurantId, priceList,token,apiBaseUrl) => {
   }
 };
 
-export const fetchViewItem = async (BranchId,  itemId,token,apiBaseUrl) => {
-  
+export const fetchViewItem = async (BranchId, itemId, token, apiBaseUrl) => {
   try {
     const response = await axios.get(
       `${apiBaseUrl}/callcenter/get/menu/item?api_token=${token}&branch_id=${BranchId}&item_id=${itemId}`
     );
     // console.log("fetch View Item:", response.data);
-  
+
     return response.data;
   } catch (error) {
     console.error("Error fetching view item:", error);
@@ -99,7 +97,7 @@ export const fetchTax = async (apiBaseUrl) => {
 //     throw error;
 //   }
 // };
-export const fetchorderSource = async (restaurantId,token,apiBaseUrl) => {
+export const fetchorderSource = async (restaurantId, token, apiBaseUrl) => {
   try {
     const response = await fetch(
       `${apiBaseUrl}/callcenter/get/sources?api_token=${token}&restaurantId=${restaurantId}`
@@ -108,7 +106,7 @@ export const fetchorderSource = async (restaurantId,token,apiBaseUrl) => {
       const errorText = await response.text();
       throw new Error(`Failed to fetch sources: ${errorText}`);
     }
-    const data = await response.json(); 
+    const data = await response.json();
 
     // console.log("API Response sources:", data);
     // console.log("API Response sources restaurantId:", restaurantId);

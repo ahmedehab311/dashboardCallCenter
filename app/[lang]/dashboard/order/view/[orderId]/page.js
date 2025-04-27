@@ -12,7 +12,12 @@ import { Button } from "@/components/ui/button";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { fetchBranches } from "@/app/[lang]/dashboard/create-order/apICallCenter/ApisCallCenter";
 import { useQuery } from "@tanstack/react-query";
-import { updateStatusOrder } from "./ApisOrder";
+import {
+  updateStatusOrder,
+  updatebranchOrder,
+  getDeliveries,
+  updateDelivery
+} from "./ApisOrder";
 import { toast } from "react-hot-toast";
 export default function OrderViewPage({ params }) {
   const { orderId } = params;
@@ -63,8 +68,18 @@ export default function OrderViewPage({ params }) {
       !!OrderDetails?.address_info?.area &&
       !!token,
   });
-  // console.log("Branches", branches);
+  const {
+    data: Deliveries,
+    isLoadingDeliveries,
+    errorDeliveries,
+    refetch: refetchDeliveries,
+  } = useQuery({
+    queryKey: ["DeliveriesList"],
+    queryFn: () => getDeliveries(apiBaseUrl, token),
+    enabled: !!token,
+  });
   const [branchOptions, setBranchOptions] = useState([]);
+  const [DeliveryOptions, setDeliveryOptions] = useState([]);
   const [statusOptions, setstatusOptions] = useState([
     { value: "Pending", label: "Pending" },
     { value: "Processing", label: "Processing" },
@@ -73,10 +88,8 @@ export default function OrderViewPage({ params }) {
     { value: "Canceled", label: "Canceled" },
     { value: "Rejected", label: "Rejected" },
   ]);
-
-  const [dispatchersOptions, setdispatchersOptions] = useState([]);
-
   const [selectedBranch, setSelectedBranch] = useState(null);
+  const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
   useEffect(() => {
     if (branches?.length > 0) {
@@ -113,23 +126,40 @@ export default function OrderViewPage({ params }) {
       setColor("#000");
     }
   }, [theme]);
+  useEffect(() => {
+    if (Deliveries?.length > 0) {
+      setDeliveryOptions(
+        Deliveries.map((delivery) => ({
+          value: delivery.delivery_id,
+          label: delivery.name,
+          original: delivery,
+        }))
+      );
+    }
+  }, [Deliveries]);
+  useEffect(() => {
+    if (DeliveryOptions.length > 0 && OrderDetails?.delivery?.delivery_id) {
+      const foundDelivery = DeliveryOptions.find(
+        (option) => option.value === OrderDetails?.delivery?.delivery_id
+      );
+
+      setSelectedDelivery(foundDelivery || null);
+    }
+  }, [DeliveryOptions, OrderDetails?.delivery?.delivery_id]);
   const handlePrint = () => {
     window.print();
   };
   const handleEditOrder = () => {
-    console.log("editclick");
-
     localStorage.setItem("order", JSON.stringify(Order));
     router.push(`/${language}/dashboard/create-order`);
   };
-  if (!OrderDetails) {
-    return <div>Loading...</div>;
-  }
+
   const handleChangeStatus = async (selected) => {
+    if (selected.value === selectedStatus?.value) {
+      return; 
+    }
     setSelectedStatus(selected);
     try {
-      // console.log("selectedStatus.value:", selectedStatus.value);
-      // const response = await updateUserAddress(formattedData);
       const response = await updateStatusOrder(
         apiBaseUrl,
         token,
@@ -137,23 +167,77 @@ export default function OrderViewPage({ params }) {
         selectedStatus.value
       );
       response.data;
-      // console.log("response",response);
 
       if (response) {
         toast.success(response.data.data.message);
 
-        // setOpenEditAddressDialog(false);
+      } else {
+        toast.error("Something went wrong");
+      }
+
+    } catch (error) {
+      console.error("Error updating user Status:", error);
+      toast.error("Failed to update address. Please try again.");
+    }
+  };
+  const handleChangeBranch = async (selected) => {
+    if (selected.value === selectedBranch?.value) {
+      return; 
+    }
+    setSelectedBranch(selected);
+    try {
+      const response = await updatebranchOrder(
+        apiBaseUrl,
+        token,
+        orderId,
+        selectedBranch.value
+      );
+      response.data;
+
+      if (response) {
+        toast.success(response.data.data.message);
+
+      } else {
+        toast.error("Something went wrong");
+      }
+
+    } catch (error) {
+      console.error("Error updating user branch:", error);
+      toast.error("Failed to update branch. Please try again.");
+    }
+  };
+
+  const handleChangeDelivery = async (selected) => {
+    if (selected.value === selectedDelivery?.value) {
+      return; 
+    }
+    setSelectedDelivery(selected);
+    try {
+      // console.log("selectedDelivery.value:", selectedDelivery.value);
+      const response = await updateDelivery(
+        apiBaseUrl,
+        token,
+        orderId,
+        selectedDelivery.value
+      );
+      response.data;
+      // console.log("response updateDelivery", response);
+
+      if (response) {
+        toast.success(response.data.data.message);
       } else {
         toast.error("Something went wrong");
       }
 
       // console.log("Response onSubmit:", response);
     } catch (error) {
-      console.error("Error updating user address:", error);
-      toast.error("Failed to update address. Please try again.");
+      console.error("Error updating user delivery:", error);
+      toast.error("Failed to update delivery. Please try again.");
     }
   };
-
+  if (!OrderDetails) {
+    return <div>Loading...</div>;
+  }
   return (
     <>
       {/* <div className="flex">
@@ -229,7 +313,8 @@ export default function OrderViewPage({ params }) {
                 classNamePrefix="select"
                 styles={selectStyles(theme, color)}
                 value={selectedBranch}
-                onChange={(selected) => setSelectedBranch(selected)}
+                // onChange={(selected) => setSelectedBranch(selected)}
+                onChange={handleChangeBranch}
               />
             </div>
             <div className="w-[40%]">
@@ -251,9 +336,10 @@ export default function OrderViewPage({ params }) {
                 className="react-select "
                 classNamePrefix="select"
                 styles={selectStyles(theme, color)}
-                options={statusOptions}
-                onChange={(selected) => setSelectedStatus(selected)}
-                value={selectedStatus}
+                options={DeliveryOptions}
+                // onChange={(selected) => setSelectedStatus(selected)}
+                onChange={handleChangeDelivery}
+                value={selectedDelivery}
               />
             </div>
           </div>
