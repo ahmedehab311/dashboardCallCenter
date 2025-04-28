@@ -10,8 +10,8 @@ export const fetchUserByPhone = async (phone, token, apiBaseUrl) => {
     );
     const userData = response?.data?.users;
 
-    console.log(" response serach user ", response);
-    console.log("serach user ", userData);
+    // console.log(" response serach user ", response);
+    // console.log("serach user ", userData);
 
     if (!userData || response.data === "" || userData === undefined) {
       return null;
@@ -126,7 +126,6 @@ export const createAddress = async (
   }
 };
 
-
   export const createOrder = async ({
     lookupId,
     address,
@@ -160,10 +159,10 @@ export const createAddress = async (
         special: item.note || "",
       })),
     };
-    // console.log("formattedItems:", formattedItems);
-    // console.log("📦 items being sent:", JSON.stringify(formattedItems, null, 2));
+    console.log("formattedItems:", formattedItems);
+    console.log("📦 items being sent:", JSON.stringify(formattedItems, null, 2));
 
-    // const apiUrl = `/callcenter/order/create?api_token=${token}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${time || ""}&source=${source}&status=${status}&payment=${payment}&coins=${insertpoints || "00.00"}&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}&restaurant=${restaurant}&branch=${branch}`;
+    const apiUrl = `/callcenter/order/create?api_token=${token}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${time || ""}&source=${source}&status=${status}&payment=${payment}&coins=${insertpoints || "00.00"}&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}&restaurant=${restaurant}&branch=${branch}`;
 
     // console.log("Final API URL:", apiUrl);
 
@@ -199,7 +198,6 @@ export const createAddress = async (
     }
   };
 
-
 export const updateOrder = async ({
   lookupId,
   address,
@@ -209,7 +207,6 @@ export const updateOrder = async ({
   status,
   insertcoupon,
   insertpoints,
-  items,
   payment,
   delivery_type,
   branch,
@@ -221,30 +218,17 @@ export const updateOrder = async ({
   token,
   apiBaseUrl,
 }) => {
-  // const formattedItems = {
-  //   items: items.map((item) => ({
-  //     id: item.selectedIdSize,
-  //     choices: [],
-  //     options: [],
-  //     extras: [
-  //       ...(item.selectedMainExtrasIds || []),
-  //       ...(item.selectedExtrasIds || []),
-  //     ],
-  //     count: item.quantity,
-  //     special: item.note || "",
-  //   })),
-  // };
   const formattedItems = {
     items: items.map((item) => ({
-      id: item.id,  
-      choices: [],  
-      options: [], 
+      id: item.selectedIdSize,
+      choices: [],
+      options: [],
       extras: [
-        ...(item.total_extras_price ? [item.total_extras_price] : []),  // إضافة extras إذا كانت موجودة
-        ...(item.total_options_price ? [item.total_options_price] : []), // إضافة options إذا كانت موجودة
+        ...(item.selectedMainExtrasIds || []),
+        ...(item.selectedExtrasIds || []),
       ],
-      count: item.quantity || 1,  
-      special: item.note || "",  
+      count: item.quantity,
+      special: item.note || "",
     })),
   };
   // console.log("formattedItems:", formattedItems);

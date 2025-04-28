@@ -57,7 +57,6 @@ import {
   updateUserAddress2,
   deleteAddress,
   createOrder,
-  updateOrder,
   fetchUserByPhone,
 } from "./apICallCenter/apisUser";
 // import { BASE_URL_iamge } from "@/api/BaseUrl";
@@ -74,12 +73,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useSidebar } from "@/store/index";
 import { useSubdomin } from "@/provider/SubdomainContext";
 import Link from "next/link";
-// import { useSelector } from "react-redux";
-// import DialogItemForMenu from "./components/dialogItemForMenu";
-// import NewAddressDialog from "./components/NewAddressDialog";
-// import NewUserDialog from "./components/newUserDialog";
-// import EditAddressDiaolg from "./components/EditAddressDiaolg";
-// import DeleteAddressFotUser from "./components/DeleteAddressFotUser";
+import { useSelector } from "react-redux";
+import DialogItemForMenu from "./components/dialogItemForMenu";
+import NewAddressDialog from "./components/NewAddressDialog";
+import NewUserDialog from "./components/newUserDialog";
+import EditAddressDiaolg from "./components/EditAddressDiaolg";
+import DeleteAddressFotUser from "./components/DeleteAddressFotUser";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 
@@ -248,6 +247,7 @@ function CreateOrder() {
   const [selectedBranchId, setSelectedBranchId] = useState(null);
   const [selectedBranchIdCreateOrder, setSelectedBranchIdCreateOrder] =
     useState(null);
+
   const [SelectedBranchPriceist, setSelectedBranchPriceList] = useState(1);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [token, setToken] = useState(null);
@@ -423,7 +423,7 @@ function CreateOrder() {
   const [massegeInvaildToken, setMassegeInvaildToken] = useState(null);
   const [isBranchManuallySelected, setIsBranchManuallySelected] =
     useState(false);
-    const orderData = localStorage.getItem("order");
+
   useEffect(() => {
     const tokenStorage =
       typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -685,7 +685,7 @@ function CreateOrder() {
     };
   }, [search]);
   useEffect(() => {
-    setAllUserData(null); 
+    setAllUserData(null); // لو دي الحالة اللي بتتحكم في selectedUser
     setPhone("");
     setSelectedAddress(null);
     setErrorSearchUser("");
@@ -711,6 +711,25 @@ function CreateOrder() {
       setErrorSearchUser("Please enter a valid search term.");
     }
   };
+  const [hasSearched, setHasSearched] = useState(false);
+  // const handleSearch = (value = search) => {
+  //   console.log("Button clicked");
+  //   if (value && typeof value === "string" && value.trim()) {
+  //     setHasSearched(true);
+  //     setErrorSearchUser("");
+  //     refetch();
+
+  //     if (selectedUser?.address?.length > 0 && !selectedAddress) {
+  //       setSelectedAddress(selectedUser.address[0]);
+  //     }
+
+  //     if (selectedBranch) {
+  //       setSelectedBranchPriceList(selectedBranch.price_list);
+  //     }
+  //   } else {
+  //     setErrorSearchUser("Please enter a valid search term.");
+  //   }
+  // };
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
@@ -814,7 +833,7 @@ function CreateOrder() {
           ...prevItems,
           {
             ...selectedItem,
-            id: `${selectedItem.id}`,
+            id:  selectedItem.selectedIdSize || selectedItem.info?.id ,
             quantity: counter,
             total: counter * selectedItem.price,
             mainExtras: Array.isArray(selectedItem.mainExtras)
@@ -1436,11 +1455,10 @@ function CreateOrder() {
       setLoading(false);
     }
   };
-  console.log("selectedUser", selectedUser?.id);
-  console.log("selectedAddress", selectedAddress?.id);
-  console.log("selectedAddress area", selectedAddress?.area);
+  console.log("cartItems",cartItems);
   const onSubmithandleCreateOrder = async (data) => {
     // console.log(" بيانات الطلب:", data);
+    // console.log("branchId", branchId);
     setLoading(true);
 
     try {
@@ -1464,6 +1482,7 @@ function CreateOrder() {
         token,
         apiBaseUrl,
       });
+console.log("cartItems createOrder",cartItems);
 
       toast.success("Order created successfully");
       setCreateOrderDialogOpen(false);
@@ -1505,186 +1524,6 @@ function CreateOrder() {
       localStorage.removeItem("order");
     }
   };
-
-  // const onSubmithandleUpdateOrder = async (data) => {
-  //   console.log(" بيانات الطلب:", data);
-  //   // console.log("branchId", branchId);
-  //   setLoading(true);
-  //   if (orderData) {
-  //     const parsedOrder = JSON.parse(orderData);
-  //     const items = parsedOrder?.items;
-
-  //     if (Array.isArray(items)) {
-  //       const transformedItems = items.map((item) => ({
-  //         id: item?.info?.id,
-  //         quantity: item?.count || 1,
-  //         price: parseFloat(
-  //           item?.info?.price?.price ||
-  //             item?.total_price ||
-  //             item?.sub_total ||
-  //             0
-  //         ),
-  //         selectedInfo:
-  //           item?.info?.price?.size_en || item?.info?.size_en || "",
-  //         selectedExtras: item?.extras || [],
-  //         selectedMainExtras: [],
-  //         note: item?.special || "",
-  //       }));
-
-  //       console.log("loaded cart items:", transformedItems);
-  //       setCartItems(transformedItems);
-  //     } else {
-  //       console.log("No valid items array found in parsedOrder.");
-  //     }
-  //   }
-  //   try {
-  //     await UpdateOrder({
-  //       lookupId: selectedUser?.id,
-  //       address: selectedAddress?.id,
-  //       area: selectedAddress?.area,
-  //       notes: data.notes || "",
-  //       source: data.ordersource,
-  //       status: data.orderstatus === 1 ? "pending" : "New",
-  //       insertcoupon: data.insertcoupon,
-  //       insertpoints: data.insertpoints,
-  //       time: data?.startTime,
-  //       payment: 1,
-  //       delivery_type: data.ordertype,
-  //       items: cartItems,
-  //       lat: 0,
-  //       lng: 0,
-  //       branch: savedBranch?.value,
-  //       restaurant: selectedRestaurantId,
-  //       token,
-  //       apiBaseUrl,
-  //     });
-
-  //     toast.success("Order created successfully");
-  //     setCreateOrderDialogOpen(false);
-
-  //     resetCreateOrder({
-  //       ordertype: orderTypeOptions.length > 0 ? orderTypeOptions[0].value : "",
-  //       ordersource:
-  //         orderSourceOptions.length > 0 ? orderSourceOptions[0].label : "",
-  //       orderstatus:
-  //         orderStatusOptions.length > 0 ? orderStatusOptions[0].value : "",
-  //       orderpayment:
-  //         orderPaymenyOptions.length > 0 ? orderPaymenyOptions[0].value : "",
-  //     });
-
-  //     setShowDateTime(false);
-
-  //     if (orderSourceOptions.length > 0) {
-  //       setOrderSourceSelected(orderSourceOptions[0]);
-  //     }
-  //     if (orderStatusOptions.length > 0) {
-  //       setSelectedOrderStatus(orderStatusOptions[0]);
-  //     }
-  //     setDiscountValue("");
-  //     setDiscountPercentage("");
-  //     setSearch("");
-  //     setPhone("");
-  //     setAllUserData(null);
-  //     setSelectedAddress(null);
-  //     setSelectedAddressArray(null);
-  //     setCartItems([]);
-  //     setIsOpenUserData(true);
-  //     setSelectedBranchPriceList(1);
-  //     queryClient.removeQueries(["userSearch"], { exact: false });
-  //   } catch (error) {
-  //     console.error(" خطأ في إنشاء الطلب:", error);
-  //     toast.error(error.message || "حدث خطأ غير متوقع!");
-  //   } finally {
-  //     setLoading(false);
-  //     localStorage.removeItem("order");
-  //   }
-  // };
-  const onSubmithandleUpdateOrder = async (data) => {
-    console.log("بيانات الطلب:", data);
-    setLoading(true);
-  
-    if (orderData) {
-      const parsedOrder = JSON.parse(orderData);
-      const items = parsedOrder?.items;
-  
-      if (Array.isArray(items)) {
-        const transformedItems = items.map((item) => ({
-          id: item?.info?.id,
-          quantity: item?.count || 1,
-          price: parseFloat(
-            item?.info?.price?.price || item?.total_price || item?.sub_total || 0
-          ),
-          selectedInfo: item?.info?.price?.size_en || item?.info?.size_en || "",
-          selectedExtras: item?.extras || [],
-          selectedMainExtras: [],
-          note: item?.special || "",
-        }));
-  
-        console.log("تم تحميل عناصر العربة:", transformedItems);
-        setCartItems(transformedItems);
-      } else {
-        console.log("لا توجد عناصر صالحة في parsedOrder.");
-      }
-    }
-  
-    try {
-      await UpdateOrder({
-        lookupId: selectedUser?.id,
-        address: selectedAddress?.id,
-        area: selectedAddress?.area,
-        notes: data.notes || "",
-        source: data.ordersource,
-        status: data.orderstatus === 1 ? "pending" : "New",
-        insertcoupon: data.insertcoupon,
-        insertpoints: data.insertpoints,
-        time: data?.startTime,
-        payment: 1,
-        delivery_type: data.ordertype,
-        items: cartItems,  // إرسال الـ cartItems المحولة
-        lat: 0,
-        lng: 0,
-        branch: savedBranch?.value,
-        restaurant: selectedRestaurantId,
-        token,
-        apiBaseUrl,
-      });
-  
-      toast.success("تم تحديث الطلب بنجاح");
-      setCreateOrderDialogOpen(false);
-  
-
-      setShowDateTime(false);
-  
-      if (orderSourceOptions.length > 0) {
-        setOrderSourceSelected(orderSourceOptions[0]);
-      }
-      if (orderStatusOptions.length > 0) {
-        setSelectedOrderStatus(orderStatusOptions[0]);
-      }
-  
-      // تنظيف البيانات
-      setDiscountValue("");
-      setDiscountPercentage("");
-      setSearch("");
-      setPhone("");
-      setAllUserData(null);
-      setSelectedAddress(null);
-      setSelectedAddressArray(null);
-      setCartItems([]);
-      setIsOpenUserData(true);
-      setSelectedBranchPriceList(1);
-  
-      // إزالة الاستعلامات القديمة
-      queryClient.removeQueries(["userSearch"], { exact: false });
-    } catch (error) {
-      console.error("خطأ في تحديث الطلب:", error);
-      toast.error(error.message || "حدث خطأ غير متوقع!");
-    } finally {
-      setLoading(false);
-      localStorage.removeItem("order");
-    }
-  };
-  
   const handleAddressTypeChange = (type) => {
     setSelectedAddressType(type);
     if (type !== "other") {
@@ -1878,7 +1717,7 @@ function CreateOrder() {
   //   // console.log("order:", orderData?.details?.user_data?.phone);
   // }, []);
   useEffect(() => {
-    // const orderData = localStorage.getItem("order");
+    const orderData = localStorage.getItem("order");
 
     if (orderData) {
       setIsEditMode(true);
@@ -1905,9 +1744,9 @@ function CreateOrder() {
       refetch();
     }
   }, [isEditMode, search]);
-  
   useEffect(() => {
     if (selectedUser) {
+      const orderData = localStorage.getItem("order");
 
       if (orderData) {
         const parsedOrder = JSON.parse(orderData);
@@ -1915,7 +1754,7 @@ function CreateOrder() {
 
         if (Array.isArray(items)) {
           const transformedItems = items.map((item) => ({
-            id: item?.info?.id,
+          id: item?.info?.id ,
             quantity: item?.count || 1,
             price: parseFloat(
               item?.info?.price?.price ||
@@ -1963,51 +1802,51 @@ function CreateOrder() {
       router.events?.off("routeChangeStart", handleRouteChange);
     };
   }, [queryClient]);
-  // const updateOrder = async ({ orderId, ...rest }) => {
-  //   const formattedItems = {
-  //     items: rest.items.map((item) => ({
-  //       id: item.selectedIdSize,
-  //       choices: [],
-  //       options: [],
-  //       extras: [
-  //         ...(item.selectedMainExtrasIds || []),
-  //         ...(item.selectedExtrasIds || []),
-  //       ],
-  //       count: item.quantity,
-  //       special: item.note || "",
-  //     })),
-  //   };
+  const updateOrder = async ({ orderId, ...rest }) => {
+    const formattedItems = {
+      items: rest.items.map((item) => ({
+        id: item.selectedIdSize,
+        choices: [],
+        options: [],
+        extras: [
+          ...(item.selectedMainExtrasIds || []),
+          ...(item.selectedExtrasIds || []),
+        ],
+        count: item.quantity,
+        special: item.note || "",
+      })),
+    };
 
-  //   try {
-  //     const response = await axios.post(
-  //       `${rest.apiBaseUrl}/callcenter/order/update/${orderId}?api_token=${rest.token}`,
-  //       null,
-  //       {
-  //         params: {
-  //           lookup_id: rest.lookupId,
-  //           address: rest.address,
-  //           area: rest.area,
-  //           items: JSON.stringify(formattedItems),
-  //           notes: rest.notes,
-  //           ...(rest.time ? { time: rest.time } : {}),
-  //           source: rest.source,
-  //           branch: rest.branch,
-  //           status: rest.status,
-  //           payment: rest.payment,
-  //           lat: rest.lat,
-  //           lng: rest.lng,
-  //           delivery_type: rest.delivery_type,
-  //           restaurant: rest.restaurant,
-  //         },
-  //       }
-  //     );
+    try {
+      const response = await axios.post(
+        `${rest.apiBaseUrl}/callcenter/order/update/${orderId}?api_token=${rest.token}`,
+        null,
+        {
+          params: {
+            lookup_id: rest.lookupId,
+            address: rest.address,
+            area: rest.area,
+            items: JSON.stringify(formattedItems),
+            notes: rest.notes,
+            ...(rest.time ? { time: rest.time } : {}),
+            source: rest.source,
+            branch: rest.branch,
+            status: rest.status,
+            payment: rest.payment,
+            lat: rest.lat,
+            lng: rest.lng,
+            delivery_type: rest.delivery_type,
+            restaurant: rest.restaurant,
+          },
+        }
+      );
 
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error("Error updating order:", error);
-  //     throw error;
-  //   }
-  // };
+      return response.data;
+    } catch (error) {
+      console.error("Error updating order:", error);
+      throw error;
+    }
+  };
 
   // useEffect(() => {
   //   // تحقق إذا كان الرقم موجود في search
