@@ -14,7 +14,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchOrders, fetchUserByPhoneAndId } from "./apisOrders";
 import UserDeviceReport from "./SourceReport";
 import PickupReport from "./pickupReport";
+import BranchesReport from "./BranchesReport";
 import TableOrder from "./tableOrder/TableOrder";
+import "./index.css"
 function OrdersType() {
   const { apiBaseUrl } = useSubdomin();
   const [selectedStatus, setSelectedStatus] = useState("Total");
@@ -110,9 +112,13 @@ function OrdersType() {
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 w-full p-2 mb-">
+      <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 w-full p-2 custom-grid ">
+      {/* <div
+  className="grid gap-4 w-full p-2 mb-"
+  style={{ gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))" }}
+> */}
       {selectedStatus === "Total" ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 col-span-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 col-span-3 ">
           {stats.map((stat, index) => (
             <StatCard
               key={index}
@@ -131,7 +137,7 @@ function OrdersType() {
           ))}
         </div>
 ) : (
-  <div className="flex flex-wrap gap-4 col-span-5">
+  <div className="flex flex-w gap-4 col-span-6">
     {stats.map((stat, index) => (
       <StatCard
         key={index}
@@ -148,24 +154,7 @@ function OrdersType() {
     ))}
   </div>
 )}
-        {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 col-span-3">
-          {stats.map((stat, index) => (
-            <StatCard
-              key={index}
-              icon={stat.icon}
-              number={stat.number}
-              label={stat.label}
-              onClick={() => {
-                setSelectedStatus(stat.statusKey);
-              }}
-              bg={stat.bg}
-              language={language}
-              errororders={errororders}
-              isLoadingorders={isLoadingorders}
-              selectedStatus={selectedStatus}
-            />
-          ))}
-        </div> */}
+
         {selectedStatus === "Total" && (
           <Card className="col-span- h-full mt-0">
             <CardHeader className="border-none p-6 pt-5 "></CardHeader>
@@ -190,6 +179,23 @@ function OrdersType() {
             <CardContent>
               <div className="dashtail-legend">
                 <PickupReport
+                  orders={orders}
+                  selectedStatus={selectedStatus}
+                  errororders={errororders}
+                  isLoadingorders={isLoadingorders}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {selectedStatus === "Total" && (
+          <Card className="col-span- h-ful mt-1">
+            <CardHeader className="border-none p-6 pt-5 ">
+      
+            </CardHeader>
+            <CardContent>
+              <div className="dashtail-legend">
+                <BranchesReport
                   orders={orders}
                   selectedStatus={selectedStatus}
                   errororders={errororders}

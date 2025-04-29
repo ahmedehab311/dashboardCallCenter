@@ -1,0 +1,40 @@
+.custom-grid {
+    display: grid;
+    gap: 1rem; /* أو أي قيمة مناسبة */
+  }
+  
+  /* شاشات صغيرة جداً (موبايلات صغيرة) */
+  @media (max-width: 639px) {
+    .custom-grid {
+      grid-template-columns: repeat(1, 1fr);
+    }
+  }
+  
+  /* شاشات موبايل كبيرة أو تابلت صغير */
+  @media (min-width: 640px) and (max-width: 767px) {
+    .custom-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  /* تابلت أو لاب صغير */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .custom-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  /* لاب متوسط الحجم */
+  @media (min-width: 1024px) and (max-width: 1279px) {
+    .custom-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
+  /* شاشات أكبر من كده (ديسكتوب كبير أو شاشات 2K مثلاً) */
+  @media (min-width: 1280px) {
+    .custom-grid {
+      grid-template-columns: repeat(6, 1fr);
+    }
+  }
+  

@@ -701,9 +701,9 @@ function CreateOrder() {
       if (selectedUser?.address?.length > 0 && !selectedAddress) {
         setSelectedAddress(selectedUser.address[0]);
       }
-       refetch()
+      refetch();
       setErrorSearchUser("");
-      
+
       if (selectedBranch) {
         setSelectedBranchPriceList(selectedBranch.price_list);
       }
@@ -833,7 +833,7 @@ function CreateOrder() {
           ...prevItems,
           {
             ...selectedItem,
-            id:  selectedItem.selectedIdSize || selectedItem.info?.id ,
+            id: `${selectedItem.id}`,
             quantity: counter,
             total: counter * selectedItem.price,
             mainExtras: Array.isArray(selectedItem.mainExtras)
@@ -1277,11 +1277,11 @@ function CreateOrder() {
       const selectedAreaOption = areasOptions?.find(
         (option) => option.value === selectedEditAddress.area
       );
-  
+
       if (selectedAreaOption) {
         setValueEditAddressUser("area", selectedAreaOption);
       }
-  
+
       // تحقق من وجود القيم قبل تعيينها
       if (["home", "work"].includes(selectedEditAddress.address_name)) {
         seEditAddressType(selectedEditAddress.address_name);
@@ -1290,12 +1290,15 @@ function CreateOrder() {
         seEditAddressType("other");
         setCustomAddressName(selectedEditAddress.address_name || "");
       }
-  
+
       setValueEditAddressUser("street", selectedEditAddress.street || "");
       setValueEditAddressUser("building", selectedEditAddress.building || "");
       setValueEditAddressUser("floor", selectedEditAddress.floor || "");
       setValueEditAddressUser("apt", selectedEditAddress.apartment || "");
-      setValueEditAddressUser("additionalInfo", selectedEditAddress.additional || "");
+      setValueEditAddressUser(
+        "additionalInfo",
+        selectedEditAddress.additional || ""
+      );
     }
   }, [selectedEditAddress, setValueEditAddressUser]);
   const [totalExtrasPrice, setTotalExtrasPrice] = useState(0);
@@ -1455,7 +1458,9 @@ function CreateOrder() {
       setLoading(false);
     }
   };
-  console.log("cartItems",cartItems);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [orderId, setOrderId] = useState(null);
+  const [orderCheck, setOrderCheck] = useState(null);
   const onSubmithandleCreateOrder = async (data) => {
     // console.log(" بيانات الطلب:", data);
     // console.log("branchId", branchId);
@@ -1481,41 +1486,49 @@ function CreateOrder() {
         restaurant: selectedRestaurantId,
         token,
         apiBaseUrl,
+        isEditMode,
+        orderId,
+        orderCheck,
       });
-console.log("cartItems createOrder",cartItems);
+      // console.log("cartItems createOrder",cartItems);
+      console.log("orderId", orderId);
+      console.log("orderCheck", orderCheck);
 
       toast.success("Order created successfully");
       setCreateOrderDialogOpen(false);
 
-      resetCreateOrder({
-        ordertype: orderTypeOptions.length > 0 ? orderTypeOptions[0].value : "",
-        ordersource:
-          orderSourceOptions.length > 0 ? orderSourceOptions[0].label : "",
-        orderstatus:
-          orderStatusOptions.length > 0 ? orderStatusOptions[0].value : "",
-        orderpayment:
-          orderPaymenyOptions.length > 0 ? orderPaymenyOptions[0].value : "",
-      });
+      if (!isEditMode) {
+        resetCreateOrder({
+          ordertype:
+            orderTypeOptions.length > 0 ? orderTypeOptions[0].value : "",
+          ordersource:
+            orderSourceOptions.length > 0 ? orderSourceOptions[0].label : "",
+          orderstatus:
+            orderStatusOptions.length > 0 ? orderStatusOptions[0].value : "",
+          orderpayment:
+            orderPaymenyOptions.length > 0 ? orderPaymenyOptions[0].value : "",
+        });
 
-      setShowDateTime(false);
+        setShowDateTime(false);
 
-      if (orderSourceOptions.length > 0) {
-        setOrderSourceSelected(orderSourceOptions[0]);
+        if (orderSourceOptions.length > 0) {
+          setOrderSourceSelected(orderSourceOptions[0]);
+        }
+        if (orderStatusOptions.length > 0) {
+          setSelectedOrderStatus(orderStatusOptions[0]);
+        }
+        setDiscountValue("");
+        setDiscountPercentage("");
+        setSearch("");
+        setPhone("");
+        setAllUserData(null);
+        setSelectedAddress(null);
+        setSelectedAddressArray(null);
+        setCartItems([]);
+        setIsOpenUserData(true);
+        setSelectedBranchPriceList(1);
+        queryClient.removeQueries(["userSearch"], { exact: false });
       }
-      if (orderStatusOptions.length > 0) {
-        setSelectedOrderStatus(orderStatusOptions[0]);
-      }
-      setDiscountValue("");
-      setDiscountPercentage("");
-      setSearch("");
-      setPhone("");
-      setAllUserData(null);
-      setSelectedAddress(null);
-      setSelectedAddressArray(null);
-      setCartItems([]);
-      setIsOpenUserData(true);
-      setSelectedBranchPriceList(1);
-      queryClient.removeQueries(["userSearch"], { exact: false });
     } catch (error) {
       console.error(" خطأ في إنشاء الطلب:", error);
       toast.error(error.message || "حدث خطأ غير متوقع!");
@@ -1524,6 +1537,8 @@ console.log("cartItems createOrder",cartItems);
       localStorage.removeItem("order");
     }
   };
+  console.log("isEditMode", isEditMode);
+
   const handleAddressTypeChange = (type) => {
     setSelectedAddressType(type);
     if (type !== "other") {
@@ -1609,6 +1624,7 @@ console.log("cartItems createOrder",cartItems);
   const [discountValue, setDiscountValue] = useState("");
   const [discountPercentage, setDiscountPercentage] = useState("");
   const [order, setOrder] = useState(null);
+
   // const vatAmount = parseFloat(grandTotal * (parseFloat(Tax) / 100)); // .14
 
   const discount = 0;
@@ -1697,7 +1713,7 @@ console.log("cartItems createOrder",cartItems);
       );
     }
   };
-  const [isEditMode, setIsEditMode] = useState(false);
+
   // const searchRef = useRef(false);
   // useEffect(() => {
   //   const orderData = localStorage.getItem("order");
@@ -1744,39 +1760,39 @@ console.log("cartItems createOrder",cartItems);
       refetch();
     }
   }, [isEditMode, search]);
-  useEffect(() => {
-    if (selectedUser) {
-      const orderData = localStorage.getItem("order");
+  // useEffect(() => {
+  //   if (selectedUser) {
+  //     const orderData = localStorage.getItem("order");
 
-      if (orderData) {
-        const parsedOrder = JSON.parse(orderData);
-        const items = parsedOrder?.items;
+  //     if (orderData) {
+  //       const parsedOrder = JSON.parse(orderData);
+  //       const items = parsedOrder?.items;
 
-        if (Array.isArray(items)) {
-          const transformedItems = items.map((item) => ({
-          id: item?.info?.id ,
-            quantity: item?.count || 1,
-            price: parseFloat(
-              item?.info?.price?.price ||
-                item?.total_price ||
-                item?.sub_total ||
-                0
-            ),
-            selectedInfo:
-              item?.info?.price?.size_en || item?.info?.size_en || "",
-            selectedExtras: item?.extras || [],
-            selectedMainExtras: [],
-            note: item?.special || "",
-          }));
+  //       if (Array.isArray(items)) {
+  //         const transformedItems = items.map((item) => ({
+  //           id: `${item?.info?.id}`,
+  //           quantity: item?.count || 1,
+  //           price: parseFloat(
+  //             item?.info?.price?.price ||
+  //               item?.total_price ||
+  //               item?.sub_total ||
+  //               0
+  //           ),
+  //           selectedInfo:
+  //             item?.info?.price?.size_en || item?.info?.size_en || "",
+  //           selectedExtras: item?.extras || [],
+  //           selectedMainExtras: [],
+  //           note: item?.special || "",
+  //         }));
 
-          console.log("loaded cart items:", transformedItems);
-          setCartItems(transformedItems);
-        } else {
-          console.log("No valid items array found in parsedOrder.");
-        }
-      }
-    }
-  }, [selectedUser]);
+  //         console.log("loaded cart items:", transformedItems);
+  //         setCartItems(transformedItems);
+  //       } else {
+  //         console.log("No valid items array found in parsedOrder.");
+  //       }
+  //     }
+  //   }
+  // }, [selectedUser]);
 
   // useEffect(() => {
   //   const handleRouteChange = () => {
@@ -1790,6 +1806,49 @@ console.log("cartItems createOrder",cartItems);
   //     router.events?.off("routeChangeStart", handleRouteChange);
   //   };
   // }, []);
+
+  useEffect(() => {
+    if (selectedUser) {
+      const orderData = localStorage.getItem("order");
+
+      if (orderData) {
+        const parsedOrder = JSON.parse(orderData);
+        const orderId = parsedOrder?.details?.id;
+        const ordercheck = parsedOrder?.details?.check_id || "";
+        setOrderId(orderId);
+        setOrderCheck(ordercheck);
+        const items = parsedOrder?.items;
+
+        if (Array.isArray(items)) {
+          const transformedItems = items.map((item) => {
+            const id = item?.info?.id;
+
+            return {
+              id: id ? `${id}` : undefined,
+              quantity: item?.count || 1,
+              price: parseFloat(
+                item?.info?.price?.price ||
+                  item?.total_price ||
+                  item?.sub_total ||
+                  0
+              ),
+              selectedInfo:
+                item?.info?.price?.size_en || item?.info?.size_en || "",
+              selectedExtras: item?.extras || [],
+              selectedMainExtras: [],
+              note: item?.special || "",
+            };
+          });
+
+          console.log("loaded cart items:", transformedItems);
+          setCartItems(transformedItems);
+        } else {
+          console.log("No valid items array found in parsedOrder.");
+        }
+      }
+    }
+  }, [selectedUser]);
+
   useEffect(() => {
     const handleRouteChange = () => {
       localStorage.removeItem("order");
@@ -1802,51 +1861,6 @@ console.log("cartItems createOrder",cartItems);
       router.events?.off("routeChangeStart", handleRouteChange);
     };
   }, [queryClient]);
-  const updateOrder = async ({ orderId, ...rest }) => {
-    const formattedItems = {
-      items: rest.items.map((item) => ({
-        id: item.selectedIdSize,
-        choices: [],
-        options: [],
-        extras: [
-          ...(item.selectedMainExtrasIds || []),
-          ...(item.selectedExtrasIds || []),
-        ],
-        count: item.quantity,
-        special: item.note || "",
-      })),
-    };
-
-    try {
-      const response = await axios.post(
-        `${rest.apiBaseUrl}/callcenter/order/update/${orderId}?api_token=${rest.token}`,
-        null,
-        {
-          params: {
-            lookup_id: rest.lookupId,
-            address: rest.address,
-            area: rest.area,
-            items: JSON.stringify(formattedItems),
-            notes: rest.notes,
-            ...(rest.time ? { time: rest.time } : {}),
-            source: rest.source,
-            branch: rest.branch,
-            status: rest.status,
-            payment: rest.payment,
-            lat: rest.lat,
-            lng: rest.lng,
-            delivery_type: rest.delivery_type,
-            restaurant: rest.restaurant,
-          },
-        }
-      );
-
-      return response.data;
-    } catch (error) {
-      console.error("Error updating order:", error);
-      throw error;
-    }
-  };
 
   // useEffect(() => {
   //   // تحقق إذا كان الرقم موجود في search
@@ -2743,6 +2757,7 @@ console.log("cartItems createOrder",cartItems);
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={handleKeyPress}
                   className="pl-7 pr-8 w-full text-[#000] dark:text-[#fff]"
+                  disabled={isEditMode}
                 />
                 {search && (
                   <button
@@ -2831,8 +2846,8 @@ console.log("cartItems createOrder",cartItems);
                 </div>
               </div>
             )}
-              <h3 className="text-lg font-semibold "></h3>
-              {/* {isOpenUserData && (
+            <h3 className="text-lg font-semibold "></h3>
+            {/* {isOpenUserData && (
   <div className="mt-2 p-2 rounded-md">
     {selectedUser ? (
       <>
@@ -2864,10 +2879,6 @@ console.log("cartItems createOrder",cartItems);
     )}
   </div>
 )} */}
-
-
-
-
           </Card>
 
           {selectedAddressArray?.length > 0 && (

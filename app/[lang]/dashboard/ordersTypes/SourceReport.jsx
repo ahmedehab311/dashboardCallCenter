@@ -17,6 +17,73 @@ const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) 
     : [];
 
   const series = sourceCounts;
+  // const options = {
+  //   chart: { toolbar: { show: false } },
+  //   labels: sourceLabels,
+  //   dataLabels: { enabled: false },
+  //   colors: [
+  //     `hsl(${theme?.cssVars[mode === "dark" ? "dark" : "light"].primary})`,
+  //     "#FF9E69",
+  //     "#FFD1A7",
+  //     "#6C5DD3",
+  //     "#00C9A7",
+  //     "#FFC700",
+  //   ],
+  //   tooltip: {
+  //     theme: mode === "dark" ? "dark" : "light",
+  //   },
+  //   stroke: { width: 0 },
+  //   plotOptions: {
+  //     pie: {
+  //       donut: {
+  //         labels: {
+  //           show: true,
+  //           name: {
+  //             show: true,
+  //             fontSize: "24px",
+  //             fontWeight: 500,
+  //             color: `hsl(${
+  //               theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
+  //             })`,
+  //           },
+  //           value: {
+  //             show: true,
+  //             fontSize: "18px",
+  //             fontWeight: 600,
+  //             color: `hsl(${
+  //               theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
+  //             })`,
+  //           },
+  //           total: {
+  //             show: true,
+  //             label: "Total",
+  //             fontSize: "16px",
+  //             fontWeight: 600,
+  //             color: `hsl(${
+  //               theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
+  //             })`,
+  //           },
+  //         },
+  //       },
+  //     },
+  //   },
+  //   legend: {
+  //     position: "bottom",
+  //     offsetY: -15, 
+  //     labels: {
+  //       colors: `hsl(${
+  //         theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
+  //       })`,
+  //     },
+  //     itemMargin: { horizontal: 9, vertical: 5 },
+  //     markers: {
+  //       width: 10,
+  //       height: 10,
+  //       radius: 10,
+  //       offsetX: isRtl ? 5 : -5,
+  //     },
+  //   },
+  // };
   const options = {
     chart: { toolbar: { show: false } },
     labels: sourceLabels,
@@ -36,15 +103,17 @@ const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) 
     plotOptions: {
       pie: {
         donut: {
+          size: '70%', // يمكن تعديل الحجم هنا (توسيع الدائرة)
           labels: {
             show: true,
             name: {
               show: true,
-              fontSize: "24px",
+              fontSize: "20px",
               fontWeight: 500,
               color: `hsl(${
                 theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
               })`,
+              offsetY: -12, // رفع الاسم قليلاً
             },
             value: {
               show: true,
@@ -53,6 +122,7 @@ const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) 
               color: `hsl(${
                 theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
               })`,
+              offsetY: -10, // رفع القيمة قليلاً
             },
             total: {
               show: true,
@@ -62,6 +132,7 @@ const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) 
               color: `hsl(${
                 theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
               })`,
+              offsetY: 10, // رفع الكلمة "Total" عن مكانها
             },
           },
         },
@@ -69,13 +140,13 @@ const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) 
     },
     legend: {
       position: "bottom",
-      offsetY: -15, 
+      offsetY: -15,
       labels: {
         colors: `hsl(${
           theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
         })`,
       },
-      itemMargin: { horizontal: 5, vertical: 5 },
+      itemMargin: { horizontal: 9, vertical: 5 },
       markers: {
         width: 10,
         height: 10,

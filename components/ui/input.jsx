@@ -151,6 +151,7 @@ export const inputVariants = cva(
             )}
             ref={ref}
             {...props}
+           
           />
         </div>
       );

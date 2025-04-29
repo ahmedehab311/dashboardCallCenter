@@ -16,7 +16,7 @@ export const fetchUserByPhone = async (phone, token, apiBaseUrl) => {
     if (!userData || response.data === "" || userData === undefined) {
       return null;
     }
-    return userData
+    return userData;
   } catch (error) {
     console.error("Error fetching user:", error);
     throw error;
@@ -31,7 +31,6 @@ export const fetchUserByPhone = async (phone, token, apiBaseUrl) => {
 //     console.log("response search user", response);
 
 //     const responseData = response?.data;
-
 
 //     if (
 //       typeof responseData !== "object" ||
@@ -50,7 +49,6 @@ export const fetchUserByPhone = async (phone, token, apiBaseUrl) => {
 //     throw error;
 //   }
 // };
-
 
 export const createUser = async (name, phone, phone2, token, apiBaseUrl) => {
   try {
@@ -126,79 +124,7 @@ export const createAddress = async (
   }
 };
 
-  export const createOrder = async ({
-    lookupId,
-    address,
-    area,
-    notes,
-    source,
-    status,
-    insertcoupon,
-    insertpoints,
-    payment,
-    delivery_type,
-    branch,
-    items,
-    lng,
-    time,
-    lat,
-    restaurant,
-    token,
-    apiBaseUrl,
-  }) => {
-    const formattedItems = {
-      items: items.map((item) => ({
-        id: item.selectedIdSize,
-        choices: [],
-        options: [],
-        extras: [
-          ...(item.selectedMainExtrasIds || []),
-          ...(item.selectedExtrasIds || []),
-        ],
-        count: item.quantity,
-        special: item.note || "",
-      })),
-    };
-    console.log("formattedItems:", formattedItems);
-    console.log("📦 items being sent:", JSON.stringify(formattedItems, null, 2));
-
-    const apiUrl = `/callcenter/order/create?api_token=${token}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${time || ""}&source=${source}&status=${status}&payment=${payment}&coins=${insertpoints || "00.00"}&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}&restaurant=${restaurant}&branch=${branch}`;
-
-    // console.log("Final API URL:", apiUrl);
-
-    try {
-      const response = await axios.post(
-        `${apiBaseUrl}/callcenter/order/create?api_token=${token}`,
-        null,
-        {
-          params: {
-            lookup_id: lookupId,
-            address,
-            area,
-            items: JSON.stringify(formattedItems),
-            notes,
-            ...(time ? { time } : {}),
-            source,
-            branch,
-            status,
-            payment,
-            lat,
-            lng,
-            delivery_type,
-            restaurant,
-          },
-        }
-      );
-
-      // console.log("Order created successfully:", response.data);
-      return response.data;
-    } catch (error) {
-      console.error("Error creating order:", error);
-      throw error;
-    }
-  };
-
-export const updateOrder = async ({
+export const createOrder = async ({
   lookupId,
   address,
   area,
@@ -217,10 +143,13 @@ export const updateOrder = async ({
   restaurant,
   token,
   apiBaseUrl,
+  isEditMode,
+  orderId,
+  orderCheck,
 }) => {
   const formattedItems = {
     items: items.map((item) => ({
-      id: item.selectedIdSize,
+      id: item.selectedIdSize || item.id,
       choices: [],
       options: [],
       extras: [
@@ -231,16 +160,24 @@ export const updateOrder = async ({
       special: item.note || "",
     })),
   };
-  // console.log("formattedItems:", formattedItems);
-  // console.log("📦 items being sent:", JSON.stringify(formattedItems, null, 2));
+  console.log("formattedItems:", formattedItems);
+  console.log("📦 items being sent:", JSON.stringify(formattedItems, null, 2));
 
-  // const apiUrl = `/callcenter/order/create?api_token=${token}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${time || ""}&source=${source}&status=${status}&payment=${payment}&coins=${insertpoints || "00.00"}&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}&restaurant=${restaurant}&branch=${branch}`;
+  const apiUrl = `/callcenter/order/${
+    isEditMode ? "update" : "create"
+  }?api_token=${token}&orderId=${orderId}&orderCheck=${orderCheck}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${
+    time || ""
+  }&source=${source}&status=${status}&payment=${payment}&coins=${
+    insertpoints || "00.00"
+  }&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}&restaurant=${restaurant}&branch=${branch}`;
 
-  // console.log("Final API URL:", apiUrl);
+  console.log("Final API URL:", apiUrl);
 
   try {
     const response = await axios.post(
-      `${apiBaseUrl}/callcenter/order/create?api_token=${token}`,
+      `${apiBaseUrl}/callcenter/order/${
+        isEditMode ? "update" : "create"
+      }?api_token=${token}`,
       null,
       {
         params: {
@@ -258,11 +195,12 @@ export const updateOrder = async ({
           lng,
           delivery_type,
           restaurant,
+          ...(isEditMode ? { order_id: orderId, check_id: orderCheck } : {}),
         },
       }
     );
 
-    // console.log("Order created successfully:", response.data);
+    console.log("Order created successfully:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error creating order:", error);
@@ -270,6 +208,77 @@ export const updateOrder = async ({
   }
 };
 
+// export const updateOrder = async ({
+//   lookupId,
+//   address,
+//   area,
+//   notes,
+//   source,
+//   status,
+//   insertcoupon,
+//   insertpoints,
+//   payment,
+//   delivery_type,
+//   branch,
+//   items,
+//   lng,
+//   time,
+//   lat,
+//   restaurant,
+//   token,
+//   apiBaseUrl,
+// }) => {
+//   const formattedItems = {
+//     items: items.map((item) => ({
+//       id: item.selectedIdSize,
+//       choices: [],
+//       options: [],
+//       extras: [
+//         ...(item.selectedMainExtrasIds || []),
+//         ...(item.selectedExtrasIds || []),
+//       ],
+//       count: item.quantity,
+//       special: item.note || "",
+//     })),
+//   };
+//   // console.log("formattedItems:", formattedItems);
+//   // console.log("📦 items being sent:", JSON.stringify(formattedItems, null, 2));
+
+//   // const apiUrl = `/callcenter/order/create?api_token=${token}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${time || ""}&source=${source}&status=${status}&payment=${payment}&coins=${insertpoints || "00.00"}&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}&restaurant=${restaurant}&branch=${branch}`;
+
+//   // console.log("Final API URL:", apiUrl);
+
+//   try {
+//     const response = await axios.post(
+//       `${apiBaseUrl}/callcenter/order/create?api_token=${token}`,
+//       null,
+//       {
+//         params: {
+//           lookup_id: lookupId,
+//           address,
+//           area,
+//           items: JSON.stringify(formattedItems),
+//           notes,
+//           ...(time ? { time } : {}),
+//           source,
+//           branch,
+//           status,
+//           payment,
+//           lat,
+//           lng,
+//           delivery_type,
+//           restaurant,
+//         },
+//       }
+//     );
+
+//     // console.log("Order created successfully:", response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error creating order:", error);
+//     throw error;
+//   }
+// };
 
 export const updateUserAddress = async ({
   id,
@@ -310,7 +319,6 @@ export const updateUserAddress = async ({
           ...(apt && { apt }),
           ...(additional && { additional: additional }),
         },
-  
       }
     );
     // console.log("response", response);
@@ -333,7 +341,6 @@ export const updateUserAddress = async ({
   }
 };
 
-
 // export const updateUserAddress = async ({
 //   id,
 //   area,
@@ -355,7 +362,7 @@ export const updateUserAddress = async ({
 //   try {
 //     const response = await request
 //       .put(`${apiBaseUrl}/callcenter/user/address/update`)
-//       .query({ api_token: token }) 
+//       .query({ api_token: token })
 //       .query({
 //         id,
 //         area,
@@ -376,8 +383,6 @@ export const updateUserAddress = async ({
 //     throw error;
 //   }
 // };
-
-
 
 export const updateUserData = async (userData) => {
   const params = new URLSearchParams();
