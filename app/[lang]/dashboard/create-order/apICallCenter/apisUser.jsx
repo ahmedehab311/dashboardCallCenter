@@ -163,7 +163,11 @@ export const createOrder = async ({
   console.log("formattedItems:", formattedItems);
   console.log("📦 items being sent:", JSON.stringify(formattedItems, null, 2));
 
+<<<<<<< HEAD
   const apiUrl = `${apiBaseUrl}/callcenter/order/${
+=======
+  const apiUrl = `/callcenter/order/${
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
     isEditMode ? "update" : "create"
   }?api_token=${token}&orderId=${orderId}&orderCheck=${orderCheck}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${
     time || ""
@@ -173,6 +177,7 @@ export const createOrder = async ({
 
   console.log("Final API URL:", apiUrl);
 
+<<<<<<< HEAD
   // try {
   //   const response = await axios.post(
   //     `${apiBaseUrl}/callcenter/order/${
@@ -206,6 +211,41 @@ export const createOrder = async ({
   //   console.error("Error creating order:", error);
   //   throw error;
   // }
+=======
+  try {
+    const response = await axios.post(
+      `${apiBaseUrl}/callcenter/order/${
+        isEditMode ? "update" : "create"
+      }?api_token=${token}`,
+      null,
+      {
+        params: {
+          lookup_id: lookupId,
+          address,
+          area,
+          items: JSON.stringify(formattedItems),
+          notes,
+          ...(time ? { time } : {}),
+          source,
+          branch,
+          status,
+          payment,
+          lat,
+          lng,
+          delivery_type,
+          restaurant,
+          ...(isEditMode ? { order_id: orderId, check_id: orderCheck } : {}),
+        },
+      }
+    );
+
+    console.log("Order created successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating order:", error);
+    throw error;
+  }
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
 };
 
 // export const updateOrder = async ({

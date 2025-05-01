@@ -39,7 +39,10 @@ import {
 import { Plus, Search } from "lucide-react";
 import { selectStyles } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+<<<<<<< HEAD
 import { v4 as uuidv4 } from "uuid";
+=======
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
 import {
   fetchRestaurantsList,
   fetchBranches,
@@ -496,6 +499,7 @@ function CreateOrder() {
           selectedExtras: [],
           selectedExtrasIds: [],
         });
+<<<<<<< HEAD
         // setSelectedItem((prev) => ({
         //   ...prev,
         //   id: response.item.id,
@@ -517,12 +521,15 @@ function CreateOrder() {
         //   selectedExtrasIds: [],
         //   note: prev.note || "", // ✅ هنا بنحتفظ بأي نوت كانت موجودة
         // }));
+=======
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
       }
     } catch (error) {
       console.error("Error fetching item details:", error);
     }
   };
 
+<<<<<<< HEAD
   // const handleEditItem = (item) => {
   //   setSelectedItem({
   //     ...item,
@@ -664,6 +671,17 @@ function CreateOrder() {
     }
   };
 
+=======
+  const handleEditItem = (item) => {
+    setSelectedItem({
+      ...item,
+      selectedMainExtras: [...item.selectedMainExtras],
+    });
+    setNote(item.note || "");
+    setCounter(item.quantity);
+    setIsItemDialogOpen(true);
+  };
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
   useEffect(() => {
     setCollapsed(true);
   }, []);
@@ -911,10 +929,17 @@ function CreateOrder() {
 
   const [selectedEditAddress, setSelectedEditAddress] = useState(null);
 
+<<<<<<< HEAD
   const handleIncreaseTable = (cartId) => {
     setCartItems((prevItems) =>
       prevItems.map((item) =>
         item.cartId === cartId
+=======
+  const handleIncreaseTable = (id) => {
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === id
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
           ? {
               ...item,
               quantity: item.quantity + 1,
@@ -925,12 +950,20 @@ function CreateOrder() {
     );
   };
 
+<<<<<<< HEAD
   const handleDecreaseTable = (cartId) => {
+=======
+  const handleDecreaseTable = (id) => {
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
     setCartItems(
       (prevItems) =>
         prevItems
           .map((item) => {
+<<<<<<< HEAD
             if (item.cartId === cartId) {
+=======
+            if (item.id === id) {
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
               if (item.quantity > 1) {
                 return {
                   ...item,
@@ -939,7 +972,11 @@ function CreateOrder() {
                 };
               } else {
                 // لما الكمية تكون 1 ونضغط "-" يتم الحذف فورًا
+<<<<<<< HEAD
                 handleRemoveItem(cartId);
+=======
+                handleRemoveItem(id);
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
                 return null; // إزالة العنصر
               }
             }
@@ -949,14 +986,20 @@ function CreateOrder() {
     );
   };
 
+<<<<<<< HEAD
   const handleRemoveItem = (cartId) => {
     setCartItems((prevItems) =>
       prevItems.filter((item) => item.cartId !== cartId)
     );
+=======
+  const handleRemoveItem = (id) => {
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
   };
 
   const [note, setNote] = useState("");
   const [cartItems, setCartItems] = useState([]);
+<<<<<<< HEAD
   console.log("cartItems", cartItems);
   // const handleAddToCart = () => {
   //   setCartItems((prevItems) => {
@@ -1168,22 +1211,98 @@ function CreateOrder() {
     setCartItems((prevItems) =>
       prevItems.map((item) =>
         item.cartId === selectedItem.cartId // ← 👈 الحل هنا
+=======
+
+  const handleAddToCart = () => {
+    setCartItems((prevItems) => {
+      const existingItemIndex = prevItems.findIndex(
+        (item) => item.id === selectedItem.id
+      );
+
+      if (existingItemIndex !== -1) {
+        const updatedItems = [...prevItems];
+        updatedItems[existingItemIndex] = {
+          ...selectedItem,
+          quantity: counter,
+          total: counter * selectedItem.price,
+          mainExtras: Array.isArray(selectedItem.mainExtras)
+            ? [...selectedItem.mainExtras]
+            : [],
+          selectedMainExtras: Array.isArray(selectedItem.selectedMainExtras)
+            ? [...selectedItem.selectedMainExtras]
+            : [],
+          selectedExtras: Array.isArray(selectedItem.selectedExtras)
+            ? [...selectedItem.selectedExtras]
+            : [],
+          selectedIdSize: selectedItem.selectedIdSize,
+          selectedInfo: selectedItem.selectedInfo,
+          note: note,
+        };
+        return updatedItems;
+      } else {
+        return [
+          ...prevItems,
+          {
+            ...selectedItem,
+            id: `${selectedItem.id}`,
+            quantity: counter,
+            total: counter * selectedItem.price,
+            mainExtras: Array.isArray(selectedItem.mainExtras)
+              ? [...selectedItem.mainExtras]
+              : [],
+
+            selectedIdSize: selectedItem.selectedIdSize,
+            selectedInfo: selectedItem.selectedInfo,
+            selectedMainExtras: Array.isArray(selectedItem.selectedMainExtras)
+              ? [...selectedItem.selectedMainExtras]
+              : [],
+            selectedExtras: Array.isArray(selectedItem.selectedExtras)
+              ? [...selectedItem.selectedExtras]
+              : [],
+            note: note,
+          },
+        ];
+      }
+    });
+
+    setNote("");
+    setIsItemDialogOpen(false);
+  };
+  useEffect(() => {
+    if (!selectedItem) return;
+
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === selectedItem.id
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
           ? {
               ...item,
               quantity: counter,
               total: counter * item.price,
+<<<<<<< HEAD
               note: note, // ← مهم لو عايز تحدث النوت كمان
+=======
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
             }
           : item
       )
     );
+<<<<<<< HEAD
   }, [counter, note, isItemDialogOpen]);
   const handleNoteChange = (e, cartId) => {
+=======
+  }, [counter]);
+  const handleNoteChange = (e, itemId) => {
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
     const newNote = e.target.value;
 
     setCartItems((prevCart) =>
       prevCart.map((cartItem) =>
+<<<<<<< HEAD
         cartItem.cartId === cartId ? { ...cartItem, note: newNote } : cartItem
+=======
+        cartItem.id === itemId ? { ...cartItem, note: newNote } : cartItem
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
       )
     );
   };
@@ -2112,13 +2231,18 @@ function CreateOrder() {
   //     router.events?.off("routeChangeStart", handleRouteChange);
   //   };
   // }, []);
+<<<<<<< HEAD
   const [orderNote, setOrderNote] = useState("");
+=======
+
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
   useEffect(() => {
     if (selectedUser) {
       const orderData = localStorage.getItem("order");
 
       if (orderData) {
         const parsedOrder = JSON.parse(orderData);
+<<<<<<< HEAD
         const orderNote = parsedOrder?.details?.notes || "";
         const orderId = parsedOrder?.details?.id;
         const ordercheck = parsedOrder?.details?.check_id || "";
@@ -2137,6 +2261,12 @@ function CreateOrder() {
           }
          }
         // setNotesOrderNotes(orderNote);
+=======
+        const orderId = parsedOrder?.details?.id;
+        const ordercheck = parsedOrder?.details?.check_id || "";
+        setOrderId(orderId);
+        setOrderCheck(ordercheck);
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
         const items = parsedOrder?.items;
 
         if (Array.isArray(items)) {
@@ -2157,7 +2287,10 @@ function CreateOrder() {
               selectedExtras: item?.extras || [],
               selectedMainExtras: [],
               note: item?.special || "",
+<<<<<<< HEAD
               cartId: uuidv4(),
+=======
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
             };
           });
 
@@ -3447,7 +3580,11 @@ function CreateOrder() {
                                     <div className="flex items-center">
                                       <button
                                         onClick={() =>
+<<<<<<< HEAD
                                           handleDecreaseTable(item.cartId)
+=======
+                                          handleDecreaseTable(item.id)
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
                                         }
                                         className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
                                       >
@@ -3465,7 +3602,11 @@ function CreateOrder() {
                                           if (!isNaN(value) && value >= 0.1) {
                                             setCartItems((prevItems) =>
                                               prevItems.map((i) =>
+<<<<<<< HEAD
                                                 i.cartId === item.cartId
+=======
+                                                i.id === item.id
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
                                                   ? {
                                                       ...i,
                                                       quantity: value,
@@ -3481,7 +3622,11 @@ function CreateOrder() {
 
                                       <button
                                         onClick={() =>
+<<<<<<< HEAD
                                           handleIncreaseTable(item.cartId)
+=======
+                                          handleIncreaseTable(item.id)
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
                                         }
                                         className="text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
                                       >
@@ -3491,10 +3636,17 @@ function CreateOrder() {
                                   </div>
                                   <div className="my-3">
                                     <Input
+<<<<<<< HEAD
                                       type="text"
                                       value={item.note || ""}
                                       onChange={(e) =>
                                         handleNoteChange(e, item.cartId)
+=======
+                                      type="number"
+                                      value={item.note || ""}
+                                      onChange={(e) =>
+                                        handleNoteChange(e, item.id)
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
                                       }
                                       placeholder="No note added"
                                       className="w-full px-3 py- border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
@@ -3539,7 +3691,11 @@ function CreateOrder() {
                                             <AlertDialogAction
                                               className="bg-red-600 hover:bg-red-500 text-white"
                                               onClick={() =>
+<<<<<<< HEAD
                                                 handleRemoveItem(item.cartId)
+=======
+                                                handleRemoveItem(item.id)
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
                                               }
                                             >
                                               Ok
@@ -3684,7 +3840,11 @@ function CreateOrder() {
                                           field.onChange(selectedOption.value);
                                           setSelectedOrderPaymeny(
                                             selectedOption
+<<<<<<< HEAD
                                           );
+=======
+                                          ); // تحديث القيمة المختارة
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
                                         }}
                                         styles={selectStyles(theme, color)}
                                       />
@@ -3986,6 +4146,7 @@ function CreateOrder() {
                                     <Textarea
                                       type="text"
                                       placeholder="Order notes"
+<<<<<<< HEAD
                                       // onChange={handleTextareaChange}
                                       onChange={(e) => {
                                         handleTextareaChange(e);
@@ -3993,6 +4154,12 @@ function CreateOrder() {
                                       }}
                                       className="border p-2 h-full resize-none !w-full"
                                       {...registerCreateOrder("notes")}
+=======
+                                      onChange={handleTextareaChange}
+                                      className="border p-2 h-full resize-none !w-full"
+                                      {...registerCreateOrder("notes")}
+                                      // value={notesOrderNotes}
+>>>>>>> 83401e29e08d65b30f526aec4c8e54f467ae03a4
                                     />
                                   </div>
                                 </div>
