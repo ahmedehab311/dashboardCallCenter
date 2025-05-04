@@ -762,7 +762,7 @@ function CreateOrder() {
   const [selectedBranch, setSelectedBranch] = useState(null);
 
   const [selectedAddressArray, setSelectedAddressArray] = useState([]);
-
+console.log("selectedAddressArray", selectedAddressArray);
   const [selectedBranchName, setSelectedBranchName] = useState("");
   const [selectedBranchInSelected, setSelectedBranchInSelected] =
     useState(null);
@@ -797,27 +797,51 @@ function CreateOrder() {
       setSelectedBranchPriceList(firstBranch.price_list);
     }
   }, [branches]);
+const [addressId, setAddressId] = useState(null);
+  // useEffect(() => {
+  //   if (selectedUser?.address?.length > 0) {
+  //     setSelectedAddressArray(selectedUser.address);
+
+  //     if (!selectedAddress) {
+  //       const firstAddress = selectedUser.address[0];
+  //       setSelectedAddress(firstAddress);
+
+  //       // console.log("firstAddress", firstAddress);
+  //       setSelectedBranch(firstAddress.branch?.[0]);
+
+  //       // console.log("SelectedBranch (قبل التحديث)", firstAddress.branch?.[0]);
+  //     }
+  //   } else {
+  //     setSelectedAddress(null);
+  //     setSelectedAddressArray([]);
+  //     setSelectedBranch(null);
+  //     setBranchId(null);
+  //   }
+  // }, [selectedUser, selectedAddress]);
 
   useEffect(() => {
     if (selectedUser?.address?.length > 0) {
       setSelectedAddressArray(selectedUser.address);
 
-      if (!selectedAddress) {
+      if (addressId) {
+        const foundAddress = selectedUser.address.find(
+          (addr) => addr.id === addressId
+        );
+        if (foundAddress) {
+          setSelectedAddress(foundAddress);
+          setSelectedBranch(foundAddress.branch?.[0]);
+        } else {
+          const firstAddress = selectedUser.address[0];
+          setSelectedAddress(firstAddress);
+          setSelectedBranch(firstAddress.branch?.[0]);
+        }
+      } else {
         const firstAddress = selectedUser.address[0];
         setSelectedAddress(firstAddress);
-
-        // console.log("firstAddress", firstAddress);
         setSelectedBranch(firstAddress.branch?.[0]);
-
-        // console.log("SelectedBranch (قبل التحديث)", firstAddress.branch?.[0]);
       }
-    } else {
-      setSelectedAddress(null);
-      setSelectedAddressArray([]);
-      setSelectedBranch(null);
-      setBranchId(null);
     }
-  }, [selectedUser, selectedAddress]);
+  }, [selectedUser, addressId, selectedAddress]);
 
   useEffect(() => {
     const handleBeforeUnload = (event) => {
@@ -926,13 +950,11 @@ function CreateOrder() {
   };
 
   const handleDecreaseTable = (cartId) => {
- 
     setCartItems(
       (prevItems) =>
         prevItems
           .map((item) => {
             if (item.cartId === cartId) {
-
               if (item.quantity > 1) {
                 return {
                   ...item,
@@ -956,7 +978,6 @@ function CreateOrder() {
     setCartItems((prevItems) =>
       prevItems.filter((item) => item.cartId !== cartId)
     );
-
   };
 
   const [note, setNote] = useState("");
@@ -1111,6 +1132,7 @@ function CreateOrder() {
   //   setEditingItemIndex(null);
   //   setIsItemDialogOpen(false);
   // };
+  const orderData = localStorage.getItem("order");
   const handleAddToCart = () => {
     console.log("NOTE عند الإضافة:", note);
 
@@ -1191,6 +1213,26 @@ function CreateOrder() {
       )
     );
   };
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  // useEffect(() => {
+
+  //   if (dataRestaurants) {
+  //     const formattedRestaurants = dataRestaurants.map((restaurant) => ({
+  //       value: restaurant.id,
+  //       label: restaurant.res_name_en,
+  //     }));
+  //     setRestaurantsSelect(formattedRestaurants);
+
+  //     // تعيين الـ id للمطعم الأول بشكل افتراضي
+  //     if (!isEditMode && formattedRestaurants.length > 0) {
+
+  //       setSelectedRestaurantId(formattedRestaurants[0].value);
+  //     }
+  //   }
+  // }, [dataRestaurants]);
+  const [initialRestaurantIdFromOrder, setInitialRestaurantIdFromOrder] =
+    useState(null);
 
   useEffect(() => {
     if (dataRestaurants) {
@@ -1198,14 +1240,22 @@ function CreateOrder() {
         value: restaurant.id,
         label: restaurant.res_name_en,
       }));
+
       setRestaurantsSelect(formattedRestaurants);
 
-      // تعيين الـ id للمطعم الأول بشكل افتراضي
-      if (formattedRestaurants.length > 0) {
+      // if (isEditMode && initialRestaurantIdFromOrder) {
+      //   setSelectedRestaurantId(Number(initialRestaurantIdFromOrder));
+      // } else if (!isEditMode && formattedRestaurants.length > 0) {
+      //   setSelectedRestaurantId(formattedRestaurants[0].value);
+      // }
+      if (isEditMode && initialRestaurantIdFromOrder) {
+        setSelectedRestaurantId(Number(initialRestaurantIdFromOrder));
+      } else if (!isEditMode && formattedRestaurants.length > 0) {
         setSelectedRestaurantId(formattedRestaurants[0].value);
       }
     }
-  }, [dataRestaurants]);
+  }, [dataRestaurants, isEditMode, initialRestaurantIdFromOrder]);
+
   useEffect(() => {
     if (selectedRestaurantId && SelectedBranchPriceist) {
       queryClient.prefetchQuery(
@@ -1313,7 +1363,7 @@ function CreateOrder() {
       setMassegeNotSelectedBranch(null); // إزالة الرسالة إن وجدت
     }
   }, [deliveryMethod, branchOptions]);
-
+console.log("setSelectedBranchInSelected", selectedBranchInSelected);
   const handleConfirmChange = () => {
     // console.log("pendingBranch",pendingBranch);
     updateBranch(pendingBranch);
@@ -1768,7 +1818,6 @@ function CreateOrder() {
       setLoading(false);
     }
   };
-  const [isEditMode, setIsEditMode] = useState(false);
   const [orderId, setOrderId] = useState(null);
   const [orderCheck, setOrderCheck] = useState(null);
   const onSubmithandleCreateOrder = async (data) => {
@@ -1847,7 +1896,7 @@ function CreateOrder() {
       localStorage.removeItem("order");
     }
   };
-  console.log("isEditMode", isEditMode);
+  // console.log("isEditMode", isEditMode);
 
   const handleAddressTypeChange = (type) => {
     setSelectedAddressType(type);
@@ -2042,9 +2091,8 @@ function CreateOrder() {
   //   }
   //   // console.log("order:", orderData?.details?.user_data?.phone);
   // }, []);
-  useEffect(() => {
-    const orderData = localStorage.getItem("order");
 
+  useEffect(() => {
     if (orderData) {
       setIsEditMode(true);
       const parsedOrder = JSON.parse(orderData);
@@ -2116,16 +2164,56 @@ function CreateOrder() {
   //     router.events?.off("routeChangeStart", handleRouteChange);
   //   };
   // }, []);
-  const [orderNote, setOrderNote] = useState("");
-  useEffect(() => {
-    if (selectedUser) {
-      const orderData = localStorage.getItem("order");
 
+  const [orderNote, setOrderNote] = useState("");
+
+  useEffect(() => {
+    const orderData = localStorage.getItem("order");
+    if (selectedUser) {
       if (orderData) {
+        setIsEditMode(true);
         const parsedOrder = JSON.parse(orderData);
         const orderNote = parsedOrder?.details?.notes || "";
-        const orderId = parsedOrder?.details?.id;
+        const orderId = parsedOrder?.details?.order_id;
         const ordercheck = parsedOrder?.details?.check_id || "";
+        const restaurantidCheck = parsedOrder?.details?.restaurant_id || "";
+        const deliveryType = Number(parsedOrder?.details?.delivery_type) || "";
+        const branchId = Number(parsedOrder?.details?.branch_id) || "";
+        // const addressId = order?.address_info?.id || order?.address;
+        // const addressId = parsedOrder?.details?.address_info?.id || parsedOrder?.details?.address;
+        setAddressId(addressId);
+        // if (restaurantId) {
+        //   setIsEditMode(true);
+        //   setInitialRestaurantIdFromOrder(Number(restaurantId));
+        // }
+        if (restaurantidCheck) {
+          setIsEditMode(true);
+          setInitialRestaurantIdFromOrder(Number(restaurantidCheck));
+        }
+        if (deliveryType === 2) {
+          setDeliveryMethod("pickup");
+        } else {
+          setDeliveryMethod("delivery");
+        }
+
+        if (branchId && branchOptions.length > 0) {
+          const matchedBranch = branchOptions.find(
+            (branch) => branch.value === Number(branchId)
+          );
+          console.log("matchedBranch", matchedBranch);
+
+          if (matchedBranch) {
+            setSelectedBranchInSelected(matchedBranch);
+            setSelectedBranchId(matchedBranch.value);
+            setSelectedBranchName(matchedBranch.label);
+            setSavedBranch(matchedBranch);
+            setSelectedBranchPriceList(matchedBranch.priceList);
+            setIsBranchManuallySelected(true);
+            setMassegeNotSelectedBranch("");
+          }
+        }
+
+        console.log("restaurantidCheck", restaurantidCheck);
         const visaFromNote = orderNote.toLowerCase().includes("visa");
         setOrderId(orderId);
         setOrderCheck(ordercheck);
@@ -2134,12 +2222,14 @@ function CreateOrder() {
           setValueCreateOrder("notes", orderNote);
         }
         if (visaFromNote) {
-          const visaOption = orderPaymenyOptions.find((options) => options.value === 2);
+          const visaOption = orderPaymenyOptions.find(
+            (options) => options.value === 2
+          );
           if (visaOption) {
             setSelectedOrderPaymeny(visaOption);
-             setValueCreateOrder("orderpayment", visaOption.value);
+            setValueCreateOrder("orderpayment", visaOption.value);
           }
-         }
+        }
         // setNotesOrderNotes(orderNote);
         const items = parsedOrder?.items;
 
@@ -2172,7 +2262,7 @@ function CreateOrder() {
         }
       }
     }
-  }, [selectedUser]);
+  }, [selectedUser, branchOptions, isEditMode]);
 
   useEffect(() => {
     const handleRouteChange = () => {

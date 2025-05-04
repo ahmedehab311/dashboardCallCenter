@@ -20,7 +20,7 @@ const BranchesReport = ({
     ? orders.sources.flat()
     : Object.values(orders?.sources || {}).flat();
   const branchOrdersCount = {};
-  console.log("allOrders", allOrders);
+  // console.log("allOrders", allOrders);
 
   allOrders.forEach((order) => {
     const branchName = order.branch?.[0]?.name_en;

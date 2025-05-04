@@ -89,9 +89,14 @@ export function BasicDataTable({
         Address: order?.address?.[0]?.address1 || "Pickup",
         Total: order?.total,
         source: order?.source,
-        TotalAmount: isNaN(parseFloat(order?.total?.replace(/,/g, "")))
+        // TotalAmount: isNaN(parseFloat(order?.total?.replace(/,/g, "")))
+        //   ? 0
+        //   : parseFloat(order?.total.replace(/,/g, "")).toFixed(2),
+        TotalAmount: isNaN(
+          parseFloat(order?.total?.toString().replace(/,/g, ""))
+        )
           ? 0
-          : parseFloat(order?.total.replace(/,/g, "")).toFixed(2),
+          : parseFloat(order?.total.toString().replace(/,/g, "")).toFixed(2),
         paymentMethod: order?.payment_method,
       };
     });
@@ -175,7 +180,7 @@ export function BasicDataTable({
               : "Other";
           return (
             <div className="flex flex-col">
-              <span className="whitespace-nowrap">{row["TotalAmount"]}</span>
+                <span className="whitespace-nowrap">{row["TotalAmount"]}</span>
               <span className="text-sm text-muted-foreground">
                 {paymentMethodText}
               </span>

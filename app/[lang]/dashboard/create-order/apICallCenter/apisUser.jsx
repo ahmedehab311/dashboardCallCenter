@@ -172,40 +172,41 @@ export const createOrder = async ({
   }&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}&restaurant=${restaurant}&branch=${branch}`;
 
   console.log("Final API URL:", apiUrl);
+  
+  try {
+    console.log("orderId:", orderId);
+    const response = await axios.post(
+      `${apiBaseUrl}/callcenter/order/${
+        isEditMode ? "update" : "create"
+      }?api_token=${token}`,
+      null,
+      {
+        params: {
+          lookup_id: lookupId,
+          address,
+          area,
+          items: JSON.stringify(formattedItems),
+          notes,
+          ...(time ? { time } : {}),
+          source,
+          branch,
+          status,
+          payment,
+          lat,
+          lng,
+          delivery_type,
+          restaurant,
+          ...(isEditMode ? { order_code: orderId, check_id: orderCheck } : {}),
+        },
+      }
+    );
 
-  // try {
-  //   const response = await axios.post(
-  //     `${apiBaseUrl}/callcenter/order/${
-  //       isEditMode ? "update" : "create"
-  //     }?api_token=${token}`,
-  //     null,
-  //     {
-  //       params: {
-  //         lookup_id: lookupId,
-  //         address,
-  //         area,
-  //         items: JSON.stringify(formattedItems),
-  //         notes,
-  //         ...(time ? { time } : {}),
-  //         source,
-  //         branch,
-  //         status,
-  //         payment,
-  //         lat,
-  //         lng,
-  //         delivery_type,
-  //         restaurant,
-  //         ...(isEditMode ? { order_id: orderId, check_id: orderCheck } : {}),
-  //       },
-  //     }
-  //   );
-
-  //   console.log("Order created successfully:", response.data);
-  //   return response.data;
-  // } catch (error) {
-  //   console.error("Error creating order:", error);
-  //   throw error;
-  // }
+    console.log("Order created successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating order:", error);
+    throw error;
+  }
 };
 
 // export const updateOrder = async ({
