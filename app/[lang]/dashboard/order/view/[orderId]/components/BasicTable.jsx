@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/table";
 const BasicTable = ({ OrderDetails, OrderDetailsItem }) => {
   if (!OrderDetailsItem) return null;
-  console.log("OrderDetailsItem", OrderDetailsItem);
-  console.log("OrderDetails", OrderDetails);
+  // console.log("OrderDetailsItem", OrderDetailsItem);
+  // console.log("OrderDetails", OrderDetails);
 
   return (
     <>

@@ -762,7 +762,7 @@ function CreateOrder() {
   const [selectedBranch, setSelectedBranch] = useState(null);
 
   const [selectedAddressArray, setSelectedAddressArray] = useState([]);
-console.log("selectedAddressArray", selectedAddressArray);
+  // console.log("selectedAddressArray", selectedAddressArray);
   const [selectedBranchName, setSelectedBranchName] = useState("");
   const [selectedBranchInSelected, setSelectedBranchInSelected] =
     useState(null);
@@ -797,51 +797,71 @@ console.log("selectedAddressArray", selectedAddressArray);
       setSelectedBranchPriceList(firstBranch.price_list);
     }
   }, [branches]);
-const [addressId, setAddressId] = useState(null);
-  // useEffect(() => {
-  //   if (selectedUser?.address?.length > 0) {
-  //     setSelectedAddressArray(selectedUser.address);
-
-  //     if (!selectedAddress) {
-  //       const firstAddress = selectedUser.address[0];
-  //       setSelectedAddress(firstAddress);
-
-  //       // console.log("firstAddress", firstAddress);
-  //       setSelectedBranch(firstAddress.branch?.[0]);
-
-  //       // console.log("SelectedBranch (قبل التحديث)", firstAddress.branch?.[0]);
-  //     }
-  //   } else {
-  //     setSelectedAddress(null);
-  //     setSelectedAddressArray([]);
-  //     setSelectedBranch(null);
-  //     setBranchId(null);
-  //   }
-  // }, [selectedUser, selectedAddress]);
-
+  const [addressId, setAddressId] = useState(null);
   useEffect(() => {
     if (selectedUser?.address?.length > 0) {
       setSelectedAddressArray(selectedUser.address);
 
-      if (addressId) {
-        const foundAddress = selectedUser.address.find(
-          (addr) => addr.id === addressId
-        );
-        if (foundAddress) {
-          setSelectedAddress(foundAddress);
-          setSelectedBranch(foundAddress.branch?.[0]);
-        } else {
-          const firstAddress = selectedUser.address[0];
-          setSelectedAddress(firstAddress);
-          setSelectedBranch(firstAddress.branch?.[0]);
-        }
-      } else {
+      if (!selectedAddress) {
         const firstAddress = selectedUser.address[0];
         setSelectedAddress(firstAddress);
+
+        // console.log("firstAddress", firstAddress);
         setSelectedBranch(firstAddress.branch?.[0]);
+
+        // console.log("SelectedBranch (قبل التحديث)", firstAddress.branch?.[0]);
       }
+    } else {
+      setSelectedAddress(null);
+      setSelectedAddressArray([]);
+      setSelectedBranch(null);
+      setBranchId(null);
     }
-  }, [selectedUser, addressId, selectedAddress]);
+  }, [selectedUser, selectedAddress]);
+  useEffect(() => {
+    if (selectedUser?.address?.length > 0) {
+      setSelectedAddressArray(selectedUser.address);
+
+      if (!selectedAddress) {
+        const firstAddress = selectedUser.address[0];
+        setSelectedAddress(firstAddress);
+
+        // console.log("firstAddress", firstAddress);
+        setSelectedBranch(firstAddress.branch?.[0]);
+
+        // console.log("SelectedBranch (قبل التحديث)", firstAddress.branch?.[0]);
+      }
+    } else {
+      setSelectedAddress(null);
+      setSelectedAddressArray([]);
+      setSelectedBranch(null);
+      setBranchId(null);
+    }
+  }, [selectedUser, selectedAddress]);
+
+  // useEffect(() => {
+  //   if (selectedUser?.address?.length > 0) {
+  //     setSelectedAddressArray(selectedUser.address);
+
+  //     if (addressId) {
+  //       const foundAddress = selectedUser.address.find(
+  //         (addr) => addr.id === addressId
+  //       );
+  //       if (foundAddress) {
+  //         setSelectedAddress(foundAddress);
+  //         setSelectedBranch(foundAddress.branch?.[0]);
+  //       } else {
+  //         const firstAddress = selectedUser.address[0];
+  //         setSelectedAddress(firstAddress);
+  //         setSelectedBranch(firstAddress.branch?.[0]);
+  //       }
+  //     } else {
+  //       const firstAddress = selectedUser.address[0];
+  //       setSelectedAddress(firstAddress);
+  //       setSelectedBranch(firstAddress.branch?.[0]);
+  //     }
+  //   }
+  // }, [selectedUser, addressId, selectedAddress]);
 
   useEffect(() => {
     const handleBeforeUnload = (event) => {
@@ -982,7 +1002,7 @@ const [addressId, setAddressId] = useState(null);
 
   const [note, setNote] = useState("");
   const [cartItems, setCartItems] = useState([]);
-  console.log("cartItems", cartItems);
+  // console.log("cartItems", cartItems);
   // const handleAddToCart = () => {
   //   setCartItems((prevItems) => {
 
@@ -1243,16 +1263,16 @@ const [addressId, setAddressId] = useState(null);
 
       setRestaurantsSelect(formattedRestaurants);
 
-      // if (isEditMode && initialRestaurantIdFromOrder) {
-      //   setSelectedRestaurantId(Number(initialRestaurantIdFromOrder));
-      // } else if (!isEditMode && formattedRestaurants.length > 0) {
-      //   setSelectedRestaurantId(formattedRestaurants[0].value);
-      // }
       if (isEditMode && initialRestaurantIdFromOrder) {
         setSelectedRestaurantId(Number(initialRestaurantIdFromOrder));
       } else if (!isEditMode && formattedRestaurants.length > 0) {
         setSelectedRestaurantId(formattedRestaurants[0].value);
       }
+      // if (isEditMode && initialRestaurantIdFromOrder) {
+      //   setSelectedRestaurantId(Number(initialRestaurantIdFromOrder));
+      // } else if (!isEditMode && formattedRestaurants.length > 0) {
+      //   setSelectedRestaurantId(formattedRestaurants[0].value);
+      // }
     }
   }, [dataRestaurants, isEditMode, initialRestaurantIdFromOrder]);
 
@@ -1344,6 +1364,7 @@ const [addressId, setAddressId] = useState(null);
     setSelectedBranchPriceList(selectedOption.priceList);
     setIsBranchManuallySelected(true);
     setMassegeNotSelectedBranch(null);
+    setSavedBranch(selectedOption);
     refetchMenu();
   };
   // console.log("panding", pendingBranch);
@@ -1363,7 +1384,6 @@ const [addressId, setAddressId] = useState(null);
       setMassegeNotSelectedBranch(null); // إزالة الرسالة إن وجدت
     }
   }, [deliveryMethod, branchOptions]);
-console.log("setSelectedBranchInSelected", selectedBranchInSelected);
   const handleConfirmChange = () => {
     // console.log("pendingBranch",pendingBranch);
     updateBranch(pendingBranch);
@@ -1466,6 +1486,7 @@ console.log("setSelectedBranchInSelected", selectedBranchInSelected);
   useEffect(() => {
     const currentSelectedBranchId = getValueCreateOrder("branches");
     const deliveryBranch = selectedAddress?.branch?.[0]?.id || null;
+    // console.log("selectedAddress",selectedAddress);
 
     if (deliveryMethod === "pickup") {
       if (selectedBranchId && selectedBranchId !== currentSelectedBranchId) {
@@ -1820,9 +1841,9 @@ console.log("setSelectedBranchInSelected", selectedBranchInSelected);
   };
   const [orderId, setOrderId] = useState(null);
   const [orderCheck, setOrderCheck] = useState(null);
+  console.log("savedBranch", savedBranch);
   const onSubmithandleCreateOrder = async (data) => {
     // console.log(" بيانات الطلب:", data);
-    // console.log("branchId", branchId);
     setLoading(true);
 
     try {
@@ -1841,7 +1862,7 @@ console.log("setSelectedBranchInSelected", selectedBranchInSelected);
         items: cartItems,
         lat: 0,
         lng: 0,
-        branch: savedBranch?.value,
+        branch: savedBranch.value,
         restaurant: selectedRestaurantId,
         token,
         apiBaseUrl,
@@ -1850,10 +1871,10 @@ console.log("setSelectedBranchInSelected", selectedBranchInSelected);
         orderCheck,
       });
       // console.log("cartItems createOrder",cartItems);
-      console.log("orderId", orderId);
-      console.log("orderCheck", orderCheck);
+      // console.log("orderId", orderId);
+      // console.log("orderCheck", orderCheck);
 
-      toast.success("Order created successfully");
+      toast.success(`Order ${isEditMode ? "updated" : "created"} successfully`);
       setCreateOrderDialogOpen(false);
 
       if (!isEditMode) {
@@ -2167,6 +2188,8 @@ console.log("setSelectedBranchInSelected", selectedBranchInSelected);
 
   const [orderNote, setOrderNote] = useState("");
 
+  // console.log("selectedUser", selectedUser);
+  // console.log("selectedAddress", selectedAddress);
   useEffect(() => {
     const orderData = localStorage.getItem("order");
     if (selectedUser) {
@@ -2179,6 +2202,7 @@ console.log("setSelectedBranchInSelected", selectedBranchInSelected);
         const restaurantidCheck = parsedOrder?.details?.restaurant_id || "";
         const deliveryType = Number(parsedOrder?.details?.delivery_type) || "";
         const branchId = Number(parsedOrder?.details?.branch_id) || "";
+        const AdderssOrder = parsedOrder?.details?.address_info;
         // const addressId = order?.address_info?.id || order?.address;
         // const addressId = parsedOrder?.details?.address_info?.id || parsedOrder?.details?.address;
         setAddressId(addressId);
@@ -2200,7 +2224,19 @@ console.log("setSelectedBranchInSelected", selectedBranchInSelected);
           const matchedBranch = branchOptions.find(
             (branch) => branch.value === Number(branchId)
           );
-          console.log("matchedBranch", matchedBranch);
+
+          if (AdderssOrder && Array.isArray(selectedAddressArray)) {
+            const matchedAddress = selectedUser.address.find(
+              (add) => add.id === AdderssOrder.id
+            );
+            console.log("matchedAddress", matchedAddress);
+            
+            if (matchedAddress) {
+              setSelectedAddress(matchedAddress);
+            }
+          }
+          // console.log("selectedAddress", selectedAddress);
+          // console.log("AdderssOrder", AdderssOrder);
 
           if (matchedBranch) {
             setSelectedBranchInSelected(matchedBranch);
@@ -3372,21 +3408,7 @@ console.log("setSelectedBranchInSelected", selectedBranchInSelected);
                                 {address.address_name}
                               </label>
                             </div>
-                            {/* <DeleteAddressFotUser
-                              open={openEditAddressDialog}
-                              setOpen={setOpenEditAddressDialog}
-                              token={token}
-                              queryClient={queryClient}
-                              editAddressType={editAddressType}
-                              apiBaseUrl={apiBaseUrl}
-                              address={address}
-                              selectedAddressArray={selectedAddressArray}
-                              setSelectedAddressArray={setSelectedAddressArray}
-                              selectedAddress={selectedAddress}
-                              setSelectedAddress={setSelectedAddress}
-                              phone={phone}
-                              setSelectedEditAddress={setSelectedEditAddress}
-                            /> */}
+
                             <div className="flex gap-3 ml-auto mb-3">
                               <button
                                 size="icon"

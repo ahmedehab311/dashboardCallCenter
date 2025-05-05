@@ -160,21 +160,27 @@ export const createOrder = async ({
       special: item.note || "",
     })),
   };
-  console.log("formattedItems:", formattedItems);
-  console.log("📦 items being sent:", JSON.stringify(formattedItems, null, 2));
+  if (process.env.NODE_ENV === "development") {
+    console.log("formattedItems:", formattedItems);
+    console.log(
+      "📦 items being sent:",
+      JSON.stringify(formattedItems, null, 2)
+    );
 
-  const apiUrl = `${apiBaseUrl}/callcenter/order/${
-    isEditMode ? "update" : "create"
-  }?api_token=${token}&orderId=${orderId}&orderCheck=${orderCheck}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${
-    time || ""
-  }&source=${source}&status=${status}&payment=${payment}&coins=${
-    insertpoints || "00.00"
-  }&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}&restaurant=${restaurant}&branch=${branch}`;
+    const apiUrl = `${apiBaseUrl}/callcenter/order/${
+      isEditMode ? "update" : "create"
+    }?api_token=${token}&orderId=${orderId}&orderCheck=${orderCheck}&lookup_id=${lookupId}&address=${address}&area=${area}&notes=${notes}&time=${
+      time || ""
+    }&source=${source}&status=${status}&payment=${payment}&coins=${
+      insertpoints || "00.00"
+    }&lat=${lat}&lng=${lng}&delivery_type=${delivery_type}&restaurant=${restaurant}&branch=${branch}`;
 
-  console.log("Final API URL:", apiUrl);
-  
+    console.log("Final API URL:", apiUrl);
+  }
+
   try {
-    console.log("orderId:", orderId);
+    // console.log("orderId:", orderId);
+    // console.log("branch:", branch);
     const response = await axios.post(
       `${apiBaseUrl}/callcenter/order/${
         isEditMode ? "update" : "create"
@@ -201,7 +207,10 @@ export const createOrder = async ({
       }
     );
 
-    console.log("Order created successfully:", response.data);
+    console.log(
+      `Order ${isEditMode ? "updated" : "created"}  successfully:`,
+      response.data
+    );
     return response.data;
   } catch (error) {
     console.error("Error creating order:", error);

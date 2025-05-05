@@ -54,20 +54,22 @@ export default function OrderViewPage({ params }) {
     queryKey: [
       "BranchesList",
       OrderDetails?.restaurant_id,
-      OrderDetails?.address_info?.area,
+      OrderDetails?.area_id,
     ],
     queryFn: () =>
       fetchBranches(
         OrderDetails?.restaurant_id,
-        OrderDetails?.address_info?.area,
+        OrderDetails?.area_id,
         token,
         apiBaseUrl
       ),
     enabled:
       !!OrderDetails?.restaurant_id &&
-      !!OrderDetails?.address_info?.area &&
+      !!OrderDetails?.area_id &&
       !!token,
   });
+
+  
   const {
     data: Deliveries,
     isLoadingDeliveries,
@@ -153,7 +155,7 @@ export default function OrderViewPage({ params }) {
     localStorage.setItem("order", JSON.stringify(Order));
     router.push(`/${language}/dashboard/create-order`);
   };
-  
+
   const handleChangeStatus = async (selected) => {
     if (selected.value === selectedStatus?.value) {
       return; 
@@ -207,6 +209,14 @@ export default function OrderViewPage({ params }) {
     }
   };
   const handleChangeDelivery = async (selected) => {
+    // if (selected.value === selectedDelivery?.value) {
+    //   return; 
+    // }
+    if (!selected || !selected.value) {
+   
+      return;
+    }
+    
     if (selected.value === selectedDelivery?.value) {
       return; 
     }
@@ -217,7 +227,7 @@ export default function OrderViewPage({ params }) {
         apiBaseUrl,
         token,
         orderId,
-        selectedDelivery.value
+        selectedDelivery.value 
       );
       response.data;
       // console.log("response updateDelivery", response);
