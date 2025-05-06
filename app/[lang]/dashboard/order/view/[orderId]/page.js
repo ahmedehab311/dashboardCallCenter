@@ -209,25 +209,20 @@ export default function OrderViewPage({ params }) {
     }
   };
   const handleChangeDelivery = async (selected) => {
-    // if (selected.value === selectedDelivery?.value) {
-    //   return; 
-    // }
-    if (!selected || !selected.value) {
-   
-      return;
-    }
-    
-    if (selected.value === selectedDelivery?.value) {
+    if (selected?.value === selectedDelivery?.value) {
       return; 
     }
+    
     setSelectedDelivery(selected);
+
+    console.log("selected:", selected);
     try {
-      // console.log("selectedDelivery.value:", selectedDelivery.value);
+
       const response = await updateDelivery(
         apiBaseUrl,
         token,
         orderId,
-        selectedDelivery.value 
+        selected.value 
       );
       response.data;
       // console.log("response updateDelivery", response);
@@ -338,25 +333,14 @@ export default function OrderViewPage({ params }) {
                 value={selectedStatus}
               />
             </div>
-            <div className="w-[40%]">
-              <p className="mb-1 text-sm ">Change dispatcher:</p>
-              <Select
-                placeholder="Change dispatcher"
-                className="react-select "
-                classNamePrefix="select"
-                styles={selectStyles(theme, color)}
-                options={DeliveryOptions}
-                // onChange={(selected) => setSelectedStatus(selected)}
-                onChange={handleChangeDelivery}
-                value={selectedDelivery}
-              />
-            </div>
+           
           </div>
           <div className="flex justify-end ">
             <div className="flex justify-end w-1/2">
               <div className="flex gap-2 items-end">
                 <Button className="py-[6px]" onClick={handleEditOrder}>
-                  <FiEdit />
+                  {/* <FiEdit /> */}
+                  Edit Order
                 </Button>
                 <Button className="py-[6px]" onClick={() => handlePrint()}>
                   Print
@@ -368,7 +352,7 @@ export default function OrderViewPage({ params }) {
       </div>
       <div className="flex gap-4">
         <Card title="Order Details" className="w-1/2 p-4">
-          <p>Address: {OrderDetails?.address_info?.address1}</p>
+          <p>Address: {OrderDetails?.address_info?.address1 || "Pickup"}</p>
           <div className=" justify-between mt-4 my-2">
             <div className="flex gap-3">
               <p>
@@ -400,7 +384,20 @@ export default function OrderViewPage({ params }) {
               phone2: {OrderDetails?.delivery?.delivery_details?.phone2 || "-"}
             </p>
           </div>
-          <Button>Change driver</Button>
+          {/* <Button>Change driver</Button> */}
+          <div className="w-[40%]">
+              <p className="mb-1 text-sm ">Change dispatcher:</p>
+              <Select
+                placeholder="Change dispatcher"
+                className="react-select "
+                classNamePrefix="select"
+                styles={selectStyles(theme, color)}
+                options={DeliveryOptions}
+                // onChange={(selected) => setSelectedStatus(selected)}
+                onChange={handleChangeDelivery}
+                value={selectedDelivery}
+              />
+            </div>
         </Card>
       </div>
 

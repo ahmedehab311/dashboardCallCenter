@@ -20,7 +20,7 @@ import "./index.css"
 function OrdersType() {
   const { apiBaseUrl } = useSubdomin();
   const [selectedStatus, setSelectedStatus] = useState("Total");
-  const [selectedDayNumber, setSelectedDayNumber] = useState(0);
+  const [selectedDayNumber, setSelectedDayNumber] = useState(1);
   const [token, setToken] = useState(null);
 
   const {

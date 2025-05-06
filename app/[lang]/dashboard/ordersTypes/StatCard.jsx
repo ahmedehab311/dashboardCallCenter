@@ -48,12 +48,12 @@ export default function StatCard({
   return (
     <div
       onClick={onClick}
-      className={`flex items-center justify-between p-4 rounded-xl shadow hover:opacity-90 transition  ${bg} cursor-pointer  ${
+      className={`flex items-center justify-between p-2 rounded-xl shadow hover:opacity-90 transition  ${bg} cursor-pointer  ${
         selectedStatus === "Total" ? "w-full" : "w-[180px]"
       } `}
     >
       <div className="flex flex-col text-left">
-        <span className="text-xl font-bold text-[#000] flex items-center gap-2 ">
+        <span className={` ${selectedStatus === "Total"  ? "text-xl" : "text-[13px]"}  ${selectedStatus === "Total"  ? "font-bold" : "font-medium"}  text-[#000] flex items-center gap-2`}>
           {isLoadingorders ? (
             <>
               <svg
@@ -81,10 +81,10 @@ export default function StatCard({
           )}
         </span>
 
-        <span className="text-sm text-[#000]">{label}</span>
+        <span className="text-xs text-[#000]">{label}</span>
       </div>
       <div className="text-blue-500">
-        <Icon size={32} />
+        <Icon size={selectedStatus === "Total" ? 32  : 16} />
       </div>
     </div>
   );

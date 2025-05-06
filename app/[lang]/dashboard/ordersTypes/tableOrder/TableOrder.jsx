@@ -50,9 +50,7 @@ export function BasicDataTable({
   const [color, setColor] = useState("");
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
-  const [columnVisibility, setColumnVisibility] = useState({
-    Address: false,
-  });
+  const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -180,7 +178,7 @@ export function BasicDataTable({
               : "Other";
           return (
             <div className="flex flex-col">
-                <span className="whitespace-nowrap">{row["TotalAmount"]}</span>
+              <span className="whitespace-nowrap">{row["TotalAmount"]}</span>
               <span className="text-sm text-muted-foreground">
                 {paymentMethodText}
               </span>
@@ -267,7 +265,7 @@ export function BasicDataTable({
             placeholder="Search by order id or phone"
             value={orderIdOrPhone}
             onChange={handleInputChange}
-            className="h-10 pr-8"
+            className="h-10 pr-8 text-[#000] dark:text-[#fff]"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 refetchSearchUser();

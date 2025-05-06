@@ -773,9 +773,151 @@ function CreateOrder() {
 
   const [branchOptions, setBranchOptions] = useState([]);
   const [savedBranch, setSavedBranch] = useState(null);
+  const [orderNote, setOrderNote] = useState("");
 
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [deliveryTypeFromOrder, setDeliveryTypeFromOrder] = useState(null);
+  const [deliveryMethodHasBeenSet, setDeliveryMethodHasBeenSet] =
+    useState(false);
+  const [addressWasManuallySelected, setAddressWasManuallySelected] =
+    useState(false);
+  // console.log("selectedUser", selectedUser);
+  // console.log("selectedAddress", selectedAddress);
   useEffect(() => {
-    if (branches?.length > 0) {
+    const orderData = localStorage.getItem("order");
+    if (selectedUser && orderData) {
+      setIsEditMode(true);
+      const parsedOrder = JSON.parse(orderData);
+      const orderNote = parsedOrder?.details?.notes || "";
+      const orderId = parsedOrder?.details?.order_id;
+      const ordercheck = parsedOrder?.details?.check_id || "";
+      const restaurantidCheck = parsedOrder?.details?.restaurant_id || "";
+      const deliveryType = Number(parsedOrder?.details?.delivery_type);
+      const branchId = Number(parsedOrder?.details?.branch_id) || "";
+      const AdderssOrder = parsedOrder?.details?.address_info;
+      setDeliveryTypeFromOrder(deliveryType);
+      // const addressId = order?.address_info?.id || order?.address;
+      // const addressId = parsedOrder?.details?.address_info?.id || parsedOrder?.details?.address;
+      setAddressId(addressId);
+      // if (restaurantId) {
+      //   setIsEditMode(true);
+      //   setInitialRestaurantIdFromOrder(Number(restaurantId));
+      // }
+      if (restaurantidCheck) {
+        setIsEditMode(true);
+        setInitialRestaurantIdFromOrder(Number(restaurantidCheck));
+      }
+
+      // if (deliveryType) {
+      //   const type = deliveryType === 2 ? "pickup" : "delivery";
+      //   setDeliveryMethod(type);
+      // }
+
+      if (branchId && branchOptions.length > 0) {
+        const matchedBranch = branchOptions.find(
+          (branch) => branch.value === Number(branchId)
+        );
+
+        if (
+          AdderssOrder &&
+          Array.isArray(selectedAddressArray) &&
+          !addressWasManuallySelected
+        ) {
+          const matchedAddress = selectedUser.address.find(
+            (add) => add.id === AdderssOrder.id
+          );
+          console.log("matchedAddress", matchedAddress);
+
+          if (matchedAddress) {
+            setSelectedAddress(matchedAddress);
+          }
+        }
+        // console.log("selectedAddress", selectedAddress);
+        // console.log("AdderssOrder", AdderssOrder);
+
+        if (matchedBranch) {
+          setSelectedBranchInSelected(matchedBranch);
+          setSelectedBranchId(matchedBranch.value);
+          setSelectedBranchName(matchedBranch.label);
+          setSavedBranch(matchedBranch);
+          setSelectedBranchPriceList(matchedBranch.priceList);
+          setIsBranchManuallySelected(true);
+          setMassegeNotSelectedBranch("");
+        }
+      }
+
+      console.log("restaurantidCheck", restaurantidCheck);
+      const visaFromNote = orderNote.toLowerCase().includes("visa");
+      setOrderId(orderId);
+      setOrderCheck(ordercheck);
+      if (!isNoteModified) {
+        setNotesOrderNotes(orderNote);
+        setValueCreateOrder("notes", orderNote);
+      }
+      if (visaFromNote) {
+        const visaOption = orderPaymenyOptions.find(
+          (options) => options.value === 2
+        );
+        if (visaOption) {
+          setSelectedOrderPaymeny(visaOption);
+          setValueCreateOrder("orderpayment", visaOption.value);
+        }
+      }
+      // setNotesOrderNotes(orderNote);
+      const items = parsedOrder?.items;
+
+      if (Array.isArray(items)) {
+        const transformedItems = items.map((item) => {
+          const id = item?.info?.id;
+
+          return {
+            id: id ? `${id}` : undefined,
+            quantity: item?.count || 1,
+            price: parseFloat(
+              item?.info?.price?.price ||
+                item?.total_price ||
+                item?.sub_total ||
+                0
+            ),
+            selectedInfo:
+              item?.info?.price?.size_en || item?.info?.size_en || "",
+            selectedExtras: item?.extras || [],
+            selectedMainExtras: [],
+            note: item?.special || "",
+            cartId: uuidv4(),
+          };
+        });
+
+        console.log("loaded cart items:", transformedItems);
+        setCartItems(transformedItems);
+      } else {
+        console.log("No valid items array found in parsedOrder.");
+      }
+    }
+  }, [selectedUser, branchOptions, isEditMode]);
+  useEffect(() => {
+    if (isEditMode && deliveryTypeFromOrder && !deliveryMethodHasBeenSet) {
+      const parsedOrder = JSON.parse(orderData);
+      const deliveryTypeFromOrder =
+        Number(parsedOrder?.details?.delivery_type) || "";
+      const type = deliveryTypeFromOrder === 2 ? "pickup" : "delivery";
+      setDeliveryMethod(type);
+      setDeliveryMethodHasBeenSet(true);
+    }
+  }, [isEditMode, deliveryTypeFromOrder, deliveryMethodHasBeenSet]);
+  useEffect(() => {
+    if (branches?.length) {
+      setBranchOptions(
+        branches.map((branch) => ({
+          value: branch.id,
+          label: branch.name_en,
+          priceList: branch.price_list,
+          deliveryFees: branch.delivery_fees,
+        }))
+      );
+    }
+
+    if (branches?.length > 0 && !isEditMode) {
       const firstBranch = branches[0];
       // تخزين أول فرع تلقائيًا
       setSelectedBranchId(firstBranch.id);
@@ -786,17 +928,10 @@ function CreateOrder() {
         priceList: firstBranch.price_list,
         deliveryFees: firstBranch.delivery_fees,
       });
-      setBranchOptions(
-        branches.map((branch) => ({
-          value: branch.id,
-          label: branch.name_en,
-          priceList: branch.price_list,
-          deliveryFees: branch.delivery_fees,
-        }))
-      );
+
       setSelectedBranchPriceList(firstBranch.price_list);
     }
-  }, [branches]);
+  }, [branches,isEditMode]);
   const [addressId, setAddressId] = useState(null);
   useEffect(() => {
     if (selectedUser?.address?.length > 0) {
@@ -943,6 +1078,7 @@ function CreateOrder() {
     setSelectedAddressArray(null);
     setCartItems([]);
     queryClient.removeQueries(["userSearch"], { exact: false });
+    setIsEditMode(false);
   };
 
   useEffect(() => {
@@ -1213,12 +1349,12 @@ function CreateOrder() {
 
     setCartItems((prevItems) =>
       prevItems.map((item) =>
-        item.cartId === selectedItem.cartId // ← 👈 الحل هنا
+        item.cartId === selectedItem.cartId
           ? {
               ...item,
               quantity: counter,
               total: counter * item.price,
-              note: note, // ← مهم لو عايز تحدث النوت كمان
+              note: note,
             }
           : item
       )
@@ -1233,7 +1369,6 @@ function CreateOrder() {
       )
     );
   };
-  const [isEditMode, setIsEditMode] = useState(false);
 
   // useEffect(() => {
 
@@ -1326,7 +1461,7 @@ function CreateOrder() {
   const handleSelectChangeBranches = (selectedOption) => {
     // console.log("selectedOption",selectedOption);
 
-    if (!selectedOption) {
+    if (!selectedOption && !isEditMode) {
       setSelectedBranchInSelected(null);
       setSelectedBranchId(null);
       setSavedBranch(null);
@@ -1336,7 +1471,7 @@ function CreateOrder() {
       return;
     }
 
-    const isFirstSelection = !selectedBranchInSelected; // أول اختيار؟
+    const isFirstSelection = !selectedBranchInSelected;
     if (isFirstSelection && selectedOption?.priceList === 1) {
       updateBranch(selectedOption);
       setSelectedBranchName(selectedOption.label);
@@ -1369,14 +1504,34 @@ function CreateOrder() {
   };
   // console.log("panding", pendingBranch);
 
+  // useEffect(() => {
+  //   if (deliveryMethod === "pickup") {
+  //     setSelectedBranchInSelected(null);
+  //     setSavedBranch(null);
+  //     setSelectedBranchId(null);
+  //     // setSelectedBranchPriceList(null);
+  //     setMassegeNotSelectedBranch("Select branch first");
+  //   } else if (deliveryMethod === "delivery" && branchOptions.length > 0) {
+  //     const firstBranch = branchOptions[0];
+  //     setSelectedBranchId(firstBranch.value);
+  //     // setSelectedBranchName(firstBranch.label);
+  //     setSavedBranch(firstBranch);
+  //     setMassegeNotSelectedBranch(null); // إزالة الرسالة إن وجدت
+  //   }
+  // }, [deliveryMethod, branchOptions]);
+
   useEffect(() => {
-    if (deliveryMethod === "pickup") {
+    if (deliveryMethod === "pickup" && !isEditMode) {
       setSelectedBranchInSelected(null);
       setSavedBranch(null);
       setSelectedBranchId(null);
       // setSelectedBranchPriceList(null);
       setMassegeNotSelectedBranch("Select branch first");
-    } else if (deliveryMethod === "delivery" && branchOptions.length > 0) {
+    } else if (
+      deliveryMethod === "delivery" &&
+      branchOptions.length > 0 &&
+      !isEditMode
+    ) {
       const firstBranch = branchOptions[0];
       setSelectedBranchId(firstBranch.value);
       // setSelectedBranchName(firstBranch.label);
@@ -1384,6 +1539,30 @@ function CreateOrder() {
       setMassegeNotSelectedBranch(null); // إزالة الرسالة إن وجدت
     }
   }, [deliveryMethod, branchOptions]);
+
+
+
+  useEffect(() => {
+    if (deliveryMethod === "pickup" && !isEditMode) {
+      setSelectedBranchInSelected(null);
+      setSavedBranch(null);
+      setSelectedBranchId(null);
+      // setSelectedBranchPriceList(null);
+      setMassegeNotSelectedBranch("Select branch first");
+    } else if (
+      deliveryMethod === "delivery" &&
+      isEditMode
+    ) {
+      setSelectedBranchInSelected(null);
+      setSavedBranch(null);
+      setSelectedBranchId(null);
+      setSelectedBranchName("");
+     
+    }
+  }, [deliveryMethod, branchOptions]);
+
+
+
   const handleConfirmChange = () => {
     // console.log("pendingBranch",pendingBranch);
     updateBranch(pendingBranch);
@@ -1736,8 +1915,8 @@ function CreateOrder() {
   const [customAddressName, setCustomAddressName] = useState("");
   const [isOpenAddress, setIsOpenAddress] = useState(false);
   const [isOpenUserData, setIsOpenUserData] = useState(true);
-
   // console.log("apiBaseUrl create order", apiBaseUrl);
+
   const onSubmitEditUserAddress = async (data) => {
     console.log("apiBaseUrl onSubmitEditUserAddress", data);
 
@@ -1841,7 +2020,7 @@ function CreateOrder() {
   };
   const [orderId, setOrderId] = useState(null);
   const [orderCheck, setOrderCheck] = useState(null);
-  console.log("savedBranch", savedBranch);
+  // console.log("savedBranch", savedBranch);
   const onSubmithandleCreateOrder = async (data) => {
     // console.log(" بيانات الطلب:", data);
     setLoading(true);
@@ -1862,7 +2041,7 @@ function CreateOrder() {
         items: cartItems,
         lat: 0,
         lng: 0,
-        branch: savedBranch.value,
+        branch: savedBranch?.value,
         restaurant: selectedRestaurantId,
         token,
         apiBaseUrl,
@@ -1877,6 +2056,10 @@ function CreateOrder() {
       toast.success(`Order ${isEditMode ? "updated" : "created"} successfully`);
       setCreateOrderDialogOpen(false);
 
+      
+      if(isEditMode) {
+        router.push(`/${language}/dashboard`);
+      }
       if (!isEditMode) {
         resetCreateOrder({
           ordertype:
@@ -1908,6 +2091,7 @@ function CreateOrder() {
         setIsOpenUserData(true);
         setSelectedBranchPriceList(1);
         queryClient.removeQueries(["userSearch"], { exact: false });
+     
       }
     } catch (error) {
       console.error(" خطأ في إنشاء الطلب:", error);
@@ -2185,120 +2369,6 @@ function CreateOrder() {
   //     router.events?.off("routeChangeStart", handleRouteChange);
   //   };
   // }, []);
-
-  const [orderNote, setOrderNote] = useState("");
-
-  // console.log("selectedUser", selectedUser);
-  // console.log("selectedAddress", selectedAddress);
-  useEffect(() => {
-    const orderData = localStorage.getItem("order");
-    if (selectedUser) {
-      if (orderData) {
-        setIsEditMode(true);
-        const parsedOrder = JSON.parse(orderData);
-        const orderNote = parsedOrder?.details?.notes || "";
-        const orderId = parsedOrder?.details?.order_id;
-        const ordercheck = parsedOrder?.details?.check_id || "";
-        const restaurantidCheck = parsedOrder?.details?.restaurant_id || "";
-        const deliveryType = Number(parsedOrder?.details?.delivery_type) || "";
-        const branchId = Number(parsedOrder?.details?.branch_id) || "";
-        const AdderssOrder = parsedOrder?.details?.address_info;
-        // const addressId = order?.address_info?.id || order?.address;
-        // const addressId = parsedOrder?.details?.address_info?.id || parsedOrder?.details?.address;
-        setAddressId(addressId);
-        // if (restaurantId) {
-        //   setIsEditMode(true);
-        //   setInitialRestaurantIdFromOrder(Number(restaurantId));
-        // }
-        if (restaurantidCheck) {
-          setIsEditMode(true);
-          setInitialRestaurantIdFromOrder(Number(restaurantidCheck));
-        }
-        if (deliveryType === 2) {
-          setDeliveryMethod("pickup");
-        } else {
-          setDeliveryMethod("delivery");
-        }
-
-        if (branchId && branchOptions.length > 0) {
-          const matchedBranch = branchOptions.find(
-            (branch) => branch.value === Number(branchId)
-          );
-
-          if (AdderssOrder && Array.isArray(selectedAddressArray)) {
-            const matchedAddress = selectedUser.address.find(
-              (add) => add.id === AdderssOrder.id
-            );
-            console.log("matchedAddress", matchedAddress);
-            
-            if (matchedAddress) {
-              setSelectedAddress(matchedAddress);
-            }
-          }
-          // console.log("selectedAddress", selectedAddress);
-          // console.log("AdderssOrder", AdderssOrder);
-
-          if (matchedBranch) {
-            setSelectedBranchInSelected(matchedBranch);
-            setSelectedBranchId(matchedBranch.value);
-            setSelectedBranchName(matchedBranch.label);
-            setSavedBranch(matchedBranch);
-            setSelectedBranchPriceList(matchedBranch.priceList);
-            setIsBranchManuallySelected(true);
-            setMassegeNotSelectedBranch("");
-          }
-        }
-
-        console.log("restaurantidCheck", restaurantidCheck);
-        const visaFromNote = orderNote.toLowerCase().includes("visa");
-        setOrderId(orderId);
-        setOrderCheck(ordercheck);
-        if (!isNoteModified) {
-          setNotesOrderNotes(orderNote);
-          setValueCreateOrder("notes", orderNote);
-        }
-        if (visaFromNote) {
-          const visaOption = orderPaymenyOptions.find(
-            (options) => options.value === 2
-          );
-          if (visaOption) {
-            setSelectedOrderPaymeny(visaOption);
-            setValueCreateOrder("orderpayment", visaOption.value);
-          }
-        }
-        // setNotesOrderNotes(orderNote);
-        const items = parsedOrder?.items;
-
-        if (Array.isArray(items)) {
-          const transformedItems = items.map((item) => {
-            const id = item?.info?.id;
-
-            return {
-              id: id ? `${id}` : undefined,
-              quantity: item?.count || 1,
-              price: parseFloat(
-                item?.info?.price?.price ||
-                  item?.total_price ||
-                  item?.sub_total ||
-                  0
-              ),
-              selectedInfo:
-                item?.info?.price?.size_en || item?.info?.size_en || "",
-              selectedExtras: item?.extras || [],
-              selectedMainExtras: [],
-              note: item?.special || "",
-              cartId: uuidv4(),
-            };
-          });
-
-          console.log("loaded cart items:", transformedItems);
-          setCartItems(transformedItems);
-        } else {
-          console.log("No valid items array found in parsedOrder.");
-        }
-      }
-    }
-  }, [selectedUser, branchOptions, isEditMode]);
 
   useEffect(() => {
     const handleRouteChange = () => {
@@ -3210,8 +3280,8 @@ function CreateOrder() {
                   className="pl-7 pr-8 w-full text-[#000] dark:text-[#fff]"
                   disabled={isEditMode}
                 />
-                {search && (
-                  <button
+                {search && isEditMode &&  (
+                  <button 
                     onClick={handleClear}
                     className="absolute top-1/2 right-2 -translate-y-1/2 text-[#000] dark:text-[#fff] text-xs font-bold"
                   >
@@ -3402,7 +3472,10 @@ function CreateOrder() {
                                 type="radio"
                                 id={address.id}
                                 checked={selectedAddress?.id === address.id}
-                                onChange={() => setSelectedAddress(address)}
+                                onChange={() => {
+                                  setSelectedAddress(address);
+                                  setAddressWasManuallySelected(true);
+                                }}
                               />
                               <label htmlFor={address.id}>
                                 {address.address_name}
@@ -4157,11 +4230,11 @@ function CreateOrder() {
 
                                 <DialogFooter>
                                   <DialogClose asChild></DialogClose>
-                                  {/* <Button type="submit">Send order</Button> */}
-                                  <Button type="submit">
+                                  <Button type="submit">Send order</Button>
+                                  {/* <Button type="submit">
                                     {" "}
                                     {isEditMode ? "Edit order" : "Send order"}
-                                  </Button>
+                                  </Button> */}
                                 </DialogFooter>
                               </div>
                             </form>
@@ -4210,8 +4283,8 @@ function CreateOrder() {
                         color="success"
                         onClick={() => setCreateOrderDialogOpen(true)}
                       >
-                        {/* Checkout */}
-                        {isEditMode ? "Edit" : "CheckOut"}
+                        Checkout
+                        {/* {isEditMode ? "Edit" : "CheckOut"} */}
                       </Button>
                     </div>
                   </>
