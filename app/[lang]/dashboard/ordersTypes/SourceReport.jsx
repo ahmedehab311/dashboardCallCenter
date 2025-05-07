@@ -6,7 +6,12 @@ import { useThemeStore } from "@/store";
 import { useTheme } from "next-themes";
 import { themes } from "@/config/thems";
 
-const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) => {
+const UserDeviceReport = ({
+  height = 250,
+  orders,
+  isLoadingorders,
+  errororders,
+}) => {
   const { theme: config, setTheme: setConfig, isRtl } = useThemeStore();
   const { theme: mode } = useTheme();
   const theme = themes.find((theme) => theme.name === config);
@@ -69,7 +74,7 @@ const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) 
   //   },
   //   legend: {
   //     position: "bottom",
-  //     offsetY: -15, 
+  //     offsetY: -15,
   //     labels: {
   //       colors: `hsl(${
   //         theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
@@ -103,7 +108,7 @@ const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) 
     plotOptions: {
       pie: {
         donut: {
-          size: '70%', // يمكن تعديل الحجم هنا (توسيع الدائرة)
+          size: "70%", // يمكن تعديل الحجم هنا (توسيع الدائرة)
           labels: {
             show: true,
             name: {
@@ -113,7 +118,7 @@ const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) 
               color: `hsl(${
                 theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
               })`,
-              offsetY: -12, // رفع الاسم قليلاً
+              offsetY: -12, 
             },
             value: {
               show: true,
@@ -122,7 +127,7 @@ const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) 
               color: `hsl(${
                 theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
               })`,
-              offsetY: -10, // رفع القيمة قليلاً
+              offsetY: -1,
             },
             total: {
               show: true,
@@ -132,7 +137,7 @@ const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) 
               color: `hsl(${
                 theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
               })`,
-              offsetY: 10, // رفع الكلمة "Total" عن مكانها
+              offsetY: -10,
             },
           },
         },
@@ -146,7 +151,7 @@ const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) 
           theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
         })`,
       },
-      itemMargin: { horizontal: 9, vertical: 5 },
+      itemMargin: { horizontal: 9, vertical: 22 },
       markers: {
         width: 10,
         height: 10,
@@ -171,14 +176,16 @@ const UserDeviceReport = ({ height = 250, orders,isLoadingorders,errororders }) 
     );
   }
   return (
+    <div className="custom-chart">
+
     <Chart
-    
       options={options}
       series={series}
       type="donut"
       height={height}
       width={"100%"}
     />
+    </div>
   );
 };
 

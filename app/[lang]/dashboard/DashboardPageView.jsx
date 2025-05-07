@@ -8,6 +8,7 @@ import { useState } from "react";
 import OrdersType from "./ordersTypes/OrdersType";
 // import "@/app/[lang]/sections/index.css";
 function DashboardPageView() {
+  // const [isEditMode, setIsEditMode] = useState(false);
   return (
     <>
       <OrdersType />

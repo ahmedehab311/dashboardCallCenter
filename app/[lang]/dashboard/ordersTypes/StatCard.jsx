@@ -44,7 +44,6 @@ export default function StatCard({
     }
   }, [isReal, isLoadingorders]);
 
-
   return (
     <div
       onClick={onClick}
@@ -53,7 +52,13 @@ export default function StatCard({
       } `}
     >
       <div className="flex flex-col text-left">
-        <span className={` ${selectedStatus === "Total"  ? "text-xl" : "text-[13px]"}  ${selectedStatus === "Total"  ? "font-bold" : "font-medium"}  text-[#000] flex items-center gap-2`}>
+        <span
+          className={` ${
+            selectedStatus === "Total" ? "text-xl" : "text-[13px]"
+          }  ${
+            selectedStatus === "Total" ? "font-bold" : "font-medium"
+          }  text-[#000] flex items-center gap-2`}
+        >
           {isLoadingorders ? (
             <>
               <svg
@@ -84,7 +89,7 @@ export default function StatCard({
         <span className="text-xs text-[#000]">{label}</span>
       </div>
       <div className="text-blue-500">
-        <Icon size={selectedStatus === "Total" ? 32  : 16} />
+        <Icon size={selectedStatus === "Total" ? 32 : 16} />
       </div>
     </div>
   );

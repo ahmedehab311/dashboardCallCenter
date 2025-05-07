@@ -55,7 +55,7 @@ const BranchesReport = ({
             show: true,
             name: {
               show: true,
-              fontSize: "24px",
+              fontSize: "18px",
               fontWeight: 500,
               color: `hsl(${
                 theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
@@ -68,6 +68,7 @@ const BranchesReport = ({
               color: `hsl(${
                 theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
               })`,
+              offsetY: -1,
             },
             total: {
               show: true,
@@ -77,6 +78,7 @@ const BranchesReport = ({
               color: `hsl(${
                 theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
               })`,
+              offsetY: -10,
             },
           },
         },
@@ -126,6 +128,7 @@ const BranchesReport = ({
       height={height}
       width={"100%"}
     />
+    
   );
 };
 

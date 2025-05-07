@@ -61,6 +61,7 @@ const UserDeviceReport = ({
               color: `hsl(${
                 theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
               })`,
+            
             },
             value: {
               show: true,
@@ -69,6 +70,7 @@ const UserDeviceReport = ({
               color: `hsl(${
                 theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
               })`,
+              offsetY: -1,
             },
             total: {
               show: true,
@@ -78,6 +80,7 @@ const UserDeviceReport = ({
               color: `hsl(${
                 theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
               })`,
+              offsetY: -10,
             },
           },
         },
@@ -91,7 +94,7 @@ const UserDeviceReport = ({
           theme?.cssVars[mode === "dark" ? "dark" : "light"].chartLabel
         })`,
       },
-      itemMargin: { horizontal: 5, vertical: 5 },
+      itemMargin: { horizontal: 5, vertical: 12 },
       markers: {
         width: 10,
         height: 10,

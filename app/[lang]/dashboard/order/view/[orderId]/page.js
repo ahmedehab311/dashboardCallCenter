@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { selectStyles } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
-import { fetchBranches } from "@/app/[lang]/dashboard/create-order/apICallCenter/ApisCallCenter";
+import { fetchBranches } from "@/app/[lang]/dashboard/[orderType]/apICallCenter/ApisCallCenter";
 import { useQuery } from "@tanstack/react-query";
 import {
   updateStatusOrder,
@@ -153,7 +153,8 @@ export default function OrderViewPage({ params }) {
   };
   const handleEditOrder = () => {
     localStorage.setItem("order", JSON.stringify(Order));
-    router.push(`/${language}/dashboard/create-order`);
+    // هنا سنوجه المستخدم إلى صفحة التعديل (edit-order) بدلاً من create-order
+    router.push(`/${language}/dashboard/edit-order`); // لاحظ التغيير هنا
   };
 
   const handleChangeStatus = async (selected) => {
@@ -340,7 +341,7 @@ export default function OrderViewPage({ params }) {
               <div className="flex gap-2 items-end">
                 <Button className="py-[6px]" onClick={handleEditOrder}>
                   {/* <FiEdit /> */}
-                  Edit Order
+                  Edit 
                 </Button>
                 <Button className="py-[6px]" onClick={() => handlePrint()}>
                   Print

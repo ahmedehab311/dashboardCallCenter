@@ -61,6 +61,9 @@ export function BasicDataTable({
     { value: 7, label: "7 Days" },
     { value: 30, label: "30 Days" },
   ];
+  const [deliveryType, setDeliveryType] = useState({});
+console.log("orders",orders)
+console.log("searchUser",searchUser)
 
   const isSearching = !!orderIdOrPhone;
   const isEmptySearchResult =
@@ -84,9 +87,11 @@ export function BasicDataTable({
         Branch: order?.branch?.[0]?.name_en || "-",
         Customer: order?.user?.user_name || order?.user_name || "-",
         Phone: order?.user?.phone || order?.phone || "-",
-        Address: order?.address?.[0]?.address1 || "Pickup",
+        // Address: order?.address?.[0]?.address1 ||  order?.address_info?.[0]?.address1 || "Pickup",
+        Address:  order?.delivery_type === "1" ? (order?.address?.[0]?.address1 || order?.address_info?.address1) : "Pickup",
         Total: order?.total,
         source: order?.source,
+        
         // TotalAmount: isNaN(parseFloat(order?.total?.replace(/,/g, "")))
         //   ? 0
         //   : parseFloat(order?.total.replace(/,/g, "")).toFixed(2),

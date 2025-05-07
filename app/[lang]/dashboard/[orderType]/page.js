@@ -75,14 +75,14 @@ import { useSidebar } from "@/store/index";
 import { useSubdomin } from "@/provider/SubdomainContext";
 import Link from "next/link";
 import { useSelector } from "react-redux";
-import DialogItemForMenu from "./components/dialogItemForMenu";
-import NewAddressDialog from "./components/NewAddressDialog";
-import NewUserDialog from "./components/newUserDialog";
-import EditAddressDiaolg from "./components/EditAddressDiaolg";
-import DeleteAddressFotUser from "./components/DeleteAddressFotUser";
+// import DialogItemForMenu from "./components/DialogItemForMenu";
+// import NewAddressDialog from "./components/NewAddressDialog";
+// import NewUserDialog from "./components/NewUserDialog";
+// import EditAddressDiaolg from "./components/EditAddressDiaolg";
+// import DeleteAddressFotUser from "./components/DeleteAddressFotUser";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-
+import { useSearchParams } from 'next/navigation';
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   phone: z.string().regex(/^\d{3,15}$/, "Invalid phone number"),
@@ -127,7 +127,7 @@ const editUserAddressSchema = z.object({
   street: z.string().min(1, "Street name is required"),
   name: z.string().optional(),
   building: z.string().optional(),
-  floor: z.string().optional(),
+  floor: z.string().optional().or(z.literal("")),
   apt: z.string().optional(),
   additionalInfo: z.string().optional(),
 });
@@ -175,7 +175,8 @@ const addAddressSchema = z.object({
   apt: z.string().optional(),
   additionalInfo: z.string().optional(),
 });
-function CreateOrder() {
+function CreateOrder({params}) {
+  const {  orderType } = params;
   const {
     control: controlEditAddress,
     register: registerEditAddressUser,
@@ -238,6 +239,7 @@ function CreateOrder() {
   // }
   const router = useRouter();
 
+const searchParams = useSearchParams();
   const { theme } = useTheme();
   const setCollapsed = useSidebar((state) => state.setCollapsed);
 
@@ -767,6 +769,11 @@ function CreateOrder() {
   const [selectedBranchInSelected, setSelectedBranchInSelected] =
     useState(null);
 
+
+
+
+
+
   const [branchId, setBranchId] = useState(null);
   const [selectedBranchNew, setSelectedBranchNew] = useState(null);
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
@@ -781,23 +788,92 @@ function CreateOrder() {
     useState(false);
   const [addressWasManuallySelected, setAddressWasManuallySelected] =
     useState(false);
-  // console.log("selectedUser", selectedUser);
-  // console.log("selectedAddress", selectedAddress);
+  //   useEffect(() => {
+  //     // تعيين isEditMode بناءً على الباث
+  //     setIsEditMode(orderType === 'edit-order');
+  //   }, [orderType]);
+  // // console.log("selectedUser", selectedUser);
+  // // console.log("selectedAddress", selectedAddress);
+  // useEffect(() => {
+  //   if (isEditMode) {
+  //     const currentPath = window.location.pathname;
+  //     const newPathName = currentPath.replace("create", "edit");
+  //     window.history.replaceState(null, "", newPathName);
+  //   }
+  // }, [isEditMode]);
   useEffect(() => {
     const orderData = localStorage.getItem("order");
-    if (selectedUser && orderData) {
+  
+    if (orderType === "edit-order") {
       setIsEditMode(true);
-      const parsedOrder = JSON.parse(orderData);
-      const orderNote = parsedOrder?.details?.notes || "";
-      const orderId = parsedOrder?.details?.order_id;
-      const ordercheck = parsedOrder?.details?.check_id || "";
-      const restaurantidCheck = parsedOrder?.details?.restaurant_id || "";
-      const deliveryType = Number(parsedOrder?.details?.delivery_type);
-      const branchId = Number(parsedOrder?.details?.branch_id) || "";
-      const AdderssOrder = parsedOrder?.details?.address_info;
+    } else if (orderType === "create-order") {
+      setIsEditMode(false);
+    }
+  
+    // حماية إضافية: لو في order في localStorage وبالرغم من كدة الباث create => عدله
+    if (orderData && orderType === "create-order") {
+      router.replace("/edit-order");
+    }
+  }, [orderType]);
+
+  // useEffect(() => {
+  //   if (isEditMode) {
+  //     // تغيير المسار إلى edit-order إذا كان isEditMode = true
+  //     const newPathName = window.location.pathname.replace('create', 'edit');
+  //     router.replace(newPathName); // استخدام router.replace بدلاً من replaceState
+  //   }
+  // }, [isEditMode, router]);
+
+
+  // console.log("isEditMode:", isEditMode); 
+  const [orderData,setOrderData] = useState(null)
+  useEffect(() => {
+    const orderData = localStorage.getItem("order");
+    // setOrderData(orderData)
+  //  console.log("Order Data userdata:", orderData); 
+   if (  orderData) {
+     
+     setIsEditMode(true);
+      const parsedOrder = JSON.parse(orderData);  
+      const phoneFromOrder = parsedOrder?.details?.user_data?.phone;
+      setOrderData(parsedOrder);  
+      setIsEditMode(true);  
+      if (phoneFromOrder) {
+        setSearch(phoneFromOrder);
+        setPhone(phoneFromOrder);
+
+        setTimeout(() => {
+          handleSearch(phoneFromOrder);
+        }, 0);
+      }
+    } else {
+      setAllUserData(null);
+      setSelectedAddress(null);
+      setPhone("");
+      // setAllUserData(null);
+    }
+  }, []);
+// console.log("selected user ", selectedUser)
+
+  useEffect(() => {
+
+    
+    // console.log("Order Data:", orderData); 
+    // setIsEditMode(true);
+   if(isEditMode && orderData) {
+
+    // Set the parsed data into state
+      setIsEditMode(true)
+      const orderNote = orderData?.details?.notes || "";
+      const orderId = orderData?.details?.order_id;
+      const ordercheck = orderData?.details?.check_id || "";
+      const restaurantidCheck = orderData?.details?.restaurant_id || "";
+      const deliveryType = Number(orderData?.details?.delivery_type);
+      const branchId = Number(orderData?.details?.branch_id) || "";
+      const AdderssOrder = orderData?.details?.address_info;
       setDeliveryTypeFromOrder(deliveryType);
       // const addressId = order?.address_info?.id || order?.address;
-      // const addressId = parsedOrder?.details?.address_info?.id || parsedOrder?.details?.address;
+      // const addressId = orderData?.details?.address_info?.id || orderData?.details?.address;
       setAddressId(addressId);
       // if (restaurantId) {
       //   setIsEditMode(true);
@@ -826,7 +902,7 @@ function CreateOrder() {
           const matchedAddress = selectedUser.address.find(
             (add) => add.id === AdderssOrder.id
           );
-          console.log("matchedAddress", matchedAddress);
+          // console.log("matchedAddress", matchedAddress);
 
           if (matchedAddress) {
             setSelectedAddress(matchedAddress);
@@ -846,7 +922,7 @@ function CreateOrder() {
         }
       }
 
-      console.log("restaurantidCheck", restaurantidCheck);
+      // console.log("restaurantidCheck", restaurantidCheck);
       const visaFromNote = orderNote.toLowerCase().includes("visa");
       setOrderId(orderId);
       setOrderCheck(ordercheck);
@@ -864,7 +940,7 @@ function CreateOrder() {
         }
       }
       // setNotesOrderNotes(orderNote);
-      const items = parsedOrder?.items;
+      const items = orderData?.items;
 
       if (Array.isArray(items)) {
         const transformedItems = items.map((item) => {
@@ -893,18 +969,19 @@ function CreateOrder() {
       } else {
         console.log("No valid items array found in parsedOrder.");
       }
-    }
-  }, [selectedUser, branchOptions, isEditMode]);
+    
+   }
+  }, [selectedUser, branchOptions]);
   useEffect(() => {
     if (isEditMode && deliveryTypeFromOrder && !deliveryMethodHasBeenSet) {
-      const parsedOrder = JSON.parse(orderData);
+    
       const deliveryTypeFromOrder =
-        Number(parsedOrder?.details?.delivery_type) || "";
+        Number(orderData?.details?.delivery_type) || "";
       const type = deliveryTypeFromOrder === 2 ? "pickup" : "delivery";
       setDeliveryMethod(type);
       setDeliveryMethodHasBeenSet(true);
     }
-  }, [isEditMode, deliveryTypeFromOrder, deliveryMethodHasBeenSet]);
+  }, [isEditMode, deliveryTypeFromOrder, deliveryMethodHasBeenSet]); 
   useEffect(() => {
     if (branches?.length) {
       setBranchOptions(
@@ -931,7 +1008,7 @@ function CreateOrder() {
 
       setSelectedBranchPriceList(firstBranch.price_list);
     }
-  }, [branches,isEditMode]);
+  }, [branches, isEditMode]);
   const [addressId, setAddressId] = useState(null);
   useEffect(() => {
     if (selectedUser?.address?.length > 0) {
@@ -1138,6 +1215,8 @@ function CreateOrder() {
 
   const [note, setNote] = useState("");
   const [cartItems, setCartItems] = useState([]);
+console.log("cartItems ", cartItems)
+
   // console.log("cartItems", cartItems);
   // const handleAddToCart = () => {
   //   setCartItems((prevItems) => {
@@ -1288,7 +1367,7 @@ function CreateOrder() {
   //   setEditingItemIndex(null);
   //   setIsItemDialogOpen(false);
   // };
-  const orderData = localStorage.getItem("order");
+  // const orderData = localStorage.getItem("order");
   const handleAddToCart = () => {
     console.log("NOTE عند الإضافة:", note);
 
@@ -1540,8 +1619,6 @@ function CreateOrder() {
     }
   }, [deliveryMethod, branchOptions]);
 
-
-
   useEffect(() => {
     if (deliveryMethod === "pickup" && !isEditMode) {
       setSelectedBranchInSelected(null);
@@ -1549,19 +1626,13 @@ function CreateOrder() {
       setSelectedBranchId(null);
       // setSelectedBranchPriceList(null);
       setMassegeNotSelectedBranch("Select branch first");
-    } else if (
-      deliveryMethod === "delivery" &&
-      isEditMode
-    ) {
+    } else if (deliveryMethod === "delivery" && isEditMode) {
       setSelectedBranchInSelected(null);
       setSavedBranch(null);
       setSelectedBranchId(null);
       setSelectedBranchName("");
-     
     }
   }, [deliveryMethod, branchOptions]);
-
-
 
   const handleConfirmChange = () => {
     // console.log("pendingBranch",pendingBranch);
@@ -2056,10 +2127,9 @@ function CreateOrder() {
       toast.success(`Order ${isEditMode ? "updated" : "created"} successfully`);
       setCreateOrderDialogOpen(false);
 
-      
-      if(isEditMode) {
-        router.push(`/${language}/dashboard`);
-      }
+      // if (isEditMode) {
+      //   router.push(`/${language}/dashboard`);
+      // }
       if (!isEditMode) {
         resetCreateOrder({
           ordertype:
@@ -2091,7 +2161,6 @@ function CreateOrder() {
         setIsOpenUserData(true);
         setSelectedBranchPriceList(1);
         queryClient.removeQueries(["userSearch"], { exact: false });
-     
       }
     } catch (error) {
       console.error(" خطأ في إنشاء الطلب:", error);
@@ -2296,29 +2365,8 @@ function CreateOrder() {
   //   }
   //   // console.log("order:", orderData?.details?.user_data?.phone);
   // }, []);
-
   useEffect(() => {
-    if (orderData) {
-      setIsEditMode(true);
-      const parsedOrder = JSON.parse(orderData);
-      const phoneFromOrder = parsedOrder?.details?.user_data?.phone;
 
-      if (phoneFromOrder) {
-        setSearch(phoneFromOrder);
-        setPhone(phoneFromOrder);
-
-        setTimeout(() => {
-          handleSearch(phoneFromOrder);
-        }, 0);
-      }
-    } else {
-      setAllUserData(null);
-      setSelectedAddress(null);
-      setPhone("");
-      // setAllUserData(null);
-    }
-  }, []);
-  useEffect(() => {
     if (isEditMode && search) {
       refetch();
     }
@@ -2370,19 +2418,46 @@ function CreateOrder() {
   //   };
   // }, []);
 
+  // useEffect(() => {
+  //   const handleRouteChange = () => {
+  //     localStorage.removeItem("order");
+  //     queryClient.removeQueries(["userSearch"], { exact: false }); // exact false = يشيل أي query تبدأ بـ userSearch
+  //   };
+
+  //   router.events?.on("routeChangeStart", handleRouteChange);
+
+  //   return () => {
+  //     router.events?.off("routeChangeStart", handleRouteChange);
+  //   };
+  // }, [queryClient]);
+  // useEffect(() => {
+  //   if (!pathname.includes("edit-order")) {
+  //     // خرجت من وضع التعديل
+  //     localStorage.removeItem("order");
+  //     setIsEditMode(false);
+  //   }
+  // }, [pathname]);
   useEffect(() => {
-    const handleRouteChange = () => {
-      localStorage.removeItem("order");
-      queryClient.removeQueries(["userSearch"], { exact: false }); // exact false = يشيل أي query تبدأ بـ userSearch
+    const handleRouteChange = (url) => {
+      const navType = performance.getEntriesByType("navigation")[0]?.type;
+      
+      // لو مش reload نمسح البيانات
+      if (navType !== "reload") {
+        localStorage.removeItem("order");
+        queryClient.removeQueries(["userSearch"], { exact: false });
+      }
     };
-
+  
     router.events?.on("routeChangeStart", handleRouteChange);
-
+  
     return () => {
       router.events?.off("routeChangeStart", handleRouteChange);
     };
   }, [queryClient]);
+  
 
+
+  
   // useEffect(() => {
   //   // تحقق إذا كان الرقم موجود في search
   //   if (search) {
@@ -3280,9 +3355,10 @@ function CreateOrder() {
                   className="pl-7 pr-8 w-full text-[#000] dark:text-[#fff]"
                   disabled={isEditMode}
                 />
-                {search && isEditMode &&  (
-                  <button 
+                {search && (
+                  <button
                     onClick={handleClear}
+                    disabled={isEditMode}
                     className="absolute top-1/2 right-2 -translate-y-1/2 text-[#000] dark:text-[#fff] text-xs font-bold"
                   >
                     ✕
@@ -3310,6 +3386,7 @@ function CreateOrder() {
                   onMouseOut={(e) =>
                     (e.currentTarget.style.backgroundColor = "#007bff")
                   }
+                disabled={isEditMode}
                 >
                   <FiSearch className="w-4 h-4" />
                 </Button>
@@ -3333,6 +3410,7 @@ function CreateOrder() {
                   onMouseOut={(e) =>
                     (e.currentTarget.style.backgroundColor = "#007bff")
                   }
+                  disabled={isEditMode}
                 >
                   <Admin />
                 </Button>
@@ -3346,6 +3424,7 @@ function CreateOrder() {
                     {selectedUser.user_name}
                   </h3>
                   <Button
+                  disabled={isEditMode}
                     className="my3"
                     onClick={() => setOpenEditDialog(true)}
                   >
