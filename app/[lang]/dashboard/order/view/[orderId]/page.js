@@ -93,6 +93,13 @@ export default function OrderViewPage({ params }) {
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
+  console.log("branches",branches);
+  console.log("selectedBranch",selectedBranch);
+  console.log("Order",Order);
+  console.log("OrderDetails",OrderDetails);
+  console.log(" OrderDetails?.restaurant_id", OrderDetails?.restaurant_id);
+  console.log("OrderDetails?.area_id", OrderDetails?.area_id);
+  // NOkK5Mft
   useEffect(() => {
     if (branches?.length > 0) {
       setBranchOptions(

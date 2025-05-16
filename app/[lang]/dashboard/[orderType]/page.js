@@ -2124,44 +2124,44 @@ console.log("cartItems ", cartItems)
       // console.log("orderId", orderId);
       // console.log("orderCheck", orderCheck);
 
-      toast.success(`Order ${isEditMode ? "updated" : "created"} successfully`);
-      setCreateOrderDialogOpen(false);
+      // toast.success(`Order ${isEditMode ? "updated" : "created"} successfully`);
+      // setCreateOrderDialogOpen(false);
 
       // if (isEditMode) {
       //   router.push(`/${language}/dashboard`);
       // }
-      if (!isEditMode) {
-        resetCreateOrder({
-          ordertype:
-            orderTypeOptions.length > 0 ? orderTypeOptions[0].value : "",
-          ordersource:
-            orderSourceOptions.length > 0 ? orderSourceOptions[0].label : "",
-          orderstatus:
-            orderStatusOptions.length > 0 ? orderStatusOptions[0].value : "",
-          orderpayment:
-            orderPaymenyOptions.length > 0 ? orderPaymenyOptions[0].value : "",
-        });
+      // if (!isEditMode) {
+      //   resetCreateOrder({
+      //     ordertype:
+      //       orderTypeOptions.length > 0 ? orderTypeOptions[0].value : "",
+      //     ordersource:
+      //       orderSourceOptions.length > 0 ? orderSourceOptions[0].label : "",
+      //     orderstatus:
+      //       orderStatusOptions.length > 0 ? orderStatusOptions[0].value : "",
+      //     orderpayment:
+      //       orderPaymenyOptions.length > 0 ? orderPaymenyOptions[0].value : "",
+      //   });
 
-        setShowDateTime(false);
+      //   setShowDateTime(false);
 
-        if (orderSourceOptions.length > 0) {
-          setOrderSourceSelected(orderSourceOptions[0]);
-        }
-        if (orderStatusOptions.length > 0) {
-          setSelectedOrderStatus(orderStatusOptions[0]);
-        }
-        setDiscountValue("");
-        setDiscountPercentage("");
-        setSearch("");
-        setPhone("");
-        setAllUserData(null);
-        setSelectedAddress(null);
-        setSelectedAddressArray(null);
-        setCartItems([]);
-        setIsOpenUserData(true);
-        setSelectedBranchPriceList(1);
-        queryClient.removeQueries(["userSearch"], { exact: false });
-      }
+      //   if (orderSourceOptions.length > 0) {
+      //     setOrderSourceSelected(orderSourceOptions[0]);
+      //   }
+      //   if (orderStatusOptions.length > 0) {
+      //     setSelectedOrderStatus(orderStatusOptions[0]);
+      //   }
+      //   setDiscountValue("");
+      //   setDiscountPercentage("");
+      //   setSearch("");
+      //   setPhone("");
+      //   setAllUserData(null);
+      //   setSelectedAddress(null);
+      //   setSelectedAddressArray(null);
+      //   setCartItems([]);
+      //   setIsOpenUserData(true);
+      //   setSelectedBranchPriceList(1);
+      //   queryClient.removeQueries(["userSearch"], { exact: false });
+      // }
     } catch (error) {
       console.error(" خطأ في إنشاء الطلب:", error);
       toast.error(error.message || "حدث خطأ غير متوقع!");

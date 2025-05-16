@@ -37,7 +37,7 @@ const BasicTable = ({ OrderDetails, OrderDetailsItem }) => {
                 {item?.special || "—"}
               </TableCell>
               <TableCell className="text-[#000] dark:text-[#fff]">
-                {parseFloat(item?.info?.price?.price || 0).toFixed(2)}
+                {parseFloat(item?.sub_total || 0).toFixed(2)}
               </TableCell>
               <TableCell className="text-[#000] dark:text-[#fff]">
                 {parseFloat(item?.total_price || 0).toFixed(2)}

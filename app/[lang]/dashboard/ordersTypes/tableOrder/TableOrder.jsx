@@ -62,8 +62,8 @@ export function BasicDataTable({
     { value: 30, label: "30 Days" },
   ];
   const [deliveryType, setDeliveryType] = useState({});
-console.log("orders",orders)
-console.log("searchUser",searchUser)
+// console.log("orders",orders)
+// console.log("searchUser",searchUser)
 
   const isSearching = !!orderIdOrPhone;
   const isEmptySearchResult =
@@ -381,7 +381,7 @@ console.log("searchUser",searchUser)
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  <span className=" text-[#fff] flex justify-center items-center">
+                  <span className=" text-[#000] dark:text-[#fff] flex justify-center items-center">
                     No search results found.
                   </span>
                 </TableCell>
