@@ -8,8 +8,9 @@
       const host = window.location.hostname;
       const parts = host.split(".");
       
-      if (host === "localhost") return "thm"; 
+      if (host === "localhost") return "thmdev"; 
       return parts.length > 2 ? parts[0] : "";
     };
     
 
+// uSdaLNum

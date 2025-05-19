@@ -45,6 +45,8 @@ export function BasicDataTable({
 }) {
   const language =
     typeof window !== "undefined" ? localStorage.getItem("language") : null;
+  const [hasSearched, setHasSearched] = useState(false);
+
   const router = useRouter();
   const { theme } = useTheme();
   const [color, setColor] = useState("");
@@ -61,37 +63,43 @@ export function BasicDataTable({
     { value: 7, label: "7 Days" },
     { value: 30, label: "30 Days" },
   ];
-  const [deliveryType, setDeliveryType] = useState({});
-// console.log("orders",orders)
-// console.log("searchUser",searchUser)
 
   const isSearching = !!orderIdOrPhone;
   const isEmptySearchResult =
     isSearching && Array.isArray(searchUser) && searchUser.length === 0;
   const formattedOrders = useMemo(() => {
+    // const baseOrders =
+    //   searchUser?.length > 0
+    //     ? searchUser
+    //     : Object.values(orders?.sources || {}).flat();
     const baseOrders =
-      searchUser?.length > 0
+      hasSearched && searchUser?.length > 0
         ? searchUser
         : Object.values(orders?.sources || {}).flat();
     const filteredOrders =
       selectedStatus === "Total"
         ? baseOrders
         : baseOrders.filter((order) => order?.status === selectedStatus);
+    console.log("filteredOrders", filteredOrders);
 
     return filteredOrders.map((order) => {
       return {
         "Invoice Id": order?.order_id,
         status: order?.status,
+        check_id: order?.check_id,
         Restaurant: order.restaurant_name,
         Date: order?.created_at || "-",
         Branch: order?.branch?.[0]?.name_en || "-",
         Customer: order?.user?.user_name || order?.user_name || "-",
         Phone: order?.user?.phone || order?.phone || "-",
         // Address: order?.address?.[0]?.address1 ||  order?.address_info?.[0]?.address1 || "Pickup",
-        Address:  order?.delivery_type === "1" ? (order?.address?.[0]?.address1 || order?.address_info?.address1) : "Pickup",
+        Address:
+          order?.delivery_type === "1"
+            ? order?.address?.[0]?.address1 || order?.address_info?.address1
+            : "Pickup",
         Total: order?.total,
         source: order?.source,
-        
+
         // TotalAmount: isNaN(parseFloat(order?.total?.replace(/,/g, "")))
         //   ? 0
         //   : parseFloat(order?.total.replace(/,/g, "")).toFixed(2),
@@ -103,7 +111,7 @@ export function BasicDataTable({
         paymentMethod: order?.payment_method,
       };
     });
-  }, [orders, searchUser, selectedStatus]);
+  }, [orders, searchUser, selectedStatus, hasSearched]);
 
   const columns = useMemo(
     () => [
@@ -115,6 +123,11 @@ export function BasicDataTable({
           const row = info.row.original;
           return (
             <div className="flex flex-col">
+              {row["check_id"] && (
+                <span className="text-sm text-muted-foreground">
+                  check: {row["check_id"]}
+                </span>
+              )}
               <span>{row["Invoice Id"]}</span>
               <span className="text-sm text-muted-foreground">
                 {row["status"]}
@@ -254,14 +267,22 @@ export function BasicDataTable({
   };
 
   const handleInputChange = (event) => {
-    setOrderIdOrPhone(event.target.value);
+    const value = event.target.value;
+    setOrderIdOrPhone(value);
+    if (value.trim() === "") {
+      setHasSearched(false);
+    }
   };
-  const handleClearSearch = () => setOrderIdOrPhone("");
+  const handleClearSearch = () => {
+    setOrderIdOrPhone("");
+    setHasSearched(false);
+  };
 
   const handleEditOrderClick = (orderId) => {
     const url = `/${language}/dashboard/order/view/${orderId}`;
     router.push(url);
   };
+  const latestSearchRef = useRef("");
   return (
     <>
       <div className="flex items-center flex-wrap gap-2 px-4 justify-between">
@@ -271,12 +292,21 @@ export function BasicDataTable({
             value={orderIdOrPhone}
             onChange={handleInputChange}
             className="h-10 pr-8 text-[#000] dark:text-[#fff]"
+            // onKeyDown={(e) => {
+            //   if (e.key === "Enter") {
+            //     refetchSearchUser({ force: true });
+            //       setHasSearched(true);
+            //   }
+            // }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                refetchSearchUser();
+                latestSearchRef.current = orderIdOrPhone;
+                refetchSearchUser({ force: true });
+                setHasSearched(true);
               }
             }}
           />
+
           {orderIdOrPhone && (
             <button
               onClick={handleClearSearch}
@@ -359,7 +389,7 @@ export function BasicDataTable({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  <span className="animate-pulse text-[#fff] flex justify-center items-center">
+                  <span className="animate-pulse text-[#000] dark:text-[#fff] flex justify-center items-center">
                     Loading...
                   </span>
                 </TableCell>
@@ -370,7 +400,7 @@ export function BasicDataTable({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  <span className=" text-[#fff] flex justify-center items-center">
+                  <span className=" text-[#000] dark:text-[#fff] flex justify-center items-center">
                     Error loading data.
                   </span>
                 </TableCell>

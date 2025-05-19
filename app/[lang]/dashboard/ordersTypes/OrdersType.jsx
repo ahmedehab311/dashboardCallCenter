@@ -16,7 +16,7 @@ import UserDeviceReport from "./SourceReport";
 import PickupReport from "./pickupReport";
 import BranchesReport from "./BranchesReport";
 import TableOrder from "./tableOrder/TableOrder";
-import "./index.css"
+import "./index.css";
 function OrdersType() {
   const { apiBaseUrl } = useSubdomin();
   const [selectedStatus, setSelectedStatus] = useState("Total");
@@ -38,16 +38,18 @@ function OrdersType() {
   });
   const [orderIdOrPhone, setOrderIdOrPhone] = useState("");
   const [searchTrigger, setSearchTrigger] = useState(false);
-
+  // const [searchQuery, setSearchQuery] = useState("");
   const {
     data: searchUser,
     isLoading: isLoadingSearchUser,
     isError: errorUserSearchUser,
     refetch: refetchSearchUser,
   } = useQuery({
-    queryKey: ["userSearch", orderIdOrPhone],
+    queryKey: ["userSearch"],
     queryFn: () => fetchUserByPhoneAndId(orderIdOrPhone, token, apiBaseUrl),
     enabled: false,
+    // cacheTime: 0,
+    // staleTime: 0,
   });
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -113,47 +115,47 @@ function OrdersType() {
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 w-full p-2 custom-grid ">
-      {/* <div
+        {/* <div
   className="grid gap-4 w-full p-2 mb-"
   style={{ gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))" }}
 > */}
-      {selectedStatus === "Total" ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 col-span-3 ">
-          {stats.map((stat, index) => (
-            <StatCard
-              key={index}
-              icon={stat.icon}
-              number={stat.number}
-              label={stat.label}
-              onClick={() => {
-                setSelectedStatus(stat.statusKey);
-              }}
-              bg={stat.bg}
-              language={language}
-              errororders={errororders}
-              isLoadingorders={isLoadingorders}
-              selectedStatus={selectedStatus}
-            />
-          ))}
-        </div>
-) : (
-  <div className="flex flex-w gap-4 col-span-6">
-    {stats.map((stat, index) => (
-      <StatCard
-        key={index}
-        icon={stat.icon}
-        number={stat.number}
-        label={stat.label}
-        onClick={() => setSelectedStatus(stat.statusKey)}
-        bg={stat.bg}
-        language={language}
-        errororders={errororders}
-        isLoadingorders={isLoadingorders}
-        selectedStatus={selectedStatus}
-      />
-    ))}
-  </div>
-)}
+        {selectedStatus === "Total" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 col-span-3 ">
+            {stats.map((stat, index) => (
+              <StatCard
+                key={index}
+                icon={stat.icon}
+                number={stat.number}
+                label={stat.label}
+                onClick={() => {
+                  setSelectedStatus(stat.statusKey);
+                }}
+                bg={stat.bg}
+                language={language}
+                errororders={errororders}
+                isLoadingorders={isLoadingorders}
+                selectedStatus={selectedStatus}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-w gap-4 col-span-6">
+            {stats.map((stat, index) => (
+              <StatCard
+                key={index}
+                icon={stat.icon}
+                number={stat.number}
+                label={stat.label}
+                onClick={() => setSelectedStatus(stat.statusKey)}
+                bg={stat.bg}
+                language={language}
+                errororders={errororders}
+                isLoadingorders={isLoadingorders}
+                selectedStatus={selectedStatus}
+              />
+            ))}
+          </div>
+        )}
 
         {selectedStatus === "Total" && (
           <Card className="col-span- h-full mt-0">
@@ -190,9 +192,7 @@ function OrdersType() {
         )}
         {selectedStatus === "Total" && (
           <Card className="col-span- h-ful mt-1">
-            <CardHeader className="border-none p-6 pt-5 ">
-      
-            </CardHeader>
+            <CardHeader className="border-none p-6 pt-5 "></CardHeader>
             <CardContent>
               <div className="dashtail-legend">
                 <BranchesReport

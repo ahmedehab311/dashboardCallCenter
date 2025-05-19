@@ -1956,7 +1956,7 @@ console.log("cartItems ", cartItems)
       // console.log("response onsubmit", response);
       if (response?.response) {
         toast.success(response.message);
-        queryClient.setQueryData(["userSearch", phone], (oldData) => {
+        queryClient.setQueryData(["userSearch"], (oldData) => {
           if (!oldData) return oldData;
           return {
             ...oldData,
@@ -2012,10 +2012,10 @@ console.log("cartItems ", cartItems)
       });
 
       if (response) {
-        toast.success("Address updated successfully");
-
-        queryClient.invalidateQueries(["userSearch", phone]);
         setOpenEditAddressDialog(false);
+        toast.success("Address updated successfully");
+     await queryClient.invalidateQueries(["userSearch"]);
+       refetch();
       } else {
         toast.error("Something went wrong");
       }
@@ -2076,7 +2076,8 @@ console.log("cartItems ", cartItems)
         apiBaseUrl
       );
 
-      queryClient.invalidateQueries(["userSearch", phone]);
+    await  queryClient.invalidateQueries(["userSearch"]);
+   await refetch();
       setIsNewAddressDialogOpen(false);
       toast.success("Address added successfully");
       resetAddNewAddress();
@@ -2124,44 +2125,44 @@ console.log("cartItems ", cartItems)
       // console.log("orderId", orderId);
       // console.log("orderCheck", orderCheck);
 
-      // toast.success(`Order ${isEditMode ? "updated" : "created"} successfully`);
-      // setCreateOrderDialogOpen(false);
+      toast.success(`Order ${isEditMode ? "updated" : "created"} successfully`);
+      setCreateOrderDialogOpen(false);
 
-      // if (isEditMode) {
-      //   router.push(`/${language}/dashboard`);
-      // }
-      // if (!isEditMode) {
-      //   resetCreateOrder({
-      //     ordertype:
-      //       orderTypeOptions.length > 0 ? orderTypeOptions[0].value : "",
-      //     ordersource:
-      //       orderSourceOptions.length > 0 ? orderSourceOptions[0].label : "",
-      //     orderstatus:
-      //       orderStatusOptions.length > 0 ? orderStatusOptions[0].value : "",
-      //     orderpayment:
-      //       orderPaymenyOptions.length > 0 ? orderPaymenyOptions[0].value : "",
-      //   });
+      if (isEditMode) {
+        router.push(`/${language}/dashboard`);
+      }
+      if (!isEditMode) {
+        resetCreateOrder({
+          ordertype:
+            orderTypeOptions.length > 0 ? orderTypeOptions[0].value : "",
+          ordersource:
+            orderSourceOptions.length > 0 ? orderSourceOptions[0].label : "",
+          orderstatus:
+            orderStatusOptions.length > 0 ? orderStatusOptions[0].value : "",
+          orderpayment:
+            orderPaymenyOptions.length > 0 ? orderPaymenyOptions[0].value : "",
+        });
 
-      //   setShowDateTime(false);
+        setShowDateTime(false);
 
-      //   if (orderSourceOptions.length > 0) {
-      //     setOrderSourceSelected(orderSourceOptions[0]);
-      //   }
-      //   if (orderStatusOptions.length > 0) {
-      //     setSelectedOrderStatus(orderStatusOptions[0]);
-      //   }
-      //   setDiscountValue("");
-      //   setDiscountPercentage("");
-      //   setSearch("");
-      //   setPhone("");
-      //   setAllUserData(null);
-      //   setSelectedAddress(null);
-      //   setSelectedAddressArray(null);
-      //   setCartItems([]);
-      //   setIsOpenUserData(true);
-      //   setSelectedBranchPriceList(1);
-      //   queryClient.removeQueries(["userSearch"], { exact: false });
-      // }
+        if (orderSourceOptions.length > 0) {
+          setOrderSourceSelected(orderSourceOptions[0]);
+        }
+        if (orderStatusOptions.length > 0) {
+          setSelectedOrderStatus(orderStatusOptions[0]);
+        }
+        setDiscountValue("");
+        setDiscountPercentage("");
+        setSearch("");
+        setPhone("");
+        setAllUserData(null);
+        setSelectedAddress(null);
+        setSelectedAddressArray(null);
+        setCartItems([]);
+        setIsOpenUserData(true);
+        setSelectedBranchPriceList(1);
+        queryClient.removeQueries(["userSearch"], { exact: false });
+      }
     } catch (error) {
       console.error(" خطأ في إنشاء الطلب:", error);
       toast.error(error.message || "حدث خطأ غير متوقع!");
@@ -2329,7 +2330,8 @@ console.log("cartItems ", cartItems)
       const response = await deleteAddress(id, token, apiBaseUrl);
 
       toast.success("Address deleted successfully");
-      queryClient.invalidateQueries(["userSearch", phone]);
+     await queryClient.invalidateQueries(["userSearch", phone]);
+      await refetch();
       // console.log("Response onSubmit delete:", response);
     } catch (error) {
       console.error("Error updating user address:", error);
@@ -3441,8 +3443,8 @@ console.log("cartItems ", cartItems)
                 </div>
 
                 <div className="flex items-center gap-4 mt-2">
-                  <p>Orders Count: {selectedUser.orders_count}</p>
-                  <p>Points: {selectedUser.user.points}</p>
+                  <p>Orders Count: {selectedUser?.orders_count}</p>
+                  <p>Points: {selectedUser?.user?.points}</p>
                 </div>
               </div>
             )}
