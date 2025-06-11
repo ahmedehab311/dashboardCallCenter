@@ -468,7 +468,7 @@ const searchParams = useSearchParams();
         token,
         apiBaseUrl
       );
-      // console.log("Response from fetchViewItem:", response);
+      console.log("Response from fetchViewItem:", response);
 
       if (response?.response === false) {
         // console.log("Setting error message:", response.message);
@@ -492,7 +492,7 @@ const searchParams = useSearchParams();
           selectedIdSize: firstInfo?.id || "",
           selectedMainExtras: [],
           selectedMainExtrasIds: [],
-          mainExtras: response?.item?.item_extras?.[0]?.data || [],
+          mainExtras: response?.item?.item_extras?.[0]?.condiments || [],
           itemExtras: firstInfo?.item_extras || [],
           extrasData: firstInfo?.item_extras[0]?.data || [],
           selectedExtras: [],
@@ -627,7 +627,7 @@ const searchParams = useSearchParams();
       // بعد ذلك، نستخدم الـ id لإجراء fetch
       try {
         const response = await fetchViewItem(
-          savedBranch?.value || selectedBranchInSelected.value,
+          savedBranch?.value || selectedBranchInSelected?.value,
           cartItem.id, // هنا نستخدم id للحصول على التفاصيل من الـ API
           token,
           apiBaseUrl
@@ -1368,6 +1368,8 @@ console.log("cartItems ", cartItems)
   //   setIsItemDialogOpen(false);
   // };
   // const orderData = localStorage.getItem("order");
+  
+  console.log("selectedItem", selectedItem);
   const handleAddToCart = () => {
     console.log("NOTE عند الإضافة:", note);
 
@@ -2476,7 +2478,7 @@ console.log("cartItems ", cartItems)
 
   //   console.log("orderphone:", order?.user_data?.phone);
   // }, []);
-  // console.log("Error Message:", errorSearchUser);
+  console.log("extrasData", selectedItem?.extrasData);
   if (isLoadingBranchs) return <p>Loading branches...</p>;
   if (errorBranchs) return <p>Error loading branches: {error.message}</p>;
   return (
@@ -2763,7 +2765,7 @@ console.log("cartItems ", cartItems)
                                     }}
                                   />
                                   <span className="text-[#000] dark:text-[#fff]">
-                                    {extra.name_en}
+                                    {extra.name}
                                   </span>
                                 </label>
                               ))}
@@ -2792,7 +2794,7 @@ console.log("cartItems ", cartItems)
                             <div className="p-3 bg-gray- border-t">
                               <span className="text-[#000] dark:text-[#fff] font-medium">
                                 {selectedItem.selectedMainExtras
-                                  .map((extra) => extra.name_en)
+                                  .map((extra) => extra.name)
                                   .join(", ")}
                               </span>
                             </div>
@@ -2856,7 +2858,7 @@ console.log("cartItems ", cartItems)
                                     }}
                                   />
                                   <span className="text-[#000] dark:text-[#fff]">
-                                    {extra.name_en}
+                                    {extra.name}
                                   </span>
                                 </label>
                               ))}
@@ -3419,7 +3421,7 @@ console.log("cartItems ", cartItems)
               </div>
             </div>
 
-            {selectedUser && isOpenUserData && (
+            {selectedUser && isOpenUserData &&  (
               <div className="mt-2 p-2  rounded-md">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">
@@ -3433,7 +3435,7 @@ console.log("cartItems ", cartItems)
                     <FiEdit />
                   </Button>
                 </div>
-                {/* {errorSearchUser} */}
+            
                 <div className="mt-2">
                   <p className="mb-2 flex">Phone: {selectedUser.phone}</p>
 

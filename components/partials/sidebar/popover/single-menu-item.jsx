@@ -22,6 +22,7 @@ const SingleMenuItem = ({ item, collapsed, trans, lang }) => {
       items: "items",
       createOrder: "create-order",
       orders: "orders",
+      menu: "menu",
     };
 
     if (pathname === `/${lang}/dashboard` || pathname === "/dashboard") {

@@ -178,44 +178,44 @@ export const createOrder = async ({
     console.log("Final API URL:", apiUrl);
   }
 
-  // try {
-  //   // console.log("orderId:", orderId);
-  //   // console.log("branch:", branch);
-  //   const response = await axios.post(
-  //     `${apiBaseUrl}/callcenter/order/${
-  //       isEditMode ? "update" : "create"
-  //     }?api_token=${token}`,
-  //     null,
-  //     {
-  //       params: {
-  //         lookup_id: lookupId,
-  //         address,
-  //         area,
-  //         items: JSON.stringify(formattedItems),
-  //         notes,
-  //         ...(time ? { time } : {}),
-  //         source,
-  //         branch,
-  //         status,
-  //         payment,
-  //         lat,
-  //         lng,
-  //         delivery_type,
-  //         restaurant,
-  //         ...(isEditMode ? { order_code: orderId, check_id: orderCheck } : {}),
-  //       },
-  //     }
-  //   );
+  try {
+    // console.log("orderId:", orderId);
+    // console.log("branch:", branch);
+    const response = await axios.post(
+      `${apiBaseUrl}/callcenter/order/${
+        isEditMode ? "update" : "create"
+      }?api_token=${token}`,
+      null,
+      {
+        params: {
+          lookup_id: lookupId,
+          address,
+          area,
+          items: JSON.stringify(formattedItems),
+          notes,
+          ...(time ? { time } : {}),
+          source,
+          branch,
+          status,
+          payment,
+          lat,
+          lng,
+          delivery_type,
+          restaurant,
+          ...(isEditMode ? { order_code: orderId, check_id: orderCheck } : {}),
+        },
+      }
+    );
 
-  //   console.log(
-  //     `Order ${isEditMode ? "updated" : "created"}  successfully:`,
-  //     response.data
-  //   );
-  //   return response.data;
-  // } catch (error) {
-  //   console.error("Error creating order:", error);
-  //   throw error;
-  // }
+    console.log(
+      `Order ${isEditMode ? "updated" : "created"}  successfully:`,
+      response.data
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error creating order:", error);
+    throw error;
+  }
 };
 
 // export const updateOrder = async ({
