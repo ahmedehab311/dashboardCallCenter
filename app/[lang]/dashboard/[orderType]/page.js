@@ -82,7 +82,7 @@ import { useSelector } from "react-redux";
 // import DeleteAddressFotUser from "./components/DeleteAddressFotUser";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams } from "next/navigation";
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   phone: z.string().regex(/^\d{3,15}$/, "Invalid phone number"),
@@ -175,8 +175,8 @@ const addAddressSchema = z.object({
   apt: z.string().optional(),
   additionalInfo: z.string().optional(),
 });
-function CreateOrder({params}) {
-  const {  orderType } = params;
+function CreateOrder({ params }) {
+  const { orderType } = params;
   const {
     control: controlEditAddress,
     register: registerEditAddressUser,
@@ -239,7 +239,7 @@ function CreateOrder({params}) {
   // }
   const router = useRouter();
 
-const searchParams = useSearchParams();
+  const searchParams = useSearchParams();
   const { theme } = useTheme();
   const setCollapsed = useSidebar((state) => state.setCollapsed);
 
@@ -421,6 +421,7 @@ const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(true);
   const [isOpenMainExtra, setIsOpenMainExtra] = useState(true);
   const [massegeNotSerachPhone, setMassegeNotSerachPhone] = useState(null);
+  const [isOpenMainOption, setIsOpenMainOption] = useState(true);
   const [massegeNotSelectedBranch, setMassegeNotSelectedBranch] =
     useState(null);
   const [massegeInvaildToken, setMassegeInvaildToken] = useState(null);
@@ -476,54 +477,49 @@ const searchParams = useSearchParams();
         return;
       }
       setMassegeInvaildToken(null);
-      if (response?.item) {
-        const firstInfo = response?.item?.info?.[0] || null;
+      if (response) {
+        const firstInfo = response?.sizes?.[0] || null;
+        const sizeCondiments = firstInfo?.size_condiments || [];
 
+        const extraGroup = sizeCondiments.find(
+          (group) => group?.type === "extra"
+        );
+        const optionGroup = sizeCondiments.find(
+          (group) => group?.type === "option"
+        );
         setSelectedItem({
-          id: response.item.id,
-          name: response.item.name_en,
-          description_en: response.item.description_en,
-          description_ar: response.item.description_ar,
-          image: response.item.image,
+          id: response?.id,
+          name: response?.name_en,
+          description_en: response?.description_en,
+          description_ar: response?.description_ar,
+          image: response?.image,
           price: firstInfo?.price?.price,
           availability: firstInfo?.availability?.availability,
-          info: response?.item?.info || [],
+          info: response?.sizes || [],
           selectedInfo: firstInfo?.size_en || "",
           selectedIdSize: firstInfo?.id || "",
           selectedMainExtras: [],
           selectedMainExtrasIds: [],
-          mainExtras: response?.item?.item_extras?.[0]?.condiments || [],
-          itemExtras: firstInfo?.item_extras || [],
-          extrasData: firstInfo?.item_extras[0]?.data || [],
+          mainExtras: response?.item_condiments?.[0]?.condiments || [], // الاكسترات الاساسية للايتم
+          groupNameExtras:response?.item_condiments?.[0]?.group_name || [], // group_name للاكسترات الاساسية للايتم
+          itemExtras: firstInfo?.size_condiments || [],
+          extrasData: extraGroup?.condiments || [], // الاكسترات الموجودة للسايز
+          extrasDataExtras: extraGroup?.group_name || [], // group_name للاكسترات الاساسية للايتم
+          optionSize: optionGroup?.condiments || [], //
+          groupNameSizes: optionGroup?.group_name || [], // group_name للاكسترات الخاص بالسايزات
           selectedExtras: [],
-          selectedExtrasIds: [],
+          selectedoption: [],
+          // selectedoptionId: [],
+          // selectedExtrasIds: [],
+          selectedoption: optionGroup?.condiments?.length > 0 ? [optionGroup.condiments[0]] : [],
+selectedoptionId: optionGroup?.condiments?.length > 0 ? [optionGroup.condiments[0].id] : [],
         });
-        // setSelectedItem((prev) => ({
-        //   ...prev,
-        //   id: response.item.id,
-        //   name: response.item.name_en,
-        //   description_en: response.item.description_en,
-        //   description_ar: response.item.description_ar,
-        //   image: response.item.image,
-        //   price: firstInfo?.price?.price,
-        //   availability: firstInfo?.availability?.availability,
-        //   info: response?.item?.info || [],
-        //   selectedInfo: firstInfo?.size_en || "",
-        //   selectedIdSize: firstInfo?.id || "",
-        //   selectedMainExtras: [],
-        //   selectedMainExtrasIds: [],
-        //   mainExtras: response?.item?.item_extras?.[0]?.data || [],
-        //   itemExtras: firstInfo?.item_extras || [],
-        //   extrasData: firstInfo?.item_extras[0]?.data || [],
-        //   selectedExtras: [],
-        //   selectedExtrasIds: [],
-        //   note: prev.note || "", // ✅ هنا بنحتفظ بأي نوت كانت موجودة
-        // }));
       }
     } catch (error) {
       console.error("Error fetching item details:", error);
     }
   };
+  // console.log("groupName",selectedItem?.groupName);
 
   // const handleEditItem = (item) => {
   //   setSelectedItem({
@@ -622,6 +618,8 @@ const searchParams = useSearchParams();
         extrasData: cartItem.extrasData || [],
         selectedExtras: cartItem.selectedExtras || [],
         selectedExtrasIds: cartItem.selectedExtrasIds || [],
+        selectedoption: cartItem.selectedoption || [],
+        selectedoptionId: cartItem.selectedoptionId || [],
       });
 
       // بعد ذلك، نستخدم الـ id لإجراء fetch
@@ -665,55 +663,70 @@ const searchParams = useSearchParams();
       }
     }
   };
-
+const [initialized, setInitialized] = useState(false);
   useEffect(() => {
     setCollapsed(true);
   }, []);
-  useEffect(() => {
-    if (!selectedItem) return;
+  // useEffect(() => {
+  //   if (!selectedItem) return;
 
-    if (selectedItem?.extrasData?.length === 0) {
-      setIsOpen(false);
-    } else {
-      setIsOpen(true);
-    }
-  }, [selectedItem]);
+  //   if (selectedItem?.extrasData?.length === 0) {
+  //     setIsOpen(false);
+  //   } else {
+  //     setIsOpen(true);
+  //   }
+  // }, [selectedItem]);
 
-  useEffect(() => {
-    if (!selectedItem) return;
 
-    if (
-      selectedItem?.selectedExtras?.length === selectedItem?.extrasData?.length
-    ) {
-      setIsOpen(false);
-    }
-  }, [selectedItem?.selectedExtras]);
 
+
+
+  // useEffect(() => {
+  //   if (!selectedItem) return;
+
+  //   if (selectedItem?.mainExtras?.length === 0) {
+  //     setIsOpenMainExtra(false);
+  //   } else {
+  //     setIsOpenMainExtra(true);
+  //   }
+  // }, [selectedItem]);
+
+
+  // useEffect(() => {
+  //   if (!selectedItem) return;
+
+  //   if (selectedItem?.selectedoptionId?.length === 0) {
+  //     setIsOpenMainOption(false);
+  //   } else {
+  //     setIsOpenMainOption(true);
+  //   }
+  // }, [selectedItem]);
+
+// useEffect(() => {
+//   if (!selectedItem || initialized) return;
+
+//   if (selectedItem?.extrasData?.length > 0) setIsOpen(true);
+//   if (selectedItem?.mainExtras?.length > 0) setIsOpenMainExtra(true);
+//   if (selectedItem?.optionSize?.length > 0) setIsOpenMainOption(true);
+
+//   setInitialized(true); // عشان ميكررهاش تاني
+// }, [selectedItem, initialized]);
+useEffect(() => {
+  if (!selectedItem || initialized) return;
+
+  setIsOpen(true); // extras
+  setIsOpenMainExtra(true); // mainExtras
+  setIsOpenMainOption(true); // optionSize
+
+  setInitialized(true);
+}, [selectedItem, initialized]);
+
+  const toggleOption = () => {
+    setIsOpenMainOption(!isOpenMainOption);
+  };
   const toggleExtras = () => {
     setIsOpen(!isOpen);
   };
-
-  useEffect(() => {
-    if (!selectedItem) return;
-
-    if (selectedItem?.mainExtras?.length === 0) {
-      setIsOpenMainExtra(false);
-    } else {
-      setIsOpenMainExtra(true);
-    }
-  }, [selectedItem]);
-
-  useEffect(() => {
-    if (!selectedItem) return;
-
-    if (
-      selectedItem?.selectedMainExtras?.length ===
-      selectedItem?.mainExtras?.length
-    ) {
-      setIsOpenMainExtra(false);
-    }
-  }, [selectedItem?.selectedMainExtras]);
-
   const toggleExtrasMainExtra = () => {
     setIsOpenMainExtra(!isOpenMainExtra);
   };
@@ -769,11 +782,6 @@ const searchParams = useSearchParams();
   const [selectedBranchInSelected, setSelectedBranchInSelected] =
     useState(null);
 
-
-
-
-
-
   const [branchId, setBranchId] = useState(null);
   const [selectedBranchNew, setSelectedBranchNew] = useState(null);
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
@@ -803,13 +811,13 @@ const searchParams = useSearchParams();
   // }, [isEditMode]);
   useEffect(() => {
     const orderData = localStorage.getItem("order");
-  
+
     if (orderType === "edit-order") {
       setIsEditMode(true);
     } else if (orderType === "create-order") {
       setIsEditMode(false);
     }
-  
+
     // حماية إضافية: لو في order في localStorage وبالرغم من كدة الباث create => عدله
     if (orderData && orderType === "create-order") {
       router.replace("/edit-order");
@@ -824,20 +832,18 @@ const searchParams = useSearchParams();
   //   }
   // }, [isEditMode, router]);
 
-
-  // console.log("isEditMode:", isEditMode); 
-  const [orderData,setOrderData] = useState(null)
+  // console.log("isEditMode:", isEditMode);
+  const [orderData, setOrderData] = useState(null);
   useEffect(() => {
     const orderData = localStorage.getItem("order");
     // setOrderData(orderData)
-  //  console.log("Order Data userdata:", orderData); 
-   if (  orderData) {
-     
-     setIsEditMode(true);
-      const parsedOrder = JSON.parse(orderData);  
+    //  console.log("Order Data userdata:", orderData);
+    if (orderData) {
+      setIsEditMode(true);
+      const parsedOrder = JSON.parse(orderData);
       const phoneFromOrder = parsedOrder?.details?.user_data?.phone;
-      setOrderData(parsedOrder);  
-      setIsEditMode(true);  
+      setOrderData(parsedOrder);
+      setIsEditMode(true);
       if (phoneFromOrder) {
         setSearch(phoneFromOrder);
         setPhone(phoneFromOrder);
@@ -853,17 +859,14 @@ const searchParams = useSearchParams();
       // setAllUserData(null);
     }
   }, []);
-// console.log("selected user ", selectedUser)
+  // console.log("selected user ", selectedUser)
 
   useEffect(() => {
-
-    
-    // console.log("Order Data:", orderData); 
+    // console.log("Order Data:", orderData);
     // setIsEditMode(true);
-   if(isEditMode && orderData) {
-
-    // Set the parsed data into state
-      setIsEditMode(true)
+    if (isEditMode && orderData) {
+      // Set the parsed data into state
+      setIsEditMode(true);
       const orderNote = orderData?.details?.notes || "";
       const orderId = orderData?.details?.order_id;
       const ordercheck = orderData?.details?.check_id || "";
@@ -969,19 +972,17 @@ const searchParams = useSearchParams();
       } else {
         console.log("No valid items array found in parsedOrder.");
       }
-    
-   }
+    }
   }, [selectedUser, branchOptions]);
   useEffect(() => {
     if (isEditMode && deliveryTypeFromOrder && !deliveryMethodHasBeenSet) {
-    
       const deliveryTypeFromOrder =
         Number(orderData?.details?.delivery_type) || "";
       const type = deliveryTypeFromOrder === 2 ? "pickup" : "delivery";
       setDeliveryMethod(type);
       setDeliveryMethodHasBeenSet(true);
     }
-  }, [isEditMode, deliveryTypeFromOrder, deliveryMethodHasBeenSet]); 
+  }, [isEditMode, deliveryTypeFromOrder, deliveryMethodHasBeenSet]);
   useEffect(() => {
     if (branches?.length) {
       setBranchOptions(
@@ -1215,7 +1216,7 @@ const searchParams = useSearchParams();
 
   const [note, setNote] = useState("");
   const [cartItems, setCartItems] = useState([]);
-console.log("cartItems ", cartItems)
+  console.log("cartItems ", cartItems);
 
   // console.log("cartItems", cartItems);
   // const handleAddToCart = () => {
@@ -1368,7 +1369,7 @@ console.log("cartItems ", cartItems)
   //   setIsItemDialogOpen(false);
   // };
   // const orderData = localStorage.getItem("order");
-  
+
   console.log("selectedItem", selectedItem);
   const handleAddToCart = () => {
     console.log("NOTE عند الإضافة:", note);
@@ -2016,8 +2017,8 @@ console.log("cartItems ", cartItems)
       if (response) {
         setOpenEditAddressDialog(false);
         toast.success("Address updated successfully");
-     await queryClient.invalidateQueries(["userSearch"]);
-       refetch();
+        await queryClient.invalidateQueries(["userSearch"]);
+        refetch();
       } else {
         toast.error("Something went wrong");
       }
@@ -2078,8 +2079,8 @@ console.log("cartItems ", cartItems)
         apiBaseUrl
       );
 
-    await  queryClient.invalidateQueries(["userSearch"]);
-   await refetch();
+      await queryClient.invalidateQueries(["userSearch"]);
+      await refetch();
       setIsNewAddressDialogOpen(false);
       toast.success("Address added successfully");
       resetAddNewAddress();
@@ -2332,7 +2333,7 @@ console.log("cartItems ", cartItems)
       const response = await deleteAddress(id, token, apiBaseUrl);
 
       toast.success("Address deleted successfully");
-     await queryClient.invalidateQueries(["userSearch", phone]);
+      await queryClient.invalidateQueries(["userSearch", phone]);
       await refetch();
       // console.log("Response onSubmit delete:", response);
     } catch (error) {
@@ -2370,7 +2371,6 @@ console.log("cartItems ", cartItems)
   //   // console.log("order:", orderData?.details?.user_data?.phone);
   // }, []);
   useEffect(() => {
-
     if (isEditMode && search) {
       refetch();
     }
@@ -2444,24 +2444,21 @@ console.log("cartItems ", cartItems)
   useEffect(() => {
     const handleRouteChange = (url) => {
       const navType = performance.getEntriesByType("navigation")[0]?.type;
-      
+
       // لو مش reload نمسح البيانات
       if (navType !== "reload") {
         localStorage.removeItem("order");
         queryClient.removeQueries(["userSearch"], { exact: false });
       }
     };
-  
+
     router.events?.on("routeChangeStart", handleRouteChange);
-  
+
     return () => {
       router.events?.off("routeChangeStart", handleRouteChange);
     };
   }, [queryClient]);
-  
 
-
-  
   // useEffect(() => {
   //   // تحقق إذا كان الرقم موجود في search
   //   if (search) {
@@ -2682,24 +2679,53 @@ console.log("cartItems ", cartItems)
                                 checked={
                                   selectedItem?.selectedInfo === size?.size_en
                                 }
-                                onChange={() =>
-                                  setSelectedItem((prev) => {
-                                    const newItemExtras =
-                                      size?.item_extras || [];
-                                    const newExtrasData =
-                                      size?.item_extras?.[0]?.data || [];
+                                // onChange={() =>
+                                //   setSelectedItem((prev) => {
+                                //     const newItemExtras =
+                                //       size?.size_condiments || [];
+                                //     const newExtrasData =
+                                //       size?.size_condiments?.[0]?.condiments  || [];
 
-                                    return {
-                                      ...prev,
-                                      selectedInfo: size?.size_en,
-                                      itemExtras: newItemExtras,
-                                      extrasData: newExtrasData,
-                                      selectedItemExtras: [],
-                                      price: size?.price?.price,
-                                      selectedIdSize: size?.id,
-                                    };
-                                  })
-                                }
+                                //     return {
+                                //       ...prev,
+                                //       selectedInfo: size?.size_en,
+                                //       itemExtras: newItemExtras,
+                                //       extrasData: newExtrasData,
+                                //       selectedItemExtras: [],
+                                //       price: size?.price?.price,
+                                //       selectedIdSize: size?.id,
+                                //     };
+                                //   })
+                                // }
+                                onChange={() => {
+                                  const newItemExtras =
+                                    size?.size_condiments || [];
+
+                                  const newExtraGroup = newItemExtras.find(
+                                    (g) => g?.type === "extra"
+                                  );
+                                  const newOptionGroup = newItemExtras.find(
+                                    (g) => g?.type === "option"
+                                  );
+
+                                  return setSelectedItem((prev) => ({
+                                    ...prev,
+                                    selectedInfo: size?.size_en,
+                                    selectedIdSize: size?.id,
+                                    price: size?.price?.price,
+                                    availability:
+                                      size?.availability?.availability,
+                                    itemExtras: newItemExtras,
+                                    extrasData: newExtraGroup?.condiments || [],
+                                    optionSize:
+                                      newOptionGroup?.condiments || [],
+                                    groupNameSizes:
+                                      newExtraGroup?.group_name || "",
+                                    selectedItemExtras: [],
+                                    selectedExtras: [],
+                                    selectedExtrasIds: [],
+                                  }));
+                                }}
                               />
                               <span>
                                 {size?.size_en} ({selectedItem?.availability})
@@ -2709,16 +2735,106 @@ console.log("cartItems ", cartItems)
                         </div>
                       </div>
 
-                      {selectedItem?.extrasData?.length > 0 && (
-                        <div className="border rounded-lg overflow-hidden shadow-md mt-3">
+                      {selectedItem?.optionSize?.length > 0 && (
+                        <div className="border rounded-lg overflow-hidden shadow-md">
                           <div
-                            className="p-3 bg-gray- cursor-pointer flex justify-between items-center"
+                            className="p-3 bg-gray- cursor-pointer flex gap-4 items-center"
+                            onClick={toggleOption}
+                          >
+                            <h3 className="font-bold text-[16px]">
+                              {selectedItem?.groupNameSizes}
+                            </h3>
+                            <h3 className="font-bold text-[16px]">
+                           (Choose up to 1 Items)
+                            </h3>
+
+                            <span className="text-gray-600">
+                              {isOpenMainOption ? "▲" : "▼"}
+                            </span>
+                          </div>
+
+                          {/* العناصر المختارة */}
+                          {selectedItem?.selectedoption?.length > 0 && (
+                            <div className="p-3 bg-gray- border-t">
+                              <span className="text-[#000] dark:text-[#fff] font-medium">
+                                {selectedItem.selectedoption
+                                  .map((extra) => extra.name)
+                                  .join(", ")}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* الاختيارات */}
+                          <div
+                            className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                              isOpenMainOption ? "max-h-96" : "max-h-0"
+                            }`}
+                          >
+                            <div className="p-3 flex flex- flex-wrap gap-2">
+                              {selectedItem?.optionSize?.map((extra, index) => (
+                                <label
+                                  key={index}
+                                  className="flex items-center space-x-2"
+                                >
+                                  <input
+                                    type="radio"
+                                    value={extra.name_en}
+                                  checked={selectedItem.selectedoption.some((ex) => ex.id === extra.id)}
+                                    // onChange={(e) => {
+                                    //   const checked = e.target.checked;
+                                    //   setSelectedItem((prev) => {
+                                    //     let updatedExtras = checked
+                                    //       ? [...prev.selectedExtras, extra]
+                                    //       : prev.selectedExtras.filter(
+                                    //           (ex) => ex.id !== extra.id
+                                    //         );
+
+                                    //     let updatedExtrasIds =
+                                    //       updatedExtras.map((ex) => ex.id);
+
+                                    //     // لو حابب تحسب السعر الإجمالي كمان هنا:
+                                    //     // const newTotalPrice = updatedExtras.reduce(
+                                    //     //   (acc, curr) => acc + parseFloat(curr.price_en || "0"), 0
+                                    //     // );
+
+                                    //     return {
+                                    //       ...prev,
+                                    //       selectedExtras: updatedExtras,
+                                    //       selectedExtrasIds: updatedExtrasIds,
+                                    //     };
+                                    //   });
+                                    // }}
+                                      onChange={() => {
+    setSelectedItem((prev) => ({
+      ...prev,
+      selectedoption: [extra], // اختيار واحد فقط
+      selectedoptionId: [extra.id],
+    }));
+  }}
+                                  />
+                                  <span className="text-[#000] dark:text-[#fff]">
+                                    {extra.name}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {selectedItem?.extrasData?.length > 0 && (
+                        <div className="border rounded-lg overflow-hidden shadow-md">
+                          <div
+                            className="p-3 bg-gray- cursor-pointer flex gap-4 items-center"
                             onClick={toggleExtras}
                           >
+                            <h3 className="font-bold text-[16px]">
+                              {selectedItem?.extrasDataExtras}
+                            </h3>
                             <h3 className="font-bold text-[16px]">
                               {selectedItem?.itemExtras?.category_ar} (Choose up
                               to {selectedItem?.extrasData?.length} Items)
                             </h3>
+
                             <span className="text-gray-600">
                               {isOpen ? "▲" : "▼"}
                             </span>
@@ -2729,7 +2845,7 @@ console.log("cartItems ", cartItems)
                             <div className="p-3 bg-gray- border-t">
                               <span className="text-[#000] dark:text-[#fff] font-medium">
                                 {selectedItem.selectedExtras
-                                  .map((extra) => extra.name_en)
+                                  .map((extra) => extra.name)
                                   .join(", ")}
                               </span>
                             </div>
@@ -2748,20 +2864,34 @@ console.log("cartItems ", cartItems)
                                   className="flex items-center space-x-2"
                                 >
                                   <input
-                                    type="radio"
+                                    type="checkbox"
                                     value={extra.name_en}
-                                    checked={
-                                      selectedItem.selectedExtras.length > 0 &&
-                                      selectedItem.selectedExtras[0].id ===
-                                        extra.id
-                                    }
-                                    onChange={() => {
-                                      setSelectedItem((prev) => ({
-                                        ...prev,
-                                        selectedExtras: [extra], // السماح باختيار واحد فقط
-                                        selectedExtrasIds: [extra.id], // تحديث قائمة الـ IDs
-                                      }));
-                                      setIsOpen(false); // إغلاق القائمة بعد الاختيار
+                                    checked={selectedItem.selectedExtras.some(
+                                      (ex) => ex.id === extra.id
+                                    )}
+                                    onChange={(e) => {
+                                      const checked = e.target.checked;
+                                      setSelectedItem((prev) => {
+                                        let updatedExtras = checked
+                                          ? [...prev.selectedExtras, extra]
+                                          : prev.selectedExtras.filter(
+                                              (ex) => ex.id !== extra.id
+                                            );
+
+                                        let updatedExtrasIds =
+                                          updatedExtras.map((ex) => ex.id);
+
+                                        // لو حابب تحسب السعر الإجمالي كمان هنا:
+                                        // const newTotalPrice = updatedExtras.reduce(
+                                        //   (acc, curr) => acc + parseFloat(curr.price_en || "0"), 0
+                                        // );
+
+                                        return {
+                                          ...prev,
+                                          selectedExtras: updatedExtras,
+                                          selectedExtrasIds: updatedExtrasIds,
+                                        };
+                                      });
                                     }}
                                   />
                                   <span className="text-[#000] dark:text-[#fff]">
@@ -2773,17 +2903,20 @@ console.log("cartItems ", cartItems)
                           </div>
                         </div>
                       )}
-
                       {selectedItem?.mainExtras?.length > 0 && (
                         <div className="border rounded-lg overflow-hidden shadow-md">
                           <div
-                            className="p-3 bg-gray- cursor-pointer flex justify-between items-center"
+                            className="p-3 bg-gray- cursor-pointer flex gap-4 items-center"
                             onClick={toggleExtrasMainExtra}
                           >
+                            <h3 className="font-bold text-[16px] ">
+                              {selectedItem?.groupNameExtras}
+                            </h3>
                             <h3 className="font-bold text-[16px] ">
                               {selectedItem?.mainExtras?.category_ar} (Choose up
                               to {selectedItem?.mainExtras?.length} Items)
                             </h3>
+
                             <span className="text-gray-600">
                               {isOpenMainExtra ? "▲" : "▼"}
                             </span>
@@ -3390,7 +3523,7 @@ console.log("cartItems ", cartItems)
                   onMouseOut={(e) =>
                     (e.currentTarget.style.backgroundColor = "#007bff")
                   }
-                disabled={isEditMode}
+                  disabled={isEditMode}
                 >
                   <FiSearch className="w-4 h-4" />
                 </Button>
@@ -3421,21 +3554,21 @@ console.log("cartItems ", cartItems)
               </div>
             </div>
 
-            {selectedUser && isOpenUserData &&  (
+            {selectedUser && isOpenUserData && (
               <div className="mt-2 p-2  rounded-md">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">
                     {selectedUser.user_name}
                   </h3>
                   <Button
-                  disabled={isEditMode}
+                    disabled={isEditMode}
                     className="my3"
                     onClick={() => setOpenEditDialog(true)}
                   >
                     <FiEdit />
                   </Button>
                 </div>
-            
+
                 <div className="mt-2">
                   <p className="mb-2 flex">Phone: {selectedUser.phone}</p>
 

@@ -25,7 +25,7 @@ const Sections = () => {
   const [isLoading, setIsLoading] = useState(true);
   const itemsPerPage = 10;
 
-  // بيانات وهمية
+
   const mockSections = [
     {
       id: 1,

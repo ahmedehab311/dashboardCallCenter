@@ -54,9 +54,11 @@ const FooterContent = () => {
   return (
     <div className="block md:flex md:justify-between text-muted-foreground">
       <p className="sm:mb-0 text-xs md:text-sm">
-        COPYRIGHT © 2024
+        COPYRIGHT © {new Date().getFullYear()} 
       </p>
- 
+ {/* <p className="sm:mb-0 text-xs md:text-sm">
+        COPYRIGHT © {new Date().getFullYear()} DashTail All rights Reserved
+      </p> */}
     </div>
   );
 };

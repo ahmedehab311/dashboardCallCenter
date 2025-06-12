@@ -3,7 +3,7 @@ import { parse } from "url";
 import next from "next";
 import dotenv from "dotenv";
 dotenv.config();
-const port = parseInt(process.env.PORT || "9088", 10);
+const port = parseInt(process.env.PORT || "5000", 10);
 const dev = process.env.NODE_ENV !== "production";
 const hostname = process.env.HOSTNAME;
 const app = next({ dev });
