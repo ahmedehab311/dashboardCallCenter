@@ -445,10 +445,14 @@ function CreateOrder({ params }) {
   const handleItemClick = async (item) => {
     setSelectedItem(item);
     setIsItemDialogOpen(true);
-    setIsOpen(!isOpen);
+    // setIsOpen(!isOpen);
     setNote("");
     setCounter(1);
     setTotalExtrasPrice(0);
+    setIsOpen(true); // يفتح تبويب extras
+setIsOpenMainExtra(true); // يفتح تبويب mainExtras
+setIsOpenMainOption(true); // يفتح تبويب optionSize
+setInitialized(false); 
     if (!selectedUser) {
       setMassegeNotSerachPhone("Select user first");
       return;
@@ -2475,7 +2479,6 @@ useEffect(() => {
 
   //   console.log("orderphone:", order?.user_data?.phone);
   // }, []);
-  console.log("extrasData", selectedItem?.extrasData);
   if (isLoadingBranchs) return <p>Loading branches...</p>;
   if (errorBranchs) return <p>Error loading branches: {error.message}</p>;
   return (
