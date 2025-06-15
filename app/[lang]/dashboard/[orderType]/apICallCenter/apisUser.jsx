@@ -149,12 +149,24 @@ export const createOrder = async ({
 }) => {
   const formattedItems = {
     items: items.map((item) => ({
-      id: item.selectedIdSize || item.id,
+      id: item.selectedIdSize,
       choices: [],
-      options: [],
-      extras: [
-        ...(item.selectedMainExtrasIds || []),
-        ...(item.selectedExtrasIds || []),
+      condiments: [
+        ...(item.selectedoption || []).map((option) => ({
+          id: option.id,
+          price: parseFloat(option.price),
+          count: 1,
+        })),
+        ...(item?.selectedMainExtras || []).map((extra) => ({
+          id: extra.id,
+          price: parseFloat(extra.price),
+          count: 1,
+        })),
+        ...(item?.selectedExtras || []).map((extra) => ({
+          id: extra.id,
+          price: parseFloat(extra.price),
+          count: 1,
+        })),
       ],
       count: item.quantity,
       special: item.note || "",

@@ -450,9 +450,9 @@ function CreateOrder({ params }) {
     setCounter(1);
     setTotalExtrasPrice(0);
     setIsOpen(true); // يفتح تبويب extras
-setIsOpenMainExtra(true); // يفتح تبويب mainExtras
-setIsOpenMainOption(true); // يفتح تبويب optionSize
-setInitialized(false); 
+    setIsOpenMainExtra(true); // يفتح تبويب mainExtras
+    setIsOpenMainOption(true); // يفتح تبويب optionSize
+    setInitialized(false);
     if (!selectedUser) {
       setMassegeNotSerachPhone("Select user first");
       return;
@@ -484,7 +484,11 @@ setInitialized(false);
       if (response) {
         const firstInfo = response?.sizes?.[0] || null;
         const sizeCondiments = firstInfo?.size_condiments || [];
+        const itemCondiments = response?.item_condiments || [];
 
+        const extraMainGroup = itemCondiments.find(
+          (group) => group?.type === "extra"
+        );
         const extraGroup = sizeCondiments.find(
           (group) => group?.type === "extra"
         );
@@ -504,19 +508,25 @@ setInitialized(false);
           selectedIdSize: firstInfo?.id || "",
           selectedMainExtras: [],
           selectedMainExtrasIds: [],
-          mainExtras: response?.item_condiments?.[0]?.condiments || [], // الاكسترات الاساسية للايتم
-          groupNameExtras:response?.item_condiments?.[0]?.group_name || [], // group_name للاكسترات الاساسية للايتم
+          mainExtras: extraMainGroup?.condiments || [], // الاكسترات الاساسية للايتم
+          groupNameMainExtras: extraMainGroup?.group_name || [], // group_name للاكسترات الاساسية للايتم
           itemExtras: firstInfo?.size_condiments || [],
           extrasData: extraGroup?.condiments || [], // الاكسترات الموجودة للسايز
-          extrasDataExtras: extraGroup?.group_name || [], // group_name للاكسترات الاساسية للايتم
+          groupNameExtrasData: extraGroup?.group_name || [], // group_name للاكسترات الاساسية للايتم
           optionSize: optionGroup?.condiments || [], //
           groupNameSizes: optionGroup?.group_name || [], // group_name للاكسترات الخاص بالسايزات
           selectedExtras: [],
           selectedoption: [],
           // selectedoptionId: [],
           // selectedExtrasIds: [],
-          selectedoption: optionGroup?.condiments?.length > 0 ? [optionGroup.condiments[0]] : [],
-selectedoptionId: optionGroup?.condiments?.length > 0 ? [optionGroup.condiments[0].id] : [],
+          selectedoption:
+            optionGroup?.condiments?.length > 0
+              ? [optionGroup.condiments[0]]
+              : [],
+          selectedoptionId:
+            optionGroup?.condiments?.length > 0
+              ? [optionGroup.condiments[0].id]
+              : [],
         });
       }
     } catch (error) {
@@ -600,7 +610,7 @@ selectedoptionId: optionGroup?.condiments?.length > 0 ? [optionGroup.condiments[
     const cartItem = cartItems.find(
       (cartItem) => cartItem.cartId === item.cartId
     );
-    console.log("cartItem::", cartItem);
+    // console.log("cartItem::", cartItem);
 
     // إذا وجدنا العنصر في السلة، نقوم بتحديث selectedItem بناءً على الـ cartId
     if (cartItem) {
@@ -667,63 +677,20 @@ selectedoptionId: optionGroup?.condiments?.length > 0 ? [optionGroup.condiments[
       }
     }
   };
-const [initialized, setInitialized] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   useEffect(() => {
     setCollapsed(true);
   }, []);
-  // useEffect(() => {
-  //   if (!selectedItem) return;
 
-  //   if (selectedItem?.extrasData?.length === 0) {
-  //     setIsOpen(false);
-  //   } else {
-  //     setIsOpen(true);
-  //   }
-  // }, [selectedItem]);
+  useEffect(() => {
+    if (!selectedItem || initialized) return;
 
+    setIsOpen(true); // extras
+    setIsOpenMainExtra(true); // mainExtras
+    setIsOpenMainOption(true); // optionSize
 
-
-
-
-  // useEffect(() => {
-  //   if (!selectedItem) return;
-
-  //   if (selectedItem?.mainExtras?.length === 0) {
-  //     setIsOpenMainExtra(false);
-  //   } else {
-  //     setIsOpenMainExtra(true);
-  //   }
-  // }, [selectedItem]);
-
-
-  // useEffect(() => {
-  //   if (!selectedItem) return;
-
-  //   if (selectedItem?.selectedoptionId?.length === 0) {
-  //     setIsOpenMainOption(false);
-  //   } else {
-  //     setIsOpenMainOption(true);
-  //   }
-  // }, [selectedItem]);
-
-// useEffect(() => {
-//   if (!selectedItem || initialized) return;
-
-//   if (selectedItem?.extrasData?.length > 0) setIsOpen(true);
-//   if (selectedItem?.mainExtras?.length > 0) setIsOpenMainExtra(true);
-//   if (selectedItem?.optionSize?.length > 0) setIsOpenMainOption(true);
-
-//   setInitialized(true); // عشان ميكررهاش تاني
-// }, [selectedItem, initialized]);
-useEffect(() => {
-  if (!selectedItem || initialized) return;
-
-  setIsOpen(true); // extras
-  setIsOpenMainExtra(true); // mainExtras
-  setIsOpenMainOption(true); // optionSize
-
-  setInitialized(true);
-}, [selectedItem, initialized]);
+    setInitialized(true);
+  }, [selectedItem, initialized]);
 
   const toggleOption = () => {
     setIsOpenMainOption(!isOpenMainOption);
@@ -2701,8 +2668,12 @@ useEffect(() => {
                                 //   })
                                 // }
                                 onChange={() => {
+                                  setIsOpenMainOption(true);
+                                  setIsOpen(true);
+                                  setIsOpenMainExtra(true);
                                   const newItemExtras =
                                     size?.size_condiments || [];
+                                    
 
                                   const newExtraGroup = newItemExtras.find(
                                     (g) => g?.type === "extra"
@@ -2723,6 +2694,9 @@ useEffect(() => {
                                     optionSize:
                                       newOptionGroup?.condiments || [],
                                     groupNameSizes:
+                                      newOptionGroup?.group_name || "",
+
+                                    groupNameExtrasData:
                                       newExtraGroup?.group_name || "",
                                     selectedItemExtras: [],
                                     selectedExtras: [],
@@ -2747,8 +2721,8 @@ useEffect(() => {
                             <h3 className="font-bold text-[16px]">
                               {selectedItem?.groupNameSizes}
                             </h3>
-                            <h3 className="font-bold text-[16px]">
-                           (Choose up to 1 Items)
+                            <h3 className=" text-[16px]">
+                              (Choose up to 1 Items)
                             </h3>
 
                             <span className="text-gray-600">
@@ -2782,38 +2756,18 @@ useEffect(() => {
                                   <input
                                     type="radio"
                                     value={extra.name_en}
-                                  checked={selectedItem.selectedoption.some((ex) => ex.id === extra.id)}
-                                    // onChange={(e) => {
-                                    //   const checked = e.target.checked;
-                                    //   setSelectedItem((prev) => {
-                                    //     let updatedExtras = checked
-                                    //       ? [...prev.selectedExtras, extra]
-                                    //       : prev.selectedExtras.filter(
-                                    //           (ex) => ex.id !== extra.id
-                                    //         );
-
-                                    //     let updatedExtrasIds =
-                                    //       updatedExtras.map((ex) => ex.id);
-
-                                    //     // لو حابب تحسب السعر الإجمالي كمان هنا:
-                                    //     // const newTotalPrice = updatedExtras.reduce(
-                                    //     //   (acc, curr) => acc + parseFloat(curr.price_en || "0"), 0
-                                    //     // );
-
-                                    //     return {
-                                    //       ...prev,
-                                    //       selectedExtras: updatedExtras,
-                                    //       selectedExtrasIds: updatedExtrasIds,
-                                    //     };
-                                    //   });
-                                    // }}
-                                      onChange={() => {
-    setSelectedItem((prev) => ({
-      ...prev,
-      selectedoption: [extra], // اختيار واحد فقط
-      selectedoptionId: [extra.id],
-    }));
-  }}
+                                    checked={selectedItem.selectedoption.some(
+                                      (ex) => ex.id === extra.id
+                                    )}
+                                    onChange={() => {
+                                      setIsOpenMainOption(false);
+                                      setSelectedItem((prev) => ({
+                                        ...prev,
+                                        selectedoption: [extra], // اختيار واحد فقط
+                                        selectedoptionId: [extra.id],
+                                        
+                                      }));
+                                    }}
                                   />
                                   <span className="text-[#000] dark:text-[#fff]">
                                     {extra.name}
@@ -2831,9 +2785,9 @@ useEffect(() => {
                             onClick={toggleExtras}
                           >
                             <h3 className="font-bold text-[16px]">
-                              {selectedItem?.extrasDataExtras}
+                              {selectedItem?.groupNameExtrasData}
                             </h3>
-                            <h3 className="font-bold text-[16px]">
+                            <h3 className=" text-[16px]">
                               {selectedItem?.itemExtras?.category_ar} (Choose up
                               to {selectedItem?.extrasData?.length} Items)
                             </h3>
@@ -2913,9 +2867,9 @@ useEffect(() => {
                             onClick={toggleExtrasMainExtra}
                           >
                             <h3 className="font-bold text-[16px] ">
-                              {selectedItem?.groupNameExtras}
+                              {selectedItem?.groupNameMainExtras}
                             </h3>
-                            <h3 className="font-bold text-[16px] ">
+                            <h3 className=" text-[16px] ">
                               {selectedItem?.mainExtras?.category_ar} (Choose up
                               to {selectedItem?.mainExtras?.length} Items)
                             </h3>
