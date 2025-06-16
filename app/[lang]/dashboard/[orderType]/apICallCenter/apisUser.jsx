@@ -155,17 +155,17 @@ export const createOrder = async ({
         ...(item.selectedoption || []).map((option) => ({
           id: option.id,
           price: parseFloat(option.price),
-          count: 1,
+          count: option.quantity || 1,
         })),
         ...(item?.selectedMainExtras || []).map((extra) => ({
           id: extra.id,
           price: parseFloat(extra.price),
-          count: 1,
+          count: extra.quantity || 1,
         })),
         ...(item?.selectedExtras || []).map((extra) => ({
           id: extra.id,
           price: parseFloat(extra.price),
-          count: 1,
+          count: extra.quantity ||1,
         })),
       ],
       count: item.quantity,

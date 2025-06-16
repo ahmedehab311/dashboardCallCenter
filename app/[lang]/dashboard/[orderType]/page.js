@@ -441,6 +441,8 @@ function CreateOrder({ params }) {
       router.push("/login");
     }
   }, []);
+  const [editingItemIndex, setEditingItemIndex] = useState(null);
+  
 
   const handleItemClick = async (item) => {
     setSelectedItem(item);
@@ -449,9 +451,9 @@ function CreateOrder({ params }) {
     setNote("");
     setCounter(1);
     setTotalExtrasPrice(0);
+    setIsOpenMainOption(true); // يفتح تبويب optionSize
     setIsOpen(true); // يفتح تبويب extras
     setIsOpenMainExtra(true); // يفتح تبويب mainExtras
-    setIsOpenMainOption(true); // يفتح تبويب optionSize
     setInitialized(false);
     if (!selectedUser) {
       setMassegeNotSerachPhone("Select user first");
@@ -533,78 +535,36 @@ function CreateOrder({ params }) {
       console.error("Error fetching item details:", error);
     }
   };
-  // console.log("groupName",selectedItem?.groupName);
+  const contentRef = useRef(null);
+const [height, setHeight] = useState("0px");
 
-  // const handleEditItem = (item) => {
-  //   setSelectedItem({
-  //     ...item,
-  //     selectedMainExtras: [...item.selectedMainExtras],
-  //   });
-  //   setNote(item.note || "");
-  //   setCounter(item.quantity);
-  //   setIsItemDialogOpen(true);
-  // };
-  const [editingItemIndex, setEditingItemIndex] = useState(null);
-  // const handleEditItem = async (item) => {
-  //   setNote(item.note || "");
-  //   setCounter(item.quantity);
-  //   setTotalExtrasPrice(0);
-  //   setIsItemDialogOpen(true);
+useEffect(() => {
+  if (contentRef.current && selectedItem?.extrasData?.length > 0) {
+    if (isOpen) {
+      const scrollHeight = contentRef.current.scrollHeight;
+      setHeight(`${scrollHeight}px`);
 
-  //   try {
-  //     const response = await fetchViewItem(
-  //       savedBranch?.value || selectedBranchInSelected.value,
-  //       item.id,
-  //       token,
-  //       apiBaseUrl
-  //     );
+      const timeout = setTimeout(() => {
+        setHeight("auto");
+      }, 300);
+      return () => clearTimeout(timeout);
+    } else {
+      setHeight(`${contentRef.current.scrollHeight}px`);
+      requestAnimationFrame(() => {
+        setHeight("0px");
+      });
+    }
+  }
+}, [isOpen, selectedItem?.extrasData]);
 
-  //     if (response?.response === false) {
-  //       setMassegeInvaildToken(response.message);
-  //       return;
-  //     }
-
-  //     setMassegeInvaildToken(null);
-
-  //     if (response?.item) {
-  //       const firstInfo = response?.item?.info?.[0] || null;
-
-  //       setSelectedItem({
-  //         id: response.item.id,
-  //         name: response.item.name_en,
-  //         description_en: response.item.description_en,
-  //         description_ar: response.item.description_ar,
-  //         image: response.item.image,
-  //         price: firstInfo?.price?.price,
-  //         availability: firstInfo?.availability?.availability,
-  //         info: response?.item?.info || [],
-  //         selectedInfo: firstInfo?.size_en || "",
-  //         selectedIdSize: firstInfo?.id || "",
-  //         selectedMainExtras: item.selectedMainExtras || [],
-  //         selectedMainExtrasIds: item.selectedMainExtrasIds || [],
-  //         mainExtras: response?.item?.item_extras?.[0]?.data || [],
-  //         itemExtras: firstInfo?.item_extras || [],
-  //         extrasData: firstInfo?.item_extras?.[0]?.data || [],
-  //         selectedExtras: item.selectedExtras || [],
-  //         selectedExtrasIds: item.selectedExtrasIds || [],
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching item details:", error);
-  //   }
-  //   // const indexInCart = cartItems.findIndex(
-  //   //   (cartItem) =>
-  //   //     cartItem.id === item.id &&
-  //   //     cartItem.selectedIdSize === item.selectedIdSize // ممكن تزود هنا مقارنة extras لو عايز
-  //   // );
-
-  //   // setEditingItemIndex(indexInCart);
-  // };
 
   const handleEditItem = async (item) => {
+
     setNote(item.note || "");
-    setCounter(item.quantity);
-    setTotalExtrasPrice(0);
+setCounter(item.quantity);
+setTotalExtrasPrice(0);
+ setIsItemDialogOpen(true);
+
 
     // نقوم بمقارنة العنصر في السلة باستخدام cartId
     const cartItem = cartItems.find(
@@ -614,30 +574,26 @@ function CreateOrder({ params }) {
 
     // إذا وجدنا العنصر في السلة، نقوم بتحديث selectedItem بناءً على الـ cartId
     if (cartItem) {
-      setSelectedItem({
-        id: cartItem.id, // نستخدم id هنا لأننا نحتاجه لـ fetch
-        name: cartItem.selectedInfo,
-        description_en: cartItem.description_en,
-        description_ar: cartItem.description_ar,
-        image: cartItem.image,
-        price: cartItem.price,
-        availability: cartItem.availability,
-        info: cartItem.info || [],
-        selectedInfo: cartItem.selectedInfo || "",
-        selectedIdSize: cartItem.selectedIdSize || "",
-        selectedMainExtras: cartItem.selectedMainExtras || [],
-        selectedMainExtrasIds: cartItem.selectedMainExtrasIds || [],
-        mainExtras: cartItem.mainExtras || [],
-        itemExtras: cartItem.itemExtras || [],
-        extrasData: cartItem.extrasData || [],
-        selectedExtras: cartItem.selectedExtras || [],
-        selectedExtrasIds: cartItem.selectedExtrasIds || [],
-        selectedoption: cartItem.selectedoption || [],
-        selectedoptionId: cartItem.selectedoptionId || [],
-      });
 
+
+      setSelectedItem({
+  id: cartItem.id,
+  name: cartItem.selectedInfo,
+  image: cartItem.image,
+  price: cartItem.price,
+  selectedInfo: cartItem.selectedInfo || "",
+  selectedIdSize: cartItem.selectedIdSize || "",
+  selectedMainExtras: cartItem.selectedMainExtras || [],
+  selectedMainExtrasIds: cartItem.selectedMainExtrasIds || [],
+  selectedExtras: cartItem.selectedExtras || [],
+  selectedExtrasIds: cartItem.selectedExtrasIds || [],
+  selectedoption: cartItem.selectedoption || [],
+  selectedoptionId: cartItem.selectedoptionId || [],
+   extrasData: cartItem.extrasData || [],
+});
       // بعد ذلك، نستخدم الـ id لإجراء fetch
       try {
+        
         const response = await fetchViewItem(
           savedBranch?.value || selectedBranchInSelected?.value,
           cartItem.id, // هنا نستخدم id للحصول على التفاصيل من الـ API
@@ -652,24 +608,81 @@ function CreateOrder({ params }) {
 
         setMassegeInvaildToken(null);
 
-        if (response?.item) {
-          const firstInfo = response?.item?.info?.[0] || null;
+        if (response) {
+          setIsOpenMainOption(true);
+          setIsOpenMainExtra(true);
+          setIsOpen(true);
+         setInitialized(false);
+          // const firstInfo = response.info?.[0] || null;
+  // const firstInfo = response?.sizes?.[0] || null;
+  const selectedSizeInfo = response?.sizes?.find(
+  (s) => s?.id === cartItem?.selectedIdSize
+) || response?.sizes?.[0];
+        const sizeCondiments = selectedSizeInfo?.size_condiments || [];
+        const itemCondiments = response?.item_condiments || [];
 
-          setSelectedItem((prevState) => ({
-            ...prevState,
-            cartId: item.cartId,
-            price: firstInfo?.price?.price,
-            availability: firstInfo?.availability?.availability,
-            info: response?.item?.info || [],
-            name: response.item.name_en,
-            description_en: response.item.description_en,
-            description_ar: response.item.description_ar,
-            selectedInfo: firstInfo?.size_en || "",
-            selectedIdSize: firstInfo?.id || "",
-            mainExtras: response?.item?.item_extras?.[0]?.data || [],
-            itemExtras: firstInfo?.item_extras || [],
-            extrasData: firstInfo?.item_extras?.[0]?.data || [],
-          }));
+        const extraMainGroup = itemCondiments.find(
+          (group) => group?.type === "extra"
+        );
+        const extraGroup = sizeCondiments.find(
+          (group) => group?.type === "extra"
+        );
+        const optionGroup = sizeCondiments.find(
+          (group) => group?.type === "option"
+        );
+
+//           setSelectedItem((prevState) => ({
+//   ...prevState,
+//   cartId: item.cartId,
+//   price: selectedSizeInfo?.price?.price,
+//   availability: selectedSizeInfo?.availability?.availability,
+//   info: response?.sizes || [],
+//   selectedInfo: selectedSizeInfo?.size_en || "",
+//   selectedIdSize: selectedSizeInfo?.id || "",
+
+//   // دول من الـ API (بيتم تحديثهم)
+//   mainExtras: extraMainGroup?.condiments || [],
+//   groupNameMainExtras: extraMainGroup?.group_name || [],
+//   itemExtras: selectedSizeInfo?.size_condiments || [],
+//   extrasData: extraGroup?.condiments || [],
+//   groupNameExtrasData: extraGroup?.group_name || [],
+//   optionSize: optionGroup?.condiments || [],
+//   groupNameSizes: optionGroup?.group_name || [],
+
+//   // هنا بقى متعملش reset، خليه يستخدم القيم القديمة
+//   // لو فاضية ممكن fallback لقيم من الـ API زي ما انت كنت عامل
+//   selectedExtras: prevState.selectedExtras || [],
+//   selectedExtrasIds: prevState.selectedExtrasIds || [],
+//   selectedMainExtras: prevState.selectedMainExtras || [],
+//   selectedMainExtrasIds: prevState.selectedMainExtrasIds || [],
+//   selectedoption: prevState.selectedoption?.length
+//     ? prevState.selectedoption
+//     : optionGroup?.condiments?.length > 0
+//     ? [optionGroup.condiments[0]]
+//     : [],
+//   selectedoptionId: prevState.selectedoptionId?.length
+//     ? prevState.selectedoptionId
+//     : optionGroup?.condiments?.length > 0
+//     ? [optionGroup.condiments[0].id]
+//     : [],
+// }));
+setSelectedItem((prev) => ({
+  ...prev,
+  cartId: item.cartId,
+  price: selectedSizeInfo?.price?.price,
+  availability: selectedSizeInfo?.availability?.availability,
+  info: response?.sizes || [],
+  mainExtras: extraMainGroup?.condiments || [],
+  groupNameMainExtras: extraMainGroup?.group_name || [],
+  itemExtras: selectedSizeInfo?.size_condiments || [],
+extrasData: extraGroup?.condiments || [],
+  groupNameExtrasData: extraGroup?.group_name || [],
+  optionSize: optionGroup?.condiments || [],
+  groupNameSizes: optionGroup?.group_name || [],
+  selectedExtras: prev.selectedExtras || [],
+  selectedExtrasIds: prev.selectedExtrasIds || [],
+
+}));
           setIsItemDialogOpen(true);
         }
       } catch (error) {
@@ -2649,24 +2662,6 @@ function CreateOrder({ params }) {
                                 checked={
                                   selectedItem?.selectedInfo === size?.size_en
                                 }
-                                // onChange={() =>
-                                //   setSelectedItem((prev) => {
-                                //     const newItemExtras =
-                                //       size?.size_condiments || [];
-                                //     const newExtrasData =
-                                //       size?.size_condiments?.[0]?.condiments  || [];
-
-                                //     return {
-                                //       ...prev,
-                                //       selectedInfo: size?.size_en,
-                                //       itemExtras: newItemExtras,
-                                //       extrasData: newExtrasData,
-                                //       selectedItemExtras: [],
-                                //       price: size?.price?.price,
-                                //       selectedIdSize: size?.id,
-                                //     };
-                                //   })
-                                // }
                                 onChange={() => {
                                   setIsOpenMainOption(true);
                                   setIsOpen(true);
@@ -2698,6 +2693,16 @@ function CreateOrder({ params }) {
 
                                     groupNameExtrasData:
                                       newExtraGroup?.group_name || "",
+                                      // selectedoption:newOptionGroup?.condiments?.length > 0 ? [newOptionGroup[0]] : [],
+                                      // selectedoptionId:newOptionGroup?.condiments?.length > 0 ? [newOptionGroup[0]?.id] : [],
+                                    
+selectedoption:newOptionGroup?.condiments?.length > 0
+    ? [newOptionGroup.condiments[0]]
+    : [],
+selectedoptionId: newOptionGroup?.condiments?.length > 0
+    ? [newOptionGroup.condiments[0].id]
+    : [],
+
                                     selectedItemExtras: [],
                                     selectedExtras: [],
                                     selectedExtrasIds: [],
@@ -2778,88 +2783,134 @@ function CreateOrder({ params }) {
                           </div>
                         </div>
                       )}
-                      {selectedItem?.extrasData?.length > 0 && (
-                        <div className="border rounded-lg overflow-hidden shadow-md">
-                          <div
-                            className="p-3 bg-gray- cursor-pointer flex gap-4 items-center"
-                            onClick={toggleExtras}
-                          >
-                            <h3 className="font-bold text-[16px]">
-                              {selectedItem?.groupNameExtrasData}
-                            </h3>
-                            <h3 className=" text-[16px]">
-                              {selectedItem?.itemExtras?.category_ar} (Choose up
-                              to {selectedItem?.extrasData?.length} Items)
-                            </h3>
+                   {selectedItem?.extrasData?.length > 0 && (
+  <div className="border rounded-lg overflow-hidden shadow-md">
+    <div
+      className="p-3 bg-gray- cursor-pointer flex gap-4 items-center"
+      onClick={toggleExtras}
+    >
+      <h3 className="font-bold text-[16px]">
+        {selectedItem?.groupNameExtrasData}
+      </h3>
+      <h3 className="text-[16px]">
+        {selectedItem?.itemExtras?.category_ar} (Choose up to{" "}
+        {selectedItem?.extrasData?.length} Items)
+      </h3>
 
-                            <span className="text-gray-600">
-                              {isOpen ? "▲" : "▼"}
-                            </span>
-                          </div>
+      <span className="text-gray-600">{isOpen ? "▲" : "▼"}</span>
+    </div>
 
-                          {/* العناصر المختارة */}
-                          {selectedItem?.selectedExtras?.length > 0 && (
-                            <div className="p-3 bg-gray- border-t">
-                              <span className="text-[#000] dark:text-[#fff] font-medium">
-                                {selectedItem.selectedExtras
-                                  .map((extra) => extra.name)
-                                  .join(", ")}
-                              </span>
-                            </div>
-                          )}
+    {/* العناصر المختارة */}
+    {selectedItem?.selectedExtras?.length > 0 && (
+      <div className="p-3 bg-gray- border-t">
+        <span className="text-[#000] dark:text-[#fff] font-medium">
+          {selectedItem.selectedExtras
+            .map((extra) => `${extra.name} x${extra.quantity || 1}`)
+            .join(", ")}
+        </span>
+      </div>
+    )}
 
-                          {/* الاختيارات */}
-                          <div
-                            className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                              isOpen ? "max-h-96" : "max-h-0"
-                            }`}
-                          >
-                            <div className="p-3 flex flex- flex-wrap gap-2">
-                              {selectedItem?.extrasData?.map((extra, index) => (
-                                <label
-                                  key={index}
-                                  className="flex items-center space-x-2"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    value={extra.name_en}
-                                    checked={selectedItem.selectedExtras.some(
-                                      (ex) => ex.id === extra.id
-                                    )}
-                                    onChange={(e) => {
-                                      const checked = e.target.checked;
-                                      setSelectedItem((prev) => {
-                                        let updatedExtras = checked
-                                          ? [...prev.selectedExtras, extra]
-                                          : prev.selectedExtras.filter(
-                                              (ex) => ex.id !== extra.id
-                                            );
+    {/* الاختيارات */}
+    <div
+   className="transition-all duration-300 ease-in-out overflow-hidden"
+  style={{ height }}
+    >
+      <div  ref={contentRef} className="p-3 flex flex-wrap gap-2">
+        {selectedItem?.extrasData?.map((extra, index) => {
+          const selected = selectedItem.selectedExtras.find(
+            (ex) => ex.id === extra.id
+          );
+          const quantity = selected?.quantity || 0;
 
-                                        let updatedExtrasIds =
-                                          updatedExtras.map((ex) => ex.id);
+          return (
+            <div
+              key={index}
+              className="flex items-center gap-2 border p-2 rounded"
+            >
+              <input
+                type="checkbox"
+                checked={!!selected}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setSelectedItem((prev) => {
+                    let updatedExtras;
 
-                                        // لو حابب تحسب السعر الإجمالي كمان هنا:
-                                        // const newTotalPrice = updatedExtras.reduce(
-                                        //   (acc, curr) => acc + parseFloat(curr.price_en || "0"), 0
-                                        // );
+                    if (checked) {
+                      // أضف الإضافة مع كمية مبدئية 1
+                      updatedExtras = [
+                        ...prev.selectedExtras,
+                        {
+                          id: extra.id,
+                          name: extra.name,
+                          price: extra.price_en,
+                          quantity: 1,
+                        },
+                      ];
+                    } else {
+                      // احذف الإضافة
+                      updatedExtras = prev.selectedExtras.filter(
+                        (ex) => ex.id !== extra.id
+                      );
+                    }
 
-                                        return {
-                                          ...prev,
-                                          selectedExtras: updatedExtras,
-                                          selectedExtrasIds: updatedExtrasIds,
-                                        };
-                                      });
-                                    }}
-                                  />
-                                  <span className="text-[#000] dark:text-[#fff]">
-                                    {extra.name}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                    return {
+                      ...prev,
+                      selectedExtras: updatedExtras,
+                      selectedExtrasIds: updatedExtras.map((ex) => ex.id),
+                    };
+                  });
+                }}
+              />
+              <span className="text-[#000] dark:text-[#fff]">{extra.name}</span>
+
+              {selected && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() =>
+                      setSelectedItem((prev) => {
+                        const updatedExtras = prev.selectedExtras.map((ex) =>
+                          ex.id === extra.id
+                            ? {
+                                ...ex,
+                                quantity: Math.max(ex.quantity - 1, 1),
+                              }
+                            : ex
+                        );
+                        return { ...prev, selectedExtras: updatedExtras };
+                      })
+                    }
+                    className="px-2 text-sm border rounded"
+                  >
+                    -
+                  </button>
+
+                  <span className="w-4 text-center">{quantity}</span>
+
+                  <button
+                    onClick={() =>
+                      setSelectedItem((prev) => {
+                        const updatedExtras = prev.selectedExtras.map((ex) =>
+                          ex.id === extra.id
+                            ? { ...ex, quantity: ex.quantity + 1 }
+                            : ex
+                        );
+                        return { ...prev, selectedExtras: updatedExtras };
+                      })
+                    }
+                    className="px-2 text-sm border rounded"
+                  >
+                    +
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+)}
                       {selectedItem?.mainExtras?.length > 0 && (
                         <div className="border rounded-lg overflow-hidden shadow-md">
                           <div
@@ -2978,16 +3029,20 @@ function CreateOrder({ params }) {
                         </p>
                       </div>
                       <div className="flex justify-between items-center">
-                        <div className="text-sm font-semibold flex flex-wrap max-w-[300px]">
+                        <div className="text-sm font-semibold flex flex-wrap max-w-[500px]">
                           <p>
-                            {[
-                              selectedItem?.selectedInfo,
+                            {[selectedItem?.selectedInfo,
+                                ...(selectedItem?.selectedoption || []).map(
+                                (option) => option.name
+                              ),
+                                ...(selectedItem?.selectedMainExtras || []).map(
+                                (extra) => extra.name
+                              ),
+                              
                               ...(selectedItem?.selectedExtras || []).map(
-                                (extra) => extra.name_en
+                                (extra) => extra.name
                               ),
-                              ...(selectedItem?.selectedMainExtras || []).map(
-                                (extra) => extra.name_en
-                              ),
+                            
                             ]
                               .filter(Boolean)
                               .join(", ")}
