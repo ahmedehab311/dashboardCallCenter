@@ -514,6 +514,10 @@ function CreateOrder({ params }) {
           groupNameMainExtras: extraMainGroup?.group_name || [], // group_name للاكسترات الاساسية للايتم
           itemExtras: firstInfo?.size_condiments || [],
           extrasData: extraGroup?.condiments || [], // الاكسترات الموجودة للسايز
+          groupExtrasDataRule:{
+            max:extraGroup?.max,
+            min:extraGroup?.min,
+          },
           groupNameExtrasData: extraGroup?.group_name || [], // group_name للاكسترات الاساسية للايتم
           optionSize: optionGroup?.condiments || [], //
           groupNameSizes: optionGroup?.group_name || [], // group_name للاكسترات الخاص بالسايزات
@@ -535,6 +539,19 @@ function CreateOrder({ params }) {
       console.error("Error fetching item details:", error);
     }
   };
+
+  const [extrasError, setExtrasError] = useState("سيسش");
+  const selectedExtras = selectedItem?.selectedExtras;
+  const groupMax = selectedItem?.groupExtrasRules?.max;
+  const groupMin = 1;
+
+  const selectedCount = selectedExtras?.length;
+  console.log("selectedExtras",selectedExtras);
+    console.log("groupExtrasDataRule max",selectedItem?.groupExtrasDataRule?.max);
+  console.log("groupExtrasDataRule min",selectedItem?.groupExtrasDataRule?.min);
+  console.log("groupMax",groupMax);
+  console.log("groupMin",groupMin);
+  console.log("selectedCount",selectedCount);
   const contentRef = useRef(null);
 const [height, setHeight] = useState("0px");
 
@@ -631,41 +648,7 @@ setTotalExtrasPrice(0);
           (group) => group?.type === "option"
         );
 
-//           setSelectedItem((prevState) => ({
-//   ...prevState,
-//   cartId: item.cartId,
-//   price: selectedSizeInfo?.price?.price,
-//   availability: selectedSizeInfo?.availability?.availability,
-//   info: response?.sizes || [],
-//   selectedInfo: selectedSizeInfo?.size_en || "",
-//   selectedIdSize: selectedSizeInfo?.id || "",
 
-//   // دول من الـ API (بيتم تحديثهم)
-//   mainExtras: extraMainGroup?.condiments || [],
-//   groupNameMainExtras: extraMainGroup?.group_name || [],
-//   itemExtras: selectedSizeInfo?.size_condiments || [],
-//   extrasData: extraGroup?.condiments || [],
-//   groupNameExtrasData: extraGroup?.group_name || [],
-//   optionSize: optionGroup?.condiments || [],
-//   groupNameSizes: optionGroup?.group_name || [],
-
-//   // هنا بقى متعملش reset، خليه يستخدم القيم القديمة
-//   // لو فاضية ممكن fallback لقيم من الـ API زي ما انت كنت عامل
-//   selectedExtras: prevState.selectedExtras || [],
-//   selectedExtrasIds: prevState.selectedExtrasIds || [],
-//   selectedMainExtras: prevState.selectedMainExtras || [],
-//   selectedMainExtrasIds: prevState.selectedMainExtrasIds || [],
-//   selectedoption: prevState.selectedoption?.length
-//     ? prevState.selectedoption
-//     : optionGroup?.condiments?.length > 0
-//     ? [optionGroup.condiments[0]]
-//     : [],
-//   selectedoptionId: prevState.selectedoptionId?.length
-//     ? prevState.selectedoptionId
-//     : optionGroup?.condiments?.length > 0
-//     ? [optionGroup.condiments[0].id]
-//     : [],
-// }));
 setSelectedItem((prev) => ({
   ...prev,
   cartId: item.cartId,
@@ -1036,29 +1019,6 @@ extrasData: extraGroup?.condiments || [],
     }
   }, [selectedUser, selectedAddress]);
 
-  // useEffect(() => {
-  //   if (selectedUser?.address?.length > 0) {
-  //     setSelectedAddressArray(selectedUser.address);
-
-  //     if (addressId) {
-  //       const foundAddress = selectedUser.address.find(
-  //         (addr) => addr.id === addressId
-  //       );
-  //       if (foundAddress) {
-  //         setSelectedAddress(foundAddress);
-  //         setSelectedBranch(foundAddress.branch?.[0]);
-  //       } else {
-  //         const firstAddress = selectedUser.address[0];
-  //         setSelectedAddress(firstAddress);
-  //         setSelectedBranch(firstAddress.branch?.[0]);
-  //       }
-  //     } else {
-  //       const firstAddress = selectedUser.address[0];
-  //       setSelectedAddress(firstAddress);
-  //       setSelectedBranch(firstAddress.branch?.[0]);
-  //     }
-  //   }
-  // }, [selectedUser, addressId, selectedAddress]);
 
   useEffect(() => {
     const handleBeforeUnload = (event) => {
@@ -1107,24 +1067,7 @@ extrasData: extraGroup?.condiments || [],
     }
   };
   const [hasSearched, setHasSearched] = useState(false);
-  // const handleSearch = (value = search) => {
-  //   console.log("Button clicked");
-  //   if (value && typeof value === "string" && value.trim()) {
-  //     setHasSearched(true);
-  //     setErrorSearchUser("");
-  //     refetch();
 
-  //     if (selectedUser?.address?.length > 0 && !selectedAddress) {
-  //       setSelectedAddress(selectedUser.address[0]);
-  //     }
-
-  //     if (selectedBranch) {
-  //       setSelectedBranchPriceList(selectedBranch.price_list);
-  //     }
-  //   } else {
-  //     setErrorSearchUser("Please enter a valid search term.");
-  //   }
-  // };
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
@@ -1200,164 +1143,18 @@ extrasData: extraGroup?.condiments || [],
 
   const [note, setNote] = useState("");
   const [cartItems, setCartItems] = useState([]);
+  
   console.log("cartItems ", cartItems);
-
-  // console.log("cartItems", cartItems);
-  // const handleAddToCart = () => {
-  //   setCartItems((prevItems) => {
-
-  //     // const existingItemIndex = prevItems.findIndex(
-  //     //   (item) => item.id === selectedItem.id
-  //     // );
-  //     const existingItemIndex = prevItems.findIndex(
-  //       (item) =>
-  //         item.id === selectedItem.id &&
-  //         item.selectedIdSize === selectedItem.selectedIdSize &&
-  //         JSON.stringify(item.selectedExtras) ===
-  //           JSON.stringify(selectedItem.selectedExtras) &&
-  //         JSON.stringify(item.selectedMainExtras) ===
-  //           JSON.stringify(selectedItem.selectedMainExtras) &&
-  //         item.note === note
-  //     );
-
-  //     if (existingItemIndex !== -1) {
-  //       const updatedItems = [...prevItems];
-  //       updatedItems[existingItemIndex] = {
-  //         ...selectedItem,
-  //         quantity: counter,
-  //         total: counter * selectedItem.price,
-  //         mainExtras: Array.isArray(selectedItem.mainExtras)
-  //           ? [...selectedItem.mainExtras]
-  //           : [],
-  //         selectedMainExtras: Array.isArray(selectedItem.selectedMainExtras)
-  //           ? [...selectedItem.selectedMainExtras]
-  //           : [],
-  //         selectedExtras: Array.isArray(selectedItem.selectedExtras)
-  //           ? [...selectedItem.selectedExtras]
-  //           : [],
-  //         selectedIdSize: selectedItem.selectedIdSize,
-  //         selectedInfo: selectedItem.selectedInfo,
-  //         note: note,
-  //         cartId: uuidv4(),
-  //       };
-  //       return updatedItems;
-  //     } else {
-  //       return [
-  //         ...prevItems,
-  //         {
-  //           ...selectedItem,
-  //           id: `${selectedItem.id}`,
-  //           quantity: counter,
-  //           total: counter * selectedItem.price,
-  //           mainExtras: Array.isArray(selectedItem.mainExtras)
-  //             ? [...selectedItem.mainExtras]
-  //             : [],
-
-  //           selectedIdSize: selectedItem.selectedIdSize,
-  //           selectedInfo: selectedItem.selectedInfo,
-  //           selectedMainExtras: Array.isArray(selectedItem.selectedMainExtras)
-  //             ? [...selectedItem.selectedMainExtras]
-  //             : [],
-  //           selectedExtras: Array.isArray(selectedItem.selectedExtras)
-  //             ? [...selectedItem.selectedExtras]
-  //             : [],
-  //           note: note,
-  //           cartId: uuidv4(),
-  //         },
-  //       ];
-  //     }
-
-  //   });
-
-  //   setNote("");
-  //    setEditingItemIndex(null);
-  //   setIsItemDialogOpen(false);
-  // };
-  // useEffect(() => {
-  //   if (!selectedItem) return;
-
-  //   setCartItems((prevItems) =>
-  //     prevItems.map((item) =>
-  //       item.id === selectedItem.id
-  //         ? {
-  //             ...item,
-  //             quantity: counter,
-  //             total: counter * item.price,
-  //           }
-  //         : item
-  //     )
-  //   );
-  // }, [counter]);
-  // useEffect(() => {
-  //   if (!selectedItem) return;
-
-  //   setCartItems((prevItems) =>
-  //     prevItems.map((item) =>
-  //       item.cartId === selectedItem.cartId // استخدم cartId بدلاً من id
-  //         ? {
-  //             ...item,
-  //             quantity: counter,
-  //             total: counter * item.price,
-  //           }
-  //         : item
-  //     )
-  //   );
-  // }, [counter]);
-
-  // const handleAddToCart = () => {
-  //   setCartItems((prevItems) => {
-  //     const existingItemIndex = prevItems.findIndex(
-  //       (item) =>
-  //         item.cartId === selectedItem.cartId // استخدم cartId للمقارنة وقت التعديل
-  //     );
-
-  //     if (existingItemIndex !== -1) {
-  //       // تعديل عنصر موجود
-  //       const updatedItems = [...prevItems];
-  //       updatedItems[existingItemIndex] = {
-  //         ...selectedItem,
-  //         quantity: counter,
-  //         total: counter * selectedItem.price,
-  //         note: note,
-  //         cartId: selectedItem.cartId, // مهم جدًا نحافظ عليه
-  //         mainExtras: [...(selectedItem.mainExtras || [])],
-  //         selectedMainExtras: [...(selectedItem.selectedMainExtras || [])],
-  //         selectedExtras: [...(selectedItem.selectedExtras || [])],
-  //         selectedIdSize: selectedItem.selectedIdSize,
-  //         selectedInfo: selectedItem.selectedInfo,
-  //       };
-  //       return updatedItems;
-  //     } else {
-  //       // إضافة عنصر جديد
-  //       return [
-  //         ...prevItems,
-  //         {
-  //           ...selectedItem,
-  //           id: `${selectedItem.id}`,
-  //           quantity: counter,
-  //           total: counter * selectedItem.price,
-  //           note: note,
-  //           cartId: uuidv4(), // عنصر جديد = cartId جديد
-  //           mainExtras: [...(selectedItem.mainExtras || [])],
-  //           selectedMainExtras: [...(selectedItem.selectedMainExtras || [])],
-  //           selectedExtras: [...(selectedItem.selectedExtras || [])],
-  //           selectedIdSize: selectedItem.selectedIdSize,
-  //           selectedInfo: selectedItem.selectedInfo,
-  //         },
-  //       ];
-  //     }
-  //   });
-
-  //   setNote("");
-  //   setEditingItemIndex(null);
-  //   setIsItemDialogOpen(false);
-  // };
-  // const orderData = localStorage.getItem("order");
 
   console.log("selectedItem", selectedItem);
   const handleAddToCart = () => {
     console.log("NOTE عند الإضافة:", note);
-
+ if (groupMin === 1 && selectedExtras.length === 0) {
+    setExtrasError("Please select at least one from this group.");
+    setIsOpen(true)
+    return; // وقف الإضافة
+  }
+setExtrasError("");
     setCartItems((prevItems) => {
       const isEditing = !!selectedItem.cartId; // لو جاي من Edit هيكون عنده cartId
 
@@ -1436,22 +1233,7 @@ extrasData: extraGroup?.condiments || [],
     );
   };
 
-  // useEffect(() => {
-
-  //   if (dataRestaurants) {
-  //     const formattedRestaurants = dataRestaurants.map((restaurant) => ({
-  //       value: restaurant.id,
-  //       label: restaurant.res_name_en,
-  //     }));
-  //     setRestaurantsSelect(formattedRestaurants);
-
-  //     // تعيين الـ id للمطعم الأول بشكل افتراضي
-  //     if (!isEditMode && formattedRestaurants.length > 0) {
-
-  //       setSelectedRestaurantId(formattedRestaurants[0].value);
-  //     }
-  //   }
-  // }, [dataRestaurants]);
+  
   const [initialRestaurantIdFromOrder, setInitialRestaurantIdFromOrder] =
     useState(null);
 
@@ -2676,7 +2458,12 @@ extrasData: extraGroup?.condiments || [],
                                   const newOptionGroup = newItemExtras.find(
                                     (g) => g?.type === "option"
                                   );
-
+ const newGroupRules = newExtraGroup
+    ? {
+        min: newExtraGroup?.min ?? 0,
+        max: newExtraGroup?.max ?? 0,
+      }
+    : { min: 0, max: 0 };
                                   return setSelectedItem((prev) => ({
                                     ...prev,
                                     selectedInfo: size?.size_en,
@@ -2706,6 +2493,7 @@ selectedoptionId: newOptionGroup?.condiments?.length > 0
                                     selectedItemExtras: [],
                                     selectedExtras: [],
                                     selectedExtrasIds: [],
+                                     groupExtrasRules: newGroupRules,
                                   }));
                                 }}
                               />
@@ -2785,11 +2573,15 @@ selectedoptionId: newOptionGroup?.condiments?.length > 0
                       )}
                    {selectedItem?.extrasData?.length > 0 && (
   <div className="border rounded-lg overflow-hidden shadow-md">
-    <div
+   
+<div className="flex  items-center justify-between">
+   <div
       className="p-3 bg-gray- cursor-pointer flex gap-4 items-center"
       onClick={toggleExtras}
     >
-      <h3 className="font-bold text-[16px]">
+      <h3  className={`font-bold text-[16px] ${
+    extrasError ? "text-red-500" : "text-black dark:text-white"
+  }`}>
         {selectedItem?.groupNameExtrasData}
       </h3>
       <h3 className="text-[16px]">
@@ -2797,9 +2589,14 @@ selectedoptionId: newOptionGroup?.condiments?.length > 0
         {selectedItem?.extrasData?.length} Items)
       </h3>
 
+
+
       <span className="text-gray-600">{isOpen ? "▲" : "▼"}</span>
     </div>
-
+ {extrasError && (
+  <p className="text-red-500 text-sm px-3 py-1">{extrasError}</p>
+)}
+</div>
     {/* العناصر المختارة */}
     {selectedItem?.selectedExtras?.length > 0 && (
       <div className="p-3 bg-gray- border-t">
@@ -2837,13 +2634,14 @@ selectedoptionId: newOptionGroup?.condiments?.length > 0
                     let updatedExtras;
 
                     if (checked) {
+                      if(groupMax === 1 && updatedExtras.length === 1) return prev;
                       // أضف الإضافة مع كمية مبدئية 1
                       updatedExtras = [
                         ...prev.selectedExtras,
                         {
                           id: extra.id,
                           name: extra.name,
-                          price: extra.price_en,
+                          price: extra.price,
                           quantity: 1,
                         },
                       ];
@@ -2976,7 +2774,7 @@ selectedoptionId: newOptionGroup?.condiments?.length > 0
                                           updatedExtras.reduce(
                                             (acc, curr) =>
                                               acc +
-                                              parseFloat(curr.price_en || "0"), // تحويل السعر إلى رقم مع معالجة القيم الفارغة
+                                              parseFloat(curr.price || "0"), // تحويل السعر إلى رقم مع معالجة القيم الفارغة
                                             0
                                           );
 
@@ -3032,6 +2830,15 @@ selectedoptionId: newOptionGroup?.condiments?.length > 0
                         <div className="text-sm font-semibold flex flex-wrap max-w-[500px]">
                           <p>
                             {[selectedItem?.selectedInfo,
+                              
+                            
+                            
+                            ]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </p>
+                          <p className="text-gray-500 ml-3">
+                            {[
                                 ...(selectedItem?.selectedoption || []).map(
                                 (option) => option.name
                               ),
