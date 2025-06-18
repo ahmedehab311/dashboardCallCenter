@@ -164,23 +164,29 @@ export default function OrderViewPage({ params }) {
     // هنا سنوجه المستخدم إلى صفحة التعديل (edit-order) بدلاً من create-order
     router.push(`/${language}/dashboard/edit-order`); // لاحظ التغيير هنا
   };
-
+  
+  // console.log("selectedStatus",selectedStatus);
+  
   const handleChangeStatus = async (selected) => {
     if (selected.value === selectedStatus?.value) {
       return; 
     }
+    
     setSelectedStatus(selected);
+    
     try {
       const response = await updateStatusOrder(
         apiBaseUrl,
         token,
         orderId,
-        selectedStatus.value
+        selected.value
       );
       response.data;
 
       if (response) {
         toast.success(response.data.data.message);
+      
+// console.log("selectedStatus.value",selectedStatus.value);
 
       } else {
         toast.error("Something went wrong");
@@ -201,11 +207,13 @@ export default function OrderViewPage({ params }) {
         apiBaseUrl,
         token,
         orderId,
-        selectedBranch.value
+        selected.value
       );
       response.data;
-
+      
+     
       if (response) {
+    
         toast.success(response.data.data.message);
 
       } else {
@@ -224,7 +232,7 @@ export default function OrderViewPage({ params }) {
     
     setSelectedDelivery(selected);
 
-    console.log("selected:", selected);
+    // console.log("selected:", selected);
     try {
 
       const response = await updateDelivery(

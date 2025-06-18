@@ -10,7 +10,7 @@ const UserDeviceReport = ({
   height = 250,
   orders,
   isLoadingorders,
-  errororders,
+  errororders, error
 }) => {
   const { theme: config, setTheme: setConfig, isRtl } = useThemeStore();
   const { theme: mode } = useTheme();
@@ -111,13 +111,31 @@ const UserDeviceReport = ({
     );
   }
 
+  // if (errororders) {
+  //   return (
+  //     <div className="flex justify-center items-center h-[250px] text-red-500 text-lg">
+  //       Error loading chart
+  //     </div>
+  //   );
+  // }
   if (errororders) {
-    return (
-      <div className="flex justify-center items-center h-[250px] text-red-500 text-lg">
-        Error loading chart
-      </div>
-    );
-  }
+  return (
+    <div className="flex justify-center items-center h-[250px] text-red-500 text-lg text-center px-4">
+      {error?.message === "Invalid token" ? (
+        <p>
+          Invalid token, please{" "}
+          <a href="/login" className="underline text-blue-600">
+            login
+          </a>{" "}
+          again.
+        </p>
+      ) : (
+        <p>Error loading chart</p>
+      )}
+    </div>
+  );
+}
+
 
   return (
     <Chart

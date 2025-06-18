@@ -6,6 +6,7 @@ import DashBoardLayoutProvider from "@/provider/dashboard.layout.provider";
 import Loader from "@/components/layout-loader";
 import { getDictionary } from "@/app/dictionaries";
 import Cookies from "js-cookie";
+import { SessionProvider } from "@/provider/SessionContext";
 const Layout = ({ children }) => {
   const { currentLang } = useLanguage();
   const [trans, setTrans] = useState(null);
@@ -23,7 +24,11 @@ const Layout = ({ children }) => {
   }
 
   return (
-    <DashBoardLayoutProvider trans={trans}>{children}</DashBoardLayoutProvider>
+    <SessionProvider>
+      <DashBoardLayoutProvider trans={trans}>
+        {children}
+      </DashBoardLayoutProvider>
+    </SessionProvider>
   );
 };
 

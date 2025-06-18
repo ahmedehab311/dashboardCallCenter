@@ -18,13 +18,7 @@ const getLocalizedLinks = (language) => {
           href: `/${language}/dashboard`,
           isOpen: true,
         },
-        // {
-        //   title: "Orders",
-        //   icon: CreateOrder,
-        //   href: `/${language}/dashboard/orders`,
-        //   isOpen: false,
-        //   isHide: false,
-        // },
+ 
         {
           title: "Create-order",
           icon: CreateOrder,

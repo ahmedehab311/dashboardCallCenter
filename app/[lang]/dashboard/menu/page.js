@@ -9,6 +9,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 const Menu = () => {
     const router = useRouter();
+    // const {menuId} = router.query
       const language =
     typeof window !== "undefined" ? localStorage.getItem("language") : null;
   const mockSection = {

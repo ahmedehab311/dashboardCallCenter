@@ -442,11 +442,30 @@ function CreateOrder({ params }) {
     }
   }, []);
   const [editingItemIndex, setEditingItemIndex] = useState(null);
-  
+const [showUserWarningDialog, setShowUserWarningDialog] = useState(false);
+const [showBranchWarningDialog, setShowBranchWarningDialog] = useState(false);
+const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
+
 
   const handleItemClick = async (item) => {
+     if (!selectedUser) {
+    setShowUserWarningDialog(true); 
+    return;
+  }
+  if (
+    (deliveryMethod === "pickup" && !isBranchManuallySelected) ||
+    savedBranch?.value === null
+  ) {
+      setShowBranchWarningDialog(true); 
+      // setMassegeNotSelectedBranch("Select branch first");
+      return;
+    }
+  //  if (massegeInvaildToken) {
+  //   setSessionExpiredDialog(true); // افتح ديالوج السيشن
+  //   return;
+  // }
     setSelectedItem(item);
-    setIsItemDialogOpen(true);
+    setIsItemDialogOpen(true);  
     // setIsOpen(!isOpen);
     setNote("");
     setCounter(1);
@@ -455,10 +474,10 @@ function CreateOrder({ params }) {
     setIsOpen(true); // يفتح تبويب extras
     setIsOpenMainExtra(true); // يفتح تبويب mainExtras
     setInitialized(false);
-    if (!selectedUser) {
-      setMassegeNotSerachPhone("Select user first");
-      return;
-    }
+    // if (!selectedUser) {
+    //   setMassegeNotSerachPhone("Select user first");
+    //   return;
+    // }
 
     if (
       (deliveryMethod === "pickup" && !isBranchManuallySelected) ||
@@ -477,11 +496,18 @@ function CreateOrder({ params }) {
       );
       console.log("Response from fetchViewItem:", response);
 
-      if (response?.response === false) {
-        // console.log("Setting error message:", response.message);
-        setMassegeInvaildToken(response.message);
-        return;
-      }
+      // if (response?.response === false) {
+      //   // console.log("Setting error message:", response.message);
+      //   setMassegeInvaildToken(response.message);
+      //   setSessionExpiredDialog(true);
+      //   return;
+      // }
+      
+  if (response?.response === false) {
+    setMassegeInvaildToken(response.message);
+    setSessionExpiredDialog(true); // 👈 افتح ديالوج السيشن
+    return; // 👈 مهم جدًا تمنع تكملة الكود
+  }
       setMassegeInvaildToken(null);
       if (response) {
         const firstInfo = response?.sizes?.[0] || null;
@@ -514,13 +540,18 @@ function CreateOrder({ params }) {
           groupNameMainExtras: extraMainGroup?.group_name || [], // group_name للاكسترات الاساسية للايتم
           itemExtras: firstInfo?.size_condiments || [],
           extrasData: extraGroup?.condiments || [], // الاكسترات الموجودة للسايز
-          groupExtrasDataRule:{
-            max:extraGroup?.max,
-            min:extraGroup?.min,
+          groupExtrasDataRule: {
+            max: extraGroup?.max,
+            min: extraGroup?.min,
+          },
+          groupExtrasMainRule: {
+            max: extraMainGroup?.max,
+            min: extraMainGroup?.min,
           },
           groupNameExtrasData: extraGroup?.group_name || [], // group_name للاكسترات الاساسية للايتم
           optionSize: optionGroup?.condiments || [], //
           groupNameSizes: optionGroup?.group_name || [], // group_name للاكسترات الخاص بالسايزات
+
           selectedExtras: [],
           selectedoption: [],
           // selectedoptionId: [],
@@ -540,48 +571,45 @@ function CreateOrder({ params }) {
     }
   };
 
-  const [extrasError, setExtrasError] = useState("سيسش");
-  const selectedExtras = selectedItem?.selectedExtras;
-  const groupMax = selectedItem?.groupExtrasRules?.max;
-  const groupMin = 1;
-
-  const selectedCount = selectedExtras?.length;
-  console.log("selectedExtras",selectedExtras);
-    console.log("groupExtrasDataRule max",selectedItem?.groupExtrasDataRule?.max);
-  console.log("groupExtrasDataRule min",selectedItem?.groupExtrasDataRule?.min);
-  console.log("groupMax",groupMax);
-  console.log("groupMin",groupMin);
-  console.log("selectedCount",selectedCount);
+  // console.log("selectedExtras", selectedExtras);
+  // console.log(
+  //   "groupExtrasDataRule max",
+  //   selectedItem?.groupExtrasDataRule?.max
+  // );
+  // console.log(
+  //   "groupExtrasDataRule min",
+  //   selectedItem?.groupExtrasDataRule?.min
+  // );
+  // console.log("groupMax", groupMax);
+  // console.log("groupMin", groupMin);
+  // console.log("selectedCount", selectedCount);
   const contentRef = useRef(null);
-const [height, setHeight] = useState("0px");
+  const [height, setHeight] = useState("0px");
 
-useEffect(() => {
-  if (contentRef.current && selectedItem?.extrasData?.length > 0) {
-    if (isOpen) {
-      const scrollHeight = contentRef.current.scrollHeight;
-      setHeight(`${scrollHeight}px`);
+  useEffect(() => {
+    if (contentRef.current && selectedItem?.extrasData?.length > 0) {
+      if (isOpen) {
+        const scrollHeight = contentRef.current.scrollHeight;
+        setHeight(`${scrollHeight}px`);
 
-      const timeout = setTimeout(() => {
-        setHeight("auto");
-      }, 300);
-      return () => clearTimeout(timeout);
-    } else {
-      setHeight(`${contentRef.current.scrollHeight}px`);
-      requestAnimationFrame(() => {
-        setHeight("0px");
-      });
+        const timeout = setTimeout(() => {
+          setHeight("auto");
+        }, 300);
+        return () => clearTimeout(timeout);
+      } else {
+        setHeight(`${contentRef.current.scrollHeight}px`);
+        requestAnimationFrame(() => {
+          setHeight("0px");
+        });
+      }
     }
-  }
-}, [isOpen, selectedItem?.extrasData]);
-
+  }, [isOpen, selectedItem?.extrasData]);
 
   const handleEditItem = async (item) => {
-
     setNote(item.note || "");
-setCounter(item.quantity);
-setTotalExtrasPrice(0);
- setIsItemDialogOpen(true);
-
+    setCounter(item.quantity);
+    setTotalExtrasPrice(0);
+    setIsItemDialogOpen(true);
 
     // نقوم بمقارنة العنصر في السلة باستخدام cartId
     const cartItem = cartItems.find(
@@ -591,26 +619,23 @@ setTotalExtrasPrice(0);
 
     // إذا وجدنا العنصر في السلة، نقوم بتحديث selectedItem بناءً على الـ cartId
     if (cartItem) {
-
-
       setSelectedItem({
-  id: cartItem.id,
-  name: cartItem.selectedInfo,
-  image: cartItem.image,
-  price: cartItem.price,
-  selectedInfo: cartItem.selectedInfo || "",
-  selectedIdSize: cartItem.selectedIdSize || "",
-  selectedMainExtras: cartItem.selectedMainExtras || [],
-  selectedMainExtrasIds: cartItem.selectedMainExtrasIds || [],
-  selectedExtras: cartItem.selectedExtras || [],
-  selectedExtrasIds: cartItem.selectedExtrasIds || [],
-  selectedoption: cartItem.selectedoption || [],
-  selectedoptionId: cartItem.selectedoptionId || [],
-   extrasData: cartItem.extrasData || [],
-});
+        id: cartItem.id,
+        name: cartItem.selectedInfo,
+        image: cartItem.image,
+        price: cartItem.price,
+        selectedInfo: cartItem.selectedInfo || "",
+        selectedIdSize: cartItem.selectedIdSize || "",
+        selectedMainExtras: cartItem.selectedMainExtras || [],
+        selectedMainExtrasIds: cartItem.selectedMainExtrasIds || [],
+        selectedExtras: cartItem.selectedExtras || [],
+        selectedExtrasIds: cartItem.selectedExtrasIds || [],
+        selectedoption: cartItem.selectedoption || [],
+        selectedoptionId: cartItem.selectedoptionId || [],
+        extrasData: cartItem.extrasData || [],
+      });
       // بعد ذلك، نستخدم الـ id لإجراء fetch
       try {
-        
         const response = await fetchViewItem(
           savedBranch?.value || selectedBranchInSelected?.value,
           cartItem.id, // هنا نستخدم id للحصول على التفاصيل من الـ API
@@ -629,43 +654,41 @@ setTotalExtrasPrice(0);
           setIsOpenMainOption(true);
           setIsOpenMainExtra(true);
           setIsOpen(true);
-         setInitialized(false);
+          setInitialized(false);
           // const firstInfo = response.info?.[0] || null;
-  // const firstInfo = response?.sizes?.[0] || null;
-  const selectedSizeInfo = response?.sizes?.find(
-  (s) => s?.id === cartItem?.selectedIdSize
-) || response?.sizes?.[0];
-        const sizeCondiments = selectedSizeInfo?.size_condiments || [];
-        const itemCondiments = response?.item_condiments || [];
+          // const firstInfo = response?.sizes?.[0] || null;
+          const selectedSizeInfo =
+            response?.sizes?.find((s) => s?.id === cartItem?.selectedIdSize) ||
+            response?.sizes?.[0];
+          const sizeCondiments = selectedSizeInfo?.size_condiments || [];
+          const itemCondiments = response?.item_condiments || [];
 
-        const extraMainGroup = itemCondiments.find(
-          (group) => group?.type === "extra"
-        );
-        const extraGroup = sizeCondiments.find(
-          (group) => group?.type === "extra"
-        );
-        const optionGroup = sizeCondiments.find(
-          (group) => group?.type === "option"
-        );
+          const extraMainGroup = itemCondiments.find(
+            (group) => group?.type === "extra"
+          );
+          const extraGroup = sizeCondiments.find(
+            (group) => group?.type === "extra"
+          );
+          const optionGroup = sizeCondiments.find(
+            (group) => group?.type === "option"
+          );
 
-
-setSelectedItem((prev) => ({
-  ...prev,
-  cartId: item.cartId,
-  price: selectedSizeInfo?.price?.price,
-  availability: selectedSizeInfo?.availability?.availability,
-  info: response?.sizes || [],
-  mainExtras: extraMainGroup?.condiments || [],
-  groupNameMainExtras: extraMainGroup?.group_name || [],
-  itemExtras: selectedSizeInfo?.size_condiments || [],
-extrasData: extraGroup?.condiments || [],
-  groupNameExtrasData: extraGroup?.group_name || [],
-  optionSize: optionGroup?.condiments || [],
-  groupNameSizes: optionGroup?.group_name || [],
-  selectedExtras: prev.selectedExtras || [],
-  selectedExtrasIds: prev.selectedExtrasIds || [],
-
-}));
+          setSelectedItem((prev) => ({
+            ...prev,
+            cartId: item.cartId,
+            price: selectedSizeInfo?.price?.price,
+            availability: selectedSizeInfo?.availability?.availability,
+            info: response?.sizes || [],
+            mainExtras: extraMainGroup?.condiments || [],
+            groupNameMainExtras: extraMainGroup?.group_name || [],
+            itemExtras: selectedSizeInfo?.size_condiments || [],
+            extrasData: extraGroup?.condiments || [],
+            groupNameExtrasData: extraGroup?.group_name || [],
+            optionSize: optionGroup?.condiments || [],
+            groupNameSizes: optionGroup?.group_name || [],
+            selectedExtras: prev.selectedExtras || [],
+            selectedExtrasIds: prev.selectedExtrasIds || [],
+          }));
           setIsItemDialogOpen(true);
         }
       } catch (error) {
@@ -687,6 +710,69 @@ extrasData: extraGroup?.condiments || [],
 
     setInitialized(true);
   }, [selectedItem, initialized]);
+  // useEffect(() => {
+  //   if (!selectedItem) return;
+
+  //   const groupMax = selectedItem?.groupExtrasDataRule?.max
+  //   const totalSelected = selectedItem?.selectedExtras?.reduce(
+  //     (sum, ex) => sum + (ex.quantity || 0),
+  //     0
+  //   );
+
+  //   console.log("groupMax",groupMax);
+  //   console.log("totalSelected",totalSelected);
+  //   // لو max مش بصفر ووصلنا للحد الأقصى، اقفل التاب
+  //   if (groupMax > 0 && totalSelected === groupMax) {
+  //     setIsOpen(false); // اقفل تاب الإكسترا
+  //      setIsOpenMainOption(false);
+  //   }
+  // }, [selectedItem,selectedItem?.selectedExtras]);
+  const [extrasError, setExtrasError] = useState("");
+  const selectedExtras = selectedItem?.selectedExtras;
+  const groupMainExtraMax = selectedItem?.groupExtrasMainRule?.max;
+  const groupMax = selectedItem?.groupExtrasRules?.max;
+  // const groupMax = selectedItem?.groupExtrasRules?.max;
+  const groupMin = selectedItem?.groupExtrasRules?.min;
+  const extrasCount = selectedItem?.extrasData?.length || 0;
+  const extrasmainExtrasCount = selectedItem?.mainExtras?.length || 0;
+  const selectedCount = selectedExtras?.length;
+  // console.log("groupMainExtraMax",groupMainExtraMax);
+
+  useEffect(() => {
+    if (!selectedItem) return;
+
+    const totalSelected = selectedItem?.selectedExtras?.reduce(
+      (sum, ex) => sum + (ex.quantity || 0),
+      0
+    );
+    const totalMainSelected = selectedItem?.selectedMainExtras?.length;
+
+    console.log("groupMax", groupMax);
+    console.log("totalSelected", totalSelected);
+
+    // if (groupMax > 0 && totalSelected === groupMax ) {
+    //   setIsOpen(false);
+    // }
+    if (
+      (groupMax > 0 && totalSelected === groupMax) ||
+      (groupMax === 0 && totalSelected === extrasCount)
+    ) {
+      setIsOpen(false);
+    }
+    if (
+      (groupMainExtraMax > 0 && totalMainSelected === groupMainExtraMax) ||
+      (groupMainExtraMax === 0 && totalMainSelected === extrasmainExtrasCount)
+    ) {
+      setIsOpenMainExtra(false);
+    }
+  }, [
+    selectedItem?.selectedExtras,
+    selectedItem?.selectedIdSize,
+    selectedItem?.selectedMainExtras,
+  ]);
+  // console.log("selectedItem?.selectedIdSize", selectedItem?.selectedIdSize);
+
+  // console.log("selectedItem?.selectedExtras", selectedItem?.selectedExtras);
 
   const toggleOption = () => {
     setIsOpenMainOption(!isOpenMainOption);
@@ -1019,7 +1105,6 @@ extrasData: extraGroup?.condiments || [],
     }
   }, [selectedUser, selectedAddress]);
 
-
   useEffect(() => {
     const handleBeforeUnload = (event) => {
       if (search) {
@@ -1067,7 +1152,6 @@ extrasData: extraGroup?.condiments || [],
     }
   };
   const [hasSearched, setHasSearched] = useState(false);
-
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
@@ -1143,18 +1227,18 @@ extrasData: extraGroup?.condiments || [],
 
   const [note, setNote] = useState("");
   const [cartItems, setCartItems] = useState([]);
-  
+
   console.log("cartItems ", cartItems);
 
   console.log("selectedItem", selectedItem);
   const handleAddToCart = () => {
     console.log("NOTE عند الإضافة:", note);
- if (groupMin === 1 && selectedExtras.length === 0) {
-    setExtrasError("Please select at least one from this group.");
-    setIsOpen(true)
-    return; // وقف الإضافة
-  }
-setExtrasError("");
+    if (groupMin === 1 && selectedExtras.length === 0) {
+      setExtrasError("Please select at least one from this group.");
+      setIsOpen(true);
+      return; // وقف الإضافة
+    }
+    setExtrasError("");
     setCartItems((prevItems) => {
       const isEditing = !!selectedItem.cartId; // لو جاي من Edit هيكون عنده cartId
 
@@ -1233,7 +1317,6 @@ setExtrasError("");
     );
   };
 
-  
   const [initialRestaurantIdFromOrder, setInitialRestaurantIdFromOrder] =
     useState(null);
 
@@ -2118,95 +2201,12 @@ setExtrasError("");
     }
   };
 
-  // const searchRef = useRef(false);
-  // useEffect(() => {
-  //   const orderData = localStorage.getItem("order");
-  //   if (orderData) {
-  //     setIsEditMode(true)
-  //     const parsedOrder = JSON.parse(orderData);
-  //     const phone = parsedOrder?.details?.user_data?.phone;
-  //     console.log("parsedOrder.items", parsedOrder.items);
-
-  //     if (phone) {
-  //       setSearch(phone);
-  //       handleSearch(phone);
-  //       refetch();
-  //     }
-
-  //   }
-  //   // console.log("order:", orderData?.details?.user_data?.phone);
-  // }, []);
   useEffect(() => {
     if (isEditMode && search) {
       refetch();
     }
   }, [isEditMode, search]);
-  // useEffect(() => {
-  //   if (selectedUser) {
-  //     const orderData = localStorage.getItem("order");
 
-  //     if (orderData) {
-  //       const parsedOrder = JSON.parse(orderData);
-  //       const items = parsedOrder?.items;
-
-  //       if (Array.isArray(items)) {
-  //         const transformedItems = items.map((item) => ({
-  //           id: `${item?.info?.id}`,
-  //           quantity: item?.count || 1,
-  //           price: parseFloat(
-  //             item?.info?.price?.price ||
-  //               item?.total_price ||
-  //               item?.sub_total ||
-  //               0
-  //           ),
-  //           selectedInfo:
-  //             item?.info?.price?.size_en || item?.info?.size_en || "",
-  //           selectedExtras: item?.extras || [],
-  //           selectedMainExtras: [],
-  //           note: item?.special || "",
-  //         }));
-
-  //         console.log("loaded cart items:", transformedItems);
-  //         setCartItems(transformedItems);
-  //       } else {
-  //         console.log("No valid items array found in parsedOrder.");
-  //       }
-  //     }
-  //   }
-  // }, [selectedUser]);
-
-  // useEffect(() => {
-  //   const handleRouteChange = () => {
-  //     localStorage.removeItem("order");
-  //     queryClient.removeQueries(["userSearch"]);
-  //   };
-
-  //   router.events?.on("routeChangeStart", handleRouteChange);
-
-  //   return () => {
-  //     router.events?.off("routeChangeStart", handleRouteChange);
-  //   };
-  // }, []);
-
-  // useEffect(() => {
-  //   const handleRouteChange = () => {
-  //     localStorage.removeItem("order");
-  //     queryClient.removeQueries(["userSearch"], { exact: false }); // exact false = يشيل أي query تبدأ بـ userSearch
-  //   };
-
-  //   router.events?.on("routeChangeStart", handleRouteChange);
-
-  //   return () => {
-  //     router.events?.off("routeChangeStart", handleRouteChange);
-  //   };
-  // }, [queryClient]);
-  // useEffect(() => {
-  //   if (!pathname.includes("edit-order")) {
-  //     // خرجت من وضع التعديل
-  //     localStorage.removeItem("order");
-  //     setIsEditMode(false);
-  //   }
-  // }, [pathname]);
   useEffect(() => {
     const handleRouteChange = (url) => {
       const navType = performance.getEntriesByType("navigation")[0]?.type;
@@ -2450,7 +2450,6 @@ setExtrasError("");
                                   setIsOpenMainExtra(true);
                                   const newItemExtras =
                                     size?.size_condiments || [];
-                                    
 
                                   const newExtraGroup = newItemExtras.find(
                                     (g) => g?.type === "extra"
@@ -2458,12 +2457,12 @@ setExtrasError("");
                                   const newOptionGroup = newItemExtras.find(
                                     (g) => g?.type === "option"
                                   );
- const newGroupRules = newExtraGroup
-    ? {
-        min: newExtraGroup?.min ?? 0,
-        max: newExtraGroup?.max ?? 0,
-      }
-    : { min: 0, max: 0 };
+                                  const newGroupRules = newExtraGroup
+                                    ? {
+                                        min: newExtraGroup?.min ?? 0,
+                                        max: newExtraGroup?.max ?? 0,
+                                      }
+                                    : { min: 0, max: 0 };
                                   return setSelectedItem((prev) => ({
                                     ...prev,
                                     selectedInfo: size?.size_en,
@@ -2480,20 +2479,22 @@ setExtrasError("");
 
                                     groupNameExtrasData:
                                       newExtraGroup?.group_name || "",
-                                      // selectedoption:newOptionGroup?.condiments?.length > 0 ? [newOptionGroup[0]] : [],
-                                      // selectedoptionId:newOptionGroup?.condiments?.length > 0 ? [newOptionGroup[0]?.id] : [],
-                                    
-selectedoption:newOptionGroup?.condiments?.length > 0
-    ? [newOptionGroup.condiments[0]]
-    : [],
-selectedoptionId: newOptionGroup?.condiments?.length > 0
-    ? [newOptionGroup.condiments[0].id]
-    : [],
+                                    // selectedoption:newOptionGroup?.condiments?.length > 0 ? [newOptionGroup[0]] : [],
+                                    // selectedoptionId:newOptionGroup?.condiments?.length > 0 ? [newOptionGroup[0]?.id] : [],
+
+                                    selectedoption:
+                                      newOptionGroup?.condiments?.length > 0
+                                        ? [newOptionGroup.condiments[0]]
+                                        : [],
+                                    selectedoptionId:
+                                      newOptionGroup?.condiments?.length > 0
+                                        ? [newOptionGroup.condiments[0].id]
+                                        : [],
 
                                     selectedItemExtras: [],
                                     selectedExtras: [],
                                     selectedExtrasIds: [],
-                                     groupExtrasRules: newGroupRules,
+                                    groupExtrasRules: newGroupRules,
                                   }));
                                 }}
                               />
@@ -2558,12 +2559,15 @@ selectedoptionId: newOptionGroup?.condiments?.length > 0
                                         ...prev,
                                         selectedoption: [extra], // اختيار واحد فقط
                                         selectedoptionId: [extra.id],
-                                        
                                       }));
                                     }}
                                   />
                                   <span className="text-[#000] dark:text-[#fff]">
                                     {extra.name}
+                                  </span>
+                                  <span className="text-[#000] dark:text-[#fff]">
+                                    {extra.price !== 0 &&
+                                      `(${extra.price} EGP)`}{" "}
                                   </span>
                                 </label>
                               ))}
@@ -2571,144 +2575,211 @@ selectedoptionId: newOptionGroup?.condiments?.length > 0
                           </div>
                         </div>
                       )}
-                   {selectedItem?.extrasData?.length > 0 && (
-  <div className="border rounded-lg overflow-hidden shadow-md">
-   
-<div className="flex  items-center justify-between">
-   <div
-      className="p-3 bg-gray- cursor-pointer flex gap-4 items-center"
-      onClick={toggleExtras}
-    >
-      <h3  className={`font-bold text-[16px] ${
-    extrasError ? "text-red-500" : "text-black dark:text-white"
-  }`}>
-        {selectedItem?.groupNameExtrasData}
-      </h3>
-      <h3 className="text-[16px]">
-        {selectedItem?.itemExtras?.category_ar} (Choose up to{" "}
-        {selectedItem?.extrasData?.length} Items)
-      </h3>
+                      {selectedItem?.extrasData?.length > 0 && (
+                        <div className="border rounded-lg overflow-hidden shadow-md">
+                          <div className="flex  items-center justify-between">
+                            <div
+                              className="p-3 bg-gray- cursor-pointer flex gap-4 items-center"
+                              onClick={toggleExtras}
+                            >
+                              <h3
+                                className={`font-bold text-[16px] ${
+                                  extrasError
+                                    ? "text-red-500"
+                                    : "text-black dark:text-white"
+                                }`}
+                              >
+                                {selectedItem?.groupNameExtrasData}
+                              </h3>
+                              <h3 className="text-[16px]">
+                                (Choose up to{" "}
+                                {selectedItem?.groupExtrasRules?.max === 0
+                                  ? selectedItem?.mainExtras?.length
+                                  : selectedItem?.groupExtrasRules?.max}{" "}
+                                Items)
+                              </h3>
 
+                              <span className="text-gray-600">
+                                {isOpen ? "▲" : "▼"}
+                              </span>
+                            </div>
+                            {extrasError && (
+                              <p className="text-red-500 text-sm px-3 py-1">
+                                {extrasError}
+                              </p>
+                            )}
+                          </div>
+                          {/* العناصر المختارة */}
+                          {selectedItem?.selectedExtras?.length > 0 && (
+                            <div className="p-3 bg-gray- border-t">
+                              <span className="text-[#000] dark:text-[#fff] font-medium">
+                                {selectedItem.selectedExtras
+                                  .map(
+                                    (extra) =>
+                                      `${extra.name} x${extra.quantity || 1}`
+                                  )
+                                  .join(", ")}
+                              </span>
+                            </div>
+                          )}
 
+                          {/* الاختيارات */}
+                          <div
+                            className="transition-all duration-300 ease-in-out overflow-hidden"
+                            style={{ height }}
+                          >
+                            <div
+                              ref={contentRef}
+                              className="p-3 flex flex-wrap gap-2"
+                            >
+                              {selectedItem?.extrasData?.map((extra, index) => {
+                                const selected =
+                                  selectedItem.selectedExtras.find(
+                                    (ex) => ex.id === extra.id
+                                  );
+                                const quantity = selected?.quantity || 0;
 
-      <span className="text-gray-600">{isOpen ? "▲" : "▼"}</span>
-    </div>
- {extrasError && (
-  <p className="text-red-500 text-sm px-3 py-1">{extrasError}</p>
-)}
-</div>
-    {/* العناصر المختارة */}
-    {selectedItem?.selectedExtras?.length > 0 && (
-      <div className="p-3 bg-gray- border-t">
-        <span className="text-[#000] dark:text-[#fff] font-medium">
-          {selectedItem.selectedExtras
-            .map((extra) => `${extra.name} x${extra.quantity || 1}`)
-            .join(", ")}
-        </span>
-      </div>
-    )}
+                                return (
+                                  <div
+                                    key={index}
+                                    className="flex items-center gap-2 border p-2 rounded"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={!!selected}
+                                      onChange={(e) => {
+                                        const checked = e.target.checked;
+                                        setSelectedItem((prev) => {
+                                          const totalSelectedCount =
+                                            prev.selectedExtras.reduce(
+                                              (sum, ex) =>
+                                                sum + (ex.quantity || 0),
+                                              0
+                                            );
 
-    {/* الاختيارات */}
-    <div
-   className="transition-all duration-300 ease-in-out overflow-hidden"
-  style={{ height }}
-    >
-      <div  ref={contentRef} className="p-3 flex flex-wrap gap-2">
-        {selectedItem?.extrasData?.map((extra, index) => {
-          const selected = selectedItem.selectedExtras.find(
-            (ex) => ex.id === extra.id
-          );
-          const quantity = selected?.quantity || 0;
+                                          let updatedExtras = [
+                                            ...prev.selectedExtras,
+                                          ];
 
-          return (
-            <div
-              key={index}
-              className="flex items-center gap-2 border p-2 rounded"
-            >
-              <input
-                type="checkbox"
-                checked={!!selected}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setSelectedItem((prev) => {
-                    let updatedExtras;
+                                          if (checked) {
+                                            if (
+                                              groupMax > 0 &&
+                                              totalSelectedCount >= groupMax
+                                            ) {
+                                              // تجاوز الحد الأقصى
+                                              return prev;
+                                            }
 
-                    if (checked) {
-                      if(groupMax === 1 && updatedExtras.length === 1) return prev;
-                      // أضف الإضافة مع كمية مبدئية 1
-                      updatedExtras = [
-                        ...prev.selectedExtras,
-                        {
-                          id: extra.id,
-                          name: extra.name,
-                          price: extra.price,
-                          quantity: 1,
-                        },
-                      ];
-                    } else {
-                      // احذف الإضافة
-                      updatedExtras = prev.selectedExtras.filter(
-                        (ex) => ex.id !== extra.id
-                      );
-                    }
+                                            updatedExtras.push({
+                                              id: extra.id,
+                                              name: extra.name,
+                                              price: extra.price,
+                                              quantity: 1,
+                                            });
+                                          } else {
+                                            updatedExtras =
+                                              updatedExtras.filter(
+                                                (ex) => ex.id !== extra.id
+                                              );
+                                          }
 
-                    return {
-                      ...prev,
-                      selectedExtras: updatedExtras,
-                      selectedExtrasIds: updatedExtras.map((ex) => ex.id),
-                    };
-                  });
-                }}
-              />
-              <span className="text-[#000] dark:text-[#fff]">{extra.name}</span>
+                                          return {
+                                            ...prev,
+                                            selectedExtras: updatedExtras,
+                                            selectedExtrasIds:
+                                              updatedExtras.map((ex) => ex.id),
+                                          };
+                                        });
+                                      }}
+                                    />
+                                    <span className="text-[#000] dark:text-[#fff]">
+                                      {extra.name}
+                                    </span>
+                                    <span className="text-[#000] dark:text-[#fff]">
+                                      {extra.price !== 0 &&
+                                        `(${extra.price} EGP)`}{" "}
+                                    </span>
 
-              {selected && (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() =>
-                      setSelectedItem((prev) => {
-                        const updatedExtras = prev.selectedExtras.map((ex) =>
-                          ex.id === extra.id
-                            ? {
-                                ...ex,
-                                quantity: Math.max(ex.quantity - 1, 1),
-                              }
-                            : ex
-                        );
-                        return { ...prev, selectedExtras: updatedExtras };
-                      })
-                    }
-                    className="px-2 text-sm border rounded"
-                  >
-                    -
-                  </button>
+                                    {selected && (
+                                      <div className="flex items-center gap-1">
+                                        <button
+                                          onClick={() =>
+                                            setSelectedItem((prev) => {
+                                              const updatedExtras =
+                                                prev.selectedExtras.map((ex) =>
+                                                  ex.id === extra.id
+                                                    ? {
+                                                        ...ex,
+                                                        quantity: Math.max(
+                                                          ex.quantity - 1,
+                                                          1
+                                                        ),
+                                                      }
+                                                    : ex
+                                                );
+                                              return {
+                                                ...prev,
+                                                selectedExtras: updatedExtras,
+                                              };
+                                            })
+                                          }
+                                          className="px-2 text-sm border rounded"
+                                        >
+                                          -
+                                        </button>
 
-                  <span className="w-4 text-center">{quantity}</span>
+                                        <span className="w-4 text-center">
+                                          {quantity}
+                                        </span>
 
-                  <button
-                    onClick={() =>
-                      setSelectedItem((prev) => {
-                        const updatedExtras = prev.selectedExtras.map((ex) =>
-                          ex.id === extra.id
-                            ? { ...ex, quantity: ex.quantity + 1 }
-                            : ex
-                        );
-                        return { ...prev, selectedExtras: updatedExtras };
-                      })
-                    }
-                    className="px-2 text-sm border rounded"
-                  >
-                    +
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  </div>
-)}
+                                        <button
+                                          onClick={() =>
+                                            setSelectedItem((prev) => {
+                                              const totalSelectedCount =
+                                                prev.selectedExtras.reduce(
+                                                  (sum, ex) =>
+                                                    sum + (ex.quantity || 0),
+                                                  0
+                                                );
+
+                                              if (
+                                                groupMax > 0 &&
+                                                totalSelectedCount >= groupMax
+                                              ) {
+                                                // لا تسمح بزيادة الكمية
+                                                return prev;
+                                              }
+
+                                              const updatedExtras =
+                                                prev.selectedExtras.map((ex) =>
+                                                  ex.id === extra.id
+                                                    ? {
+                                                        ...ex,
+                                                        quantity:
+                                                          ex.quantity + 1,
+                                                      }
+                                                    : ex
+                                                );
+
+                                              return {
+                                                ...prev,
+                                                selectedExtras: updatedExtras,
+                                              };
+                                            })
+                                          }
+                                          className="px-2 text-sm border rounded"
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       {selectedItem?.mainExtras?.length > 0 && (
                         <div className="border rounded-lg overflow-hidden shadow-md">
                           <div
@@ -2799,6 +2870,10 @@ selectedoptionId: newOptionGroup?.condiments?.length > 0
                                   <span className="text-[#000] dark:text-[#fff]">
                                     {extra.name}
                                   </span>
+                                  <span className="text-[#000] dark:text-[#fff]">
+                                    {extra.price !== 0 &&
+                                      `(${extra.price} EGP)`}{" "}
+                                  </span>
                                 </label>
                               ))}
                             </div>
@@ -2817,39 +2892,33 @@ selectedoptionId: newOptionGroup?.condiments?.length > 0
                         />
                       </div>
                       <div className="flex justify-end">
-                        <p className="text-sm font-semibold mr-1 ">Subtoal: </p>
-                        <p className="text-sm font-semibold ">
+                        <p className="text-sm font-semibold mr-1">Subtoal: </p>
+                        <p className="text-sm font-semibold mr-1">
                           {(
                             selectedItem?.price * counter +
                             totalExtrasPrice
                           ).toFixed(2)}
-                          EGP
                         </p>
+                        <p className="text-sm font-semibold ">EGP</p>
                       </div>
                       <div className="flex justify-between items-center">
                         <div className="text-sm font-semibold flex flex-wrap max-w-[500px]">
                           <p>
-                            {[selectedItem?.selectedInfo,
-                              
-                            
-                            
-                            ]
+                            {[selectedItem?.selectedInfo]
                               .filter(Boolean)
                               .join(", ")}
                           </p>
                           <p className="text-gray-500 ml-3">
                             {[
-                                ...(selectedItem?.selectedoption || []).map(
+                              ...(selectedItem?.selectedoption || []).map(
                                 (option) => option.name
                               ),
-                                ...(selectedItem?.selectedMainExtras || []).map(
-                                (extra) => extra.name
-                              ),
-                              
                               ...(selectedItem?.selectedExtras || []).map(
                                 (extra) => extra.name
                               ),
-                            
+                              ...(selectedItem?.selectedMainExtras || []).map(
+                                (extra) => extra.name
+                              ),
                             ]
                               .filter(Boolean)
                               .join(", ")}
@@ -3372,6 +3441,73 @@ selectedoptionId: newOptionGroup?.condiments?.length > 0
                 </Button>
               </div>
             </div>
+{showUserWarningDialog && (
+  <div
+    className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
+    onClick={() => setShowUserWarningDialog(false)} // ⬅️ يقفل المودال لو ضغط برا
+  >
+    <div
+      className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm text-center"
+      onClick={(e) => e.stopPropagation()} // ⬅️ يمنع إغلاق المودال لو ضغط جوه
+    >
+      <div className="text-yellow-500 text-5xl mb-4">⚠️</div>
+      <p className="mb-4 text-gray-700">
+        Please select a user before choosing an item.
+      </p>
+      <button
+        onClick={() => setShowUserWarningDialog(false)}
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      >
+        OK
+      </button>
+    </div>
+  </div>
+)}
+{showBranchWarningDialog && (
+  <div
+    className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
+    onClick={() => setShowBranchWarningDialog(false)} // ⬅️ يقفل المودال لو ضغط برا
+  >
+    <div
+      className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm text-center"
+      onClick={(e) => e.stopPropagation()} // ⬅️ يمنع إغلاق المودال لو ضغط جوه
+    >
+      <div className="text-yellow-500 text-5xl mb-4">⚠️</div>
+      <p className="mb-4 text-gray-700">
+        Please select a branch before choosing an item.
+      </p>
+      <button
+        onClick={() => setShowBranchWarningDialog(false)}
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      >
+        OK
+      </button>
+    </div>
+  </div>
+)}
+
+{/* {sessionExpiredDialog && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm text-center">
+      <div className="text-yellow-500 text-5xl mb-4">⚠️</div>
+      <h2 className="text-lg font-semibold mb-2 text-red-600">
+        Session Expired
+      </h2>
+  
+      <button
+        onClick={() => {
+          localStorage.clear();
+          Cookies.remove("token");
+          window.location.replace(`/${language}/login`);
+        }}
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      >
+        Go to Login
+      </button>
+    </div>
+  </div>
+)} */}
+
 
             {selectedUser && isOpenUserData && (
               <div className="mt-2 p-2  rounded-md">

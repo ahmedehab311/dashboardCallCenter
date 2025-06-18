@@ -17,25 +17,84 @@ import PickupReport from "./pickupReport";
 import BranchesReport from "./BranchesReport";
 import TableOrder from "./tableOrder/TableOrder";
 import "./index.css";
+import { useSession } from "@/provider/SessionContext";
 function OrdersType() {
   const { apiBaseUrl } = useSubdomin();
   const [selectedStatus, setSelectedStatus] = useState("Total");
   const [selectedDayNumber, setSelectedDayNumber] = useState(1);
   const [token, setToken] = useState(null);
 
-  const {
-    data: orders,
-    isLoading: isLoadingorders,
-    isError: errororders,
-  } = useQuery({
-    queryKey: ["ordersList", selectedDayNumber],
-    queryFn: () => fetchOrders(token, apiBaseUrl, selectedDayNumber),
-    enabled: !!token,
-    onSuccess: (data) => {
-      setAllOrders(data);
-      setDisplayOrders(data);
-    },
-  });
+  // const {
+  //   data: orders,
+  //   isLoading: isLoadingorders,
+  //   isError: errororders,
+  //   error,
+  // } = useQuery({
+  //   queryKey: ["ordersList", selectedDayNumber],
+  //   queryFn: () => fetchOrders(token, apiBaseUrl, selectedDayNumber),
+  //   enabled: !!token,
+  //   onSuccess: (data) => {
+  //     setAllOrders(data);
+  //     setDisplayOrders(data);
+  //   },
+  // });
+  
+//   const {
+//   data: orders,
+//   isLoading: isLoadingorders,
+//   isError: errororders,
+//   error,
+// } = useQuery({
+//   queryKey: ["ordersList", selectedDayNumber],
+//   queryFn: () => fetchOrders(token, apiBaseUrl, selectedDayNumber),
+//   enabled: !!token,
+//   select: (response) => response.data.data, // 👈 كده orders فيها فقط response.data.data
+//   onSuccess: (response) => {
+//     const message = response?.data?.message;
+
+//     if (typeof message === "string" && message.toLowerCase().includes("invalid token")) {
+//       toast.error("Session expired. Please login again.");
+//       localStorage.removeItem("token");
+//       window.location.href = "/login";
+//       return;
+//     }
+
+//     // عادي نكمل التعامل مع الداتا
+//     setAllOrders(response.data.data);
+//     setDisplayOrders(response.data.data);
+//   },
+// });
+
+const {
+  data: orders,
+  isLoading: isLoadingorders,
+  isError: errororders,
+  error,
+} = useQuery({
+  queryKey: ["ordersList", selectedDayNumber],
+  queryFn: () => fetchOrders(token, apiBaseUrl, selectedDayNumber),
+  enabled: !!token,
+  onSuccess: (orders) => {
+    const message = orders?.data?.message;
+
+    if (
+      typeof message === "string" &&
+      message.toLowerCase().includes("invalid token")
+    ) {
+      toast.error("Session expired. Please login again.");
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+      return;
+    }
+
+    // ✅ بيانات سليمة
+    setAllOrders(orders.data.data);
+    setDisplayOrders(orders.data.data);
+  },
+});
+  console.log("orders",orders);
+
+
   const [orderIdOrPhone, setOrderIdOrPhone] = useState("");
   const [searchTrigger, setSearchTrigger] = useState(false);
   // const [searchQuery, setSearchQuery] = useState("");
@@ -57,7 +116,12 @@ function OrdersType() {
       setToken(storedToken);
     }
   }, []);
+const { handleInvalidToken } = useSession();
 
+// في onError مثلاً:
+if (error?.message === "Invalid token") {
+  handleInvalidToken(); // 👈 هيظهر الديالوج
+}
   const language =
     typeof window !== "undefined" ? localStorage.getItem("language") : null;
 
@@ -184,7 +248,8 @@ function OrdersType() {
                   orders={orders}
                   selectedStatus={selectedStatus}
                   errororders={errororders}
-                  isLoadingorders={isLoadingorders}
+                  isLoadingorders={isLoadingorders} 
+                  error={error}
                 />
               </div>
             </CardContent>

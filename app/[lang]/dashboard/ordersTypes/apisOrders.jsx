@@ -1,24 +1,63 @@
 import axios from "axios";
 
-export const fetchOrders = async (token, apiBaseUrl, dayNumber) => {
-  try {
-    const response = await axios.get(
-      `${apiBaseUrl}/callcenter/orders?api_token=${token}&from=${dayNumber}`
-    );
+// export const fetchOrders = async (token, apiBaseUrl, dayNumber) => {
+//   try {
+//     const response = await axios.get(
+//       `${apiBaseUrl}/callcenter/orders?api_token=${token}&from=${dayNumber}`
+//     );
+// console.log("response",response.data.message);
 
-    return response.data.data;
-  } catch (error) {
-    console.error("Error fetching Orders:", error);
-    throw error;
+//     return response.data.data;
+//   } catch (error) {
+//     console.error("Error fetching Orders:", error);
+//     throw error;
+//   }
+// };
+
+// export const fetchOrders = async (token, apiBaseUrl, dayNumber) => {
+//   try {
+//     const response = await axios.get(
+//       `${apiBaseUrl}/callcenter/orders?api_token=${token}&from=${dayNumber}`
+//     );
+
+//     return response;
+//   } catch (error) {
+//     console.error("Error fetching Orders:", error);
+
+//     // لو فيه message من السيرفر
+//     const message = error.response?.data?.message;
+//     console.error("Error fetching Orders:", error);
+//     console.log("Server message:", error.response?.data?.message);
+//     // ارجع الخطأ برسالة واضحة
+//     throw new Error(message || "Failed to fetch orders");
+//   }
+// };
+
+export const fetchOrders = async (token, apiBaseUrl, dayNumber) => {
+  const response = await axios.get(
+    `${apiBaseUrl}/callcenter/orders?api_token=${token}&from=${dayNumber}`
+  );
+
+  const message = response?.data?.message;
+
+  if (
+    typeof message === "string" &&
+    message.toLowerCase().includes("invalid token")
+  ) {
+    // نرمي error عشان نوصله في onError
+    throw new Error("Invalid token");
   }
+
+  return response.data.data;
 };
+
 // export async function getServerSideProps(context) {
 //   const token = context.req.cookies.token; // جلب التوكن من الـ Cookies
-  
+
 //   // استخراج النطاق الفرعي (subdomain) من الـ request headers
 //   const host = context.req.headers.host; // استخراج النطاق الفرعي من الـ host
 //   const subdomain = host.split('.')[0]; // النطاق الفرعي هو أول جزء من الـ host
-  
+
 //   // تحديد الـ apiBaseUrl بناءً على النطاق الفرعي
 //   const apiBaseUrl = `https://myres.me/${subdomain}/api`;
 
@@ -44,7 +83,7 @@ export async function getServerSideProps(context) {
 
   // استخراج النطاق الفرعي (subdomain) من الـ request headers
   const host = context.req.headers.host; // استخراج النطاق الفرعي من الـ host
-  const subdomain = host.split('.')[0]; // النطاق الفرعي هو أول جزء من الـ host
+  const subdomain = host.split(".")[0]; // النطاق الفرعي هو أول جزء من الـ host
   console.log("Subdomain: ", subdomain); // للتحقق من النطاق الفرعي
 
   // تحديد الـ apiBaseUrl بناءً على النطاق الفرعي
@@ -56,7 +95,9 @@ export async function getServerSideProps(context) {
   console.log("Selected Day Number: ", selectedDayNumber); // للتحقق من رقم اليوم المحدد
 
   // جلب البيانات باستخدام fetch أو axios
-  const res = await fetch(`${apiBaseUrl}/callcenter/orders?api_token=${token}&from=${selectedDayNumber}`);
+  const res = await fetch(
+    `${apiBaseUrl}/callcenter/orders?api_token=${token}&from=${selectedDayNumber}`
+  );
   const orders = await res.json();
   console.log("Orders Data: ", orders); // للتحقق من البيانات المسترجعة من الـ API
 
@@ -76,7 +117,7 @@ export const fetchViewOrder = async (token, apiBaseUrl, orderId) => {
     );
 
     return response.data.data;
-    console.log("response.data.data ",response.data.data);
+    console.log("response.data.data ", response.data.data);
   } catch (error) {
     console.error("Error fetching Orders:", error);
     throw error;
