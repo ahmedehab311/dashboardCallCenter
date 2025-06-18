@@ -3454,34 +3454,34 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
       <p className="mb-4 text-gray-700">
         Please select a user before choosing an item.
       </p>
-      <button
+      <Button
         onClick={() => setShowUserWarningDialog(false)}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        className=" px-4 py-2 rounded text-[#000] dark:text-[#fff]" 
       >
         OK
-      </button>
+      </Button>
     </div>
   </div>
 )}
 {showBranchWarningDialog && (
   <div
     className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
-    onClick={() => setShowBranchWarningDialog(false)} // ⬅️ يقفل المودال لو ضغط برا
+    onClick={() => setShowBranchWarningDialog(false)} //  يقفل المودال لو ضغط برا
   >
     <div
       className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm text-center"
-      onClick={(e) => e.stopPropagation()} // ⬅️ يمنع إغلاق المودال لو ضغط جوه
+      onClick={(e) => e.stopPropagation()} //  يمنع إغلاق المودال لو ضغط جوه
     >
       <div className="text-yellow-500 text-5xl mb-4">⚠️</div>
       <p className="mb-4 text-gray-700">
         Please select a branch before choosing an item.
       </p>
-      <button
+      <Button
         onClick={() => setShowBranchWarningDialog(false)}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+       className=" px-4 py-2 rounded text-[#000] dark:text-[#fff]"
       >
         OK
-      </button>
+      </Button>
     </div>
   </div>
 )}
