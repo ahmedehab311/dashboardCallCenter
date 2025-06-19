@@ -62,8 +62,8 @@ export const fetchViewItem = async (BranchId, itemId, token, apiBaseUrl) => {
     const response = await axios.get(
       `${apiBaseUrl}/callcenter/get/menu/item?api_token=${token}&branch_id=${BranchId}&item_id=${itemId}`
     );
-    console.log("fetch View Item:", response);
-    console.log("fetch View Item:", response.data);
+    // console.log("fetch View Item:", response);
+    // console.log("fetch View Item:", response.data);
 
     return response.data;
   } catch (error) {

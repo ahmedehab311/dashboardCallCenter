@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 const BasicTable = ({ OrderDetails, OrderDetailsItem }) => {
   if (!OrderDetailsItem) return null;
-  // console.log("OrderDetailsItem", OrderDetailsItem);
+  console.log("OrderDetailsItem", OrderDetailsItem);
   // console.log("OrderDetails", OrderDetails);
 
   return (
@@ -48,11 +48,12 @@ const BasicTable = ({ OrderDetails, OrderDetailsItem }) => {
       </Table>
 
       <div className="flex gap-6 my-4 mx-2 justify-between">
-        <p>Delivery fees: {OrderDetails?.delivery_fees}</p>
-        <p>Tax fees: {OrderDetails?.tax_fees}</p>
         <p>
           Payment type: {OrderDetails?.payment_method === 1 ? "Cash" : "Visa"}
         </p>
+        <p>Delivery fees: {OrderDetails?.delivery_fees}</p>
+        <p>Tax fees: {OrderDetails?.tax_fees}</p>
+      
       </div>
 
       <div className="flex gap-6 my-2 mx-2 justify-between">

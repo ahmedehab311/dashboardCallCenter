@@ -442,30 +442,48 @@ function CreateOrder({ params }) {
     }
   }, []);
   const [editingItemIndex, setEditingItemIndex] = useState(null);
-const [showUserWarningDialog, setShowUserWarningDialog] = useState(false);
-const [showBranchWarningDialog, setShowBranchWarningDialog] = useState(false);
-const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
+  const [showUserWarningDialog, setShowUserWarningDialog] = useState(false);
+  const [showBranchWarningDialog, setShowBranchWarningDialog] = useState(false);
+  const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
 
+  const [totalOptionPrices, setTotalOptionPrices] = useState(0);
+  const [totalExtrasPrices, setTotalExtrasPrices] = useState(0);
+  const [totalMainExtrasPrices, setTotalMainExtrasPrices] = useState(0);
 
+  useEffect(() => {
+    const extrasTotal =
+      selectedItem?.selectedExtras?.reduce((sum, ex) => {
+        return sum + (ex.price || 0) * (ex.quantity || 1);
+      }, 0) || 0;
+    const mainExtrasTotal =
+      selectedItem?.selectedMainExtras?.reduce((sum, ex) => {
+        return sum + (ex.price || 0) * (ex.quantity || 1);
+      }, 0) || 0;
+
+    const optionTotal = selectedItem?.selectedOption?.[0].price || 0;
+    setTotalOptionPrices(optionTotal);
+    setTotalExtrasPrices(extrasTotal);
+    setTotalMainExtrasPrices(mainExtrasTotal);
+  }, [selectedItem]);
   const handleItemClick = async (item) => {
-     if (!selectedUser) {
-    setShowUserWarningDialog(true); 
-    return;
-  }
-  if (
-    (deliveryMethod === "pickup" && !isBranchManuallySelected) ||
-    savedBranch?.value === null
-  ) {
-      setShowBranchWarningDialog(true); 
+    if (!selectedUser) {
+      setShowUserWarningDialog(true);
+      return;
+    }
+    if (
+      (deliveryMethod === "pickup" && !isBranchManuallySelected) ||
+      savedBranch?.value === null
+    ) {
+      setShowBranchWarningDialog(true);
       // setMassegeNotSelectedBranch("Select branch first");
       return;
     }
-  //  if (massegeInvaildToken) {
-  //   setSessionExpiredDialog(true); // افتح ديالوج السيشن
-  //   return;
-  // }
+    //  if (massegeInvaildToken) {
+    //   setSessionExpiredDialog(true); // افتح ديالوج السيشن
+    //   return;
+    // }
     setSelectedItem(item);
-    setIsItemDialogOpen(true);  
+    setIsItemDialogOpen(true);
     // setIsOpen(!isOpen);
     setNote("");
     setCounter(1);
@@ -494,7 +512,7 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
         token,
         apiBaseUrl
       );
-      console.log("Response from fetchViewItem:", response);
+      // console.log("Response from fetchViewItem:", response);
 
       // if (response?.response === false) {
       //   // console.log("Setting error message:", response.message);
@@ -502,12 +520,12 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
       //   setSessionExpiredDialog(true);
       //   return;
       // }
-      
-  if (response?.response === false) {
-    setMassegeInvaildToken(response.message);
-    setSessionExpiredDialog(true); // 👈 افتح ديالوج السيشن
-    return; // 👈 مهم جدًا تمنع تكملة الكود
-  }
+
+      if (response?.response === false) {
+        setMassegeInvaildToken(response.message);
+        setSessionExpiredDialog(true); // 👈 افتح ديالوج السيشن
+        return; // 👈 مهم جدًا تمنع تكملة الكود
+      }
       setMassegeInvaildToken(null);
       if (response) {
         const firstInfo = response?.sizes?.[0] || null;
@@ -548,6 +566,7 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
             max: extraMainGroup?.max,
             min: extraMainGroup?.min,
           },
+
           groupNameExtrasData: extraGroup?.group_name || [], // group_name للاكسترات الاساسية للايتم
           optionSize: optionGroup?.condiments || [], //
           groupNameSizes: optionGroup?.group_name || [], // group_name للاكسترات الخاص بالسايزات
@@ -615,7 +634,6 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
     const cartItem = cartItems.find(
       (cartItem) => cartItem.cartId === item.cartId
     );
-    // console.log("cartItem::", cartItem);
 
     // إذا وجدنا العنصر في السلة، نقوم بتحديث selectedItem بناءً على الـ cartId
     if (cartItem) {
@@ -747,8 +765,8 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
     );
     const totalMainSelected = selectedItem?.selectedMainExtras?.length;
 
-    console.log("groupMax", groupMax);
-    console.log("totalSelected", totalSelected);
+    // console.log("groupMax", groupMax)";
+    // console.log("totalSelected", totalSelected);"
 
     // if (groupMax > 0 && totalSelected === groupMax ) {
     //   setIsOpen(false);
@@ -1230,7 +1248,7 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
 
   console.log("cartItems ", cartItems);
 
-  console.log("selectedItem", selectedItem);
+  // console.log("selectedItem", selectedItem);
   const handleAddToCart = () => {
     console.log("NOTE عند الإضافة:", note);
     if (groupMin === 1 && selectedExtras.length === 0) {
@@ -1319,7 +1337,7 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
 
   const [initialRestaurantIdFromOrder, setInitialRestaurantIdFromOrder] =
     useState(null);
-
+  // console.log("restaurantsSelect",restaurantsSelect)
   useEffect(() => {
     if (dataRestaurants) {
       const formattedRestaurants = dataRestaurants.map((restaurant) => ({
@@ -2090,17 +2108,48 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
     }
   };
 
-  const grandTotal = cartItems.reduce((sum, item) => {
-    const itemPrice = parseFloat(item.price) || 0;
-    const itemQuantity = parseFloat(item.quantity) || 0;
+  // const grandTotal = cartItems.reduce((sum, item) => {
+  //   const itemPrice = parseFloat(item.price) || 0;
+  //   const itemQuantity = parseFloat(item.quantity) || 0;
 
+  //   const extrasTotal =
+  //     item.selectedMainExtras?.reduce(
+  //       (acc, extra) => acc + (parseFloat(extra.price_en) || 0),
+  //       0
+  //     ) || 0;
+
+  //   const itemTotal = itemPrice * itemQuantity + extrasTotal ;
+
+  //   return sum + itemTotal;
+  // }, 0);
+  const grandTotal = cartItems.reduce((sum, item) => {
+    const basePrice = parseFloat(item.price) || 0;
+    const quantity = parseFloat(item.quantity) || 1;
+
+    // Extras
     const extrasTotal =
+      item.selectedExtras?.reduce(
+        (acc, extra) =>
+          acc + (parseFloat(extra.price) || 0) * (extra.quantity || 1),
+        0
+      ) || 0;
+
+    // Options (radio)
+    const optionTotal =
+      item.selectedoption?.reduce(
+        (acc, option) => acc + (parseFloat(option.price) || 0),
+        0
+      ) || 0;
+
+    // Main Extras
+    const mainExtrasTotal =
       item.selectedMainExtras?.reduce(
         (acc, extra) => acc + (parseFloat(extra.price_en) || 0),
         0
       ) || 0;
 
-    const itemTotal = itemPrice * itemQuantity + extrasTotal;
+    const itemTotal =
+      (basePrice + extrasTotal + optionTotal + mainExtrasTotal) * quantity;
 
     return sum + itemTotal;
   }, 0);
@@ -2411,7 +2460,7 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                                 setCounter(value);
                               }
                             }}
-                            className="w-16 text-center border border-gray-300 rounded-[6px] focus:outline-none focus:ring-2 focus:-blue-500 focus:border-transparent "
+                            className="w-12 text-center border border-gray-300 rounded-[6px] focus:outline-none focus:ring-2 focus:-blue-500 focus:border-transparent "
                           />
                           <button
                             onClick={() => setCounter((prev) => prev + 1)}
@@ -2527,7 +2576,7 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                           {/* العناصر المختارة */}
                           {selectedItem?.selectedoption?.length > 0 && (
                             <div className="p-3 bg-gray- border-t">
-                              <span className="text-[#000] dark:text-[#fff] font-medium">
+                              <span className="text-gray-500 font-medium">
                                 {selectedItem.selectedoption
                                   .map((extra) => extra.name)
                                   .join(", ")}
@@ -2612,7 +2661,7 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                           {/* العناصر المختارة */}
                           {selectedItem?.selectedExtras?.length > 0 && (
                             <div className="p-3 bg-gray- border-t">
-                              <span className="text-[#000] dark:text-[#fff] font-medium">
+                              <span className="text-gray-500 font-medium">
                                 {selectedItem.selectedExtras
                                   .map(
                                     (extra) =>
@@ -2642,13 +2691,23 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                                 return (
                                   <div
                                     key={index}
-                                    className="flex items-center gap-2 border p-2 rounded"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={!!selected}
-                                      onChange={(e) => {
-                                        const checked = e.target.checked;
+                                    onClick={() => {
+                                      if (selected) {
+                                        // لو العنصر متعلم، إحذفه
+                                        setSelectedItem((prev) => {
+                                          const updatedExtras =
+                                            prev.selectedExtras.filter(
+                                              (ex) => ex.id !== extra.id
+                                            );
+                                          return {
+                                            ...prev,
+                                            selectedExtras: updatedExtras,
+                                            selectedExtrasIds:
+                                              updatedExtras.map((ex) => ex.id),
+                                          };
+                                        });
+                                      } else {
+                                        // لو مش متعلم، ضيفه لكن بعد التأكد إنه مش مكرر
                                         setSelectedItem((prev) => {
                                           const totalSelectedCount =
                                             prev.selectedExtras.reduce(
@@ -2657,31 +2716,28 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                                               0
                                             );
 
-                                          let updatedExtras = [
+                                          if (
+                                            groupMax > 0 &&
+                                            totalSelectedCount >= groupMax
+                                          ) {
+                                            return prev;
+                                          }
+
+                                          const alreadyExists =
+                                            prev.selectedExtras.some(
+                                              (ex) => ex.id === extra.id
+                                            );
+                                          if (alreadyExists) return prev;
+
+                                          const updatedExtras = [
                                             ...prev.selectedExtras,
-                                          ];
-
-                                          if (checked) {
-                                            if (
-                                              groupMax > 0 &&
-                                              totalSelectedCount >= groupMax
-                                            ) {
-                                              // تجاوز الحد الأقصى
-                                              return prev;
-                                            }
-
-                                            updatedExtras.push({
+                                            {
                                               id: extra.id,
                                               name: extra.name,
                                               price: extra.price,
                                               quantity: 1,
-                                            });
-                                          } else {
-                                            updatedExtras =
-                                              updatedExtras.filter(
-                                                (ex) => ex.id !== extra.id
-                                              );
-                                          }
+                                            },
+                                          ];
 
                                           return {
                                             ...prev,
@@ -2690,7 +2746,14 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                                               updatedExtras.map((ex) => ex.id),
                                           };
                                         });
-                                      }}
+                                      }
+                                    }}
+                                    className="flex items-center gap-2 border p-2 rounded cursor-pointer"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={!!selected}
+                                      readOnly
                                     />
                                     <span className="text-[#000] dark:text-[#fff]">
                                       {extra.name}
@@ -2699,31 +2762,57 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                                       {extra.price !== 0 &&
                                         `(${extra.price} EGP)`}{" "}
                                     </span>
-
-                                    {selected && (
+                              
+                                    {extra.max !== 1 && (
                                       <div className="flex items-center gap-1">
                                         <button
-                                          onClick={() =>
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (!selected) return;
+
                                             setSelectedItem((prev) => {
-                                              const updatedExtras =
-                                                prev.selectedExtras.map((ex) =>
-                                                  ex.id === extra.id
-                                                    ? {
-                                                        ...ex,
-                                                        quantity: Math.max(
-                                                          ex.quantity - 1,
-                                                          1
-                                                        ),
-                                                      }
-                                                    : ex
+                                              const existing =
+                                                prev.selectedExtras.find(
+                                                  (ex) => ex.id === extra.id
                                                 );
+                                              let updatedExtras;
+
+                                              if (existing.quantity === 1) {
+                                                // احذف العنصر لو الكمية = 1
+                                                updatedExtras =
+                                                  prev.selectedExtras.filter(
+                                                    (ex) => ex.id !== extra.id
+                                                  );
+                                              } else {
+                                                // قلل الكمية
+                                                updatedExtras =
+                                                  prev.selectedExtras.map(
+                                                    (ex) =>
+                                                      ex.id === extra.id
+                                                        ? {
+                                                            ...ex,
+                                                            quantity:
+                                                              ex.quantity - 1,
+                                                          }
+                                                        : ex
+                                                  );
+                                              }
+
                                               return {
                                                 ...prev,
                                                 selectedExtras: updatedExtras,
+                                                selectedExtrasIds:
+                                                  updatedExtras.map(
+                                                    (ex) => ex.id
+                                                  ),
                                               };
-                                            })
-                                          }
-                                          className="px-2 text-sm border rounded"
+                                            });
+                                          }}
+                                          className={`px-2 text-sm border rounded ${
+                                            !selected
+                                              ? "opacity-50 pointer-events-none"
+                                              : ""
+                                          }`}
                                         >
                                           -
                                         </button>
@@ -2733,20 +2822,23 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                                         </span>
 
                                         <button
-                                          onClick={() =>
-                                            setSelectedItem((prev) => {
-                                              const totalSelectedCount =
-                                                prev.selectedExtras.reduce(
-                                                  (sum, ex) =>
-                                                    sum + (ex.quantity || 0),
-                                                  0
-                                                );
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (!selected) return;
 
+                                            setSelectedItem((prev) => {
+                                              const existing =
+                                                prev.selectedExtras.find(
+                                                  (ex) => ex.id === extra.id
+                                                );
+                                              const currentQty =
+                                                existing?.quantity || 0;
+
+                                              // تحقق من max لكل عنصر
                                               if (
-                                                groupMax > 0 &&
-                                                totalSelectedCount >= groupMax
+                                                extra.max > 0 &&
+                                                currentQty >= extra.max
                                               ) {
-                                                // لا تسمح بزيادة الكمية
                                                 return prev;
                                               }
 
@@ -2765,9 +2857,13 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                                                 ...prev,
                                                 selectedExtras: updatedExtras,
                                               };
-                                            })
-                                          }
-                                          className="px-2 text-sm border rounded"
+                                            });
+                                          }}
+                                          className={`px-2 text-sm border rounded ${
+                                            !selected
+                                              ? "opacity-50 pointer-events-none"
+                                              : ""
+                                          }`}
                                         >
                                           +
                                         </button>
@@ -2802,7 +2898,7 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                           {/* العناصر المختارة */}
                           {selectedItem?.selectedMainExtras?.length > 0 && (
                             <div className="p-3 bg-gray- border-t">
-                              <span className="text-[#000] dark:text-[#fff] font-medium">
+                              <span className="text-gray-500 font-medium">
                                 {selectedItem.selectedMainExtras
                                   .map((extra) => extra.name)
                                   .join(", ")}
@@ -2881,7 +2977,7 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                         </div>
                       )}
 
-                      <div className="flex flex-col lg:flex-row lg:items-center gap-2 my-4">
+                      <div className="sticky  flex flex-col lg:flex-row lg:items-center gap-2 my-4">
                         <Label className="lg:min-w-[100px]">Note:</Label>
                         <Input
                           value={note}
@@ -2891,36 +2987,61 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                           className="w-full text-[#000] dark:text-[#fff]"
                         />
                       </div>
+                 <div className="sticky bottom-0 bg-white dark:bg-black p-4 border-t z-50 mt-4">
                       <div className="flex justify-end">
                         <p className="text-sm font-semibold mr-1">Subtoal: </p>
+
                         <p className="text-sm font-semibold mr-1">
                           {(
-                            selectedItem?.price * counter +
-                            totalExtrasPrice
+                            (selectedItem?.price || 0) * counter +
+                            totalExtrasPrices +
+                            totalOptionPrices +
+                            totalMainExtrasPrices
                           ).toFixed(2)}
                         </p>
                         <p className="text-sm font-semibold ">EGP</p>
                       </div>
                       <div className="flex justify-between items-center">
                         <div className="text-sm font-semibold flex flex-wrap max-w-[500px]">
-                          <p>
-                            {[selectedItem?.selectedInfo]
-                              .filter(Boolean)
-                              .join(", ")}
-                          </p>
+                          {selectedItem?.selectedInfo && (
+                            <p>
+                              {counter > 1 ? `${counter}x` : ""}{" "}
+                              {selectedItem?.selectedInfo || ""}
+                            </p>
+                          )}
+
                           <p className="text-gray-500 ml-3">
-                            {[
-                              ...(selectedItem?.selectedoption || []).map(
-                                (option) => option.name
-                              ),
-                              ...(selectedItem?.selectedExtras || []).map(
-                                (extra) => extra.name
-                              ),
-                              ...(selectedItem?.selectedMainExtras || []).map(
-                                (extra) => extra.name
-                              ),
-                            ]
-                              .filter(Boolean)
+                            {(selectedItem?.selectedoption || [])
+                              .map((option) => option.name)
+                              .join(", ")}
+
+                            {/* فاصل لو في option و extras */}
+                            {selectedItem?.selectedoption?.length > 0 &&
+                              selectedItem?.selectedExtras?.length > 0 &&
+                              ", "}
+
+                            {/* الإكسترا مع الكمية */}
+                            {(selectedItem?.selectedExtras || [])
+                              .map((extra) =>
+                                extra.quantity > 1
+                                  ? `${extra.name} x${extra.quantity}`
+                                  : `${extra.name}`
+                              )
+                              .join(", ")}
+
+                            {/* فاصل لو في main extras */}
+                            {selectedItem?.selectedMainExtras?.length > 0 &&
+                              (selectedItem?.selectedoption?.length > 0 ||
+                                selectedItem?.selectedExtras?.length > 0) &&
+                              ", "}
+
+                            {/* main extras */}
+                            {(selectedItem?.selectedMainExtras || [])
+                              .map((extra) =>
+                                extra.quantity > 1
+                                  ? `${extra.name} x${extra.quantity}`
+                                  : `${extra.name}`
+                              )
                               .join(", ")}
                           </p>
                         </div>
@@ -2970,6 +3091,7 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                           </div>
                         </DialogFooter>
                       </div>
+                 </div> 
                     </DialogContent>
                   </Dialog>
                 )}
@@ -3352,18 +3474,21 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
             </Card>
           </div>
         </div>
+
         <div className="flex flex-col gap-4 mt-[15px]">
-          <Select
-            placeholder="Select Restaurant"
-            className="react-select w-[3] mb-0"
-            classNamePrefix="select"
-            options={restaurantsSelect}
-            value={restaurantsSelect.find(
-              (option) => option.value === selectedRestaurantId
-            )}
-            onChange={handleRestaurantChange}
-            styles={selectStyles(theme, color)}
-          />
+          {restaurantsSelect?.length > 1 && (
+            <Select
+              placeholder="Select Restaurant"
+              className="react-select w-[3] mb-0"
+              classNamePrefix="select"
+              options={restaurantsSelect}
+              value={restaurantsSelect.find(
+                (option) => option.value === selectedRestaurantId
+              )}
+              onChange={handleRestaurantChange}
+              styles={selectStyles(theme, color)}
+            />
+          )}
           <Card className="p-4 shadow-m rounded-lg w-full mt-0">
             <div className="flex gap-1 items-center justify-between mb-3">
               <div className="relative flex-grow">
@@ -3441,52 +3566,52 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                 </Button>
               </div>
             </div>
-{showUserWarningDialog && (
-  <div
-    className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
-    onClick={() => setShowUserWarningDialog(false)} // ⬅️ يقفل المودال لو ضغط برا
-  >
-    <div
-      className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm text-center"
-      onClick={(e) => e.stopPropagation()} // ⬅️ يمنع إغلاق المودال لو ضغط جوه
-    >
-      <div className="text-yellow-500 text-5xl mb-4">⚠️</div>
-      <p className="mb-4 text-gray-700">
-        Please select a user before choosing an item.
-      </p>
-      <Button
-        onClick={() => setShowUserWarningDialog(false)}
-        className=" px-4 py-2 rounded text-[#000] dark:text-[#fff]" 
-      >
-        OK
-      </Button>
-    </div>
-  </div>
-)}
-{showBranchWarningDialog && (
-  <div
-    className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
-    onClick={() => setShowBranchWarningDialog(false)} //  يقفل المودال لو ضغط برا
-  >
-    <div
-      className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm text-center"
-      onClick={(e) => e.stopPropagation()} //  يمنع إغلاق المودال لو ضغط جوه
-    >
-      <div className="text-yellow-500 text-5xl mb-4">⚠️</div>
-      <p className="mb-4 text-gray-700">
-        Please select a branch before choosing an item.
-      </p>
-      <Button
-        onClick={() => setShowBranchWarningDialog(false)}
-       className=" px-4 py-2 rounded text-[#000] dark:text-[#fff]"
-      >
-        OK
-      </Button>
-    </div>
-  </div>
-)}
+            {showUserWarningDialog && (
+              <div
+                className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
+                onClick={() => setShowUserWarningDialog(false)} //  يقفل المودال لو ضغط برا
+              >
+                <div
+                  className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm text-center"
+                  onClick={(e) => e.stopPropagation()} // يمنع إغلاق المودال لو ضغط جوه
+                >
+                  <div className="text-yellow-500 text-5xl mb-4">⚠️</div>
+                  <p className="mb-4 text-gray-700">
+                    Please select a user before choosing an item.
+                  </p>
+                  <Button
+                    onClick={() => setShowUserWarningDialog(false)}
+                    className=" px-4 py-2 rounded text-[#000] dark:text-[#fff]"
+                  >
+                    OK
+                  </Button>
+                </div>
+              </div>
+            )}
+            {showBranchWarningDialog && (
+              <div
+                className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
+                onClick={() => setShowBranchWarningDialog(false)} //  يقفل المودال لو ضغط برا
+              >
+                <div
+                  className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm text-center"
+                  onClick={(e) => e.stopPropagation()} //  يمنع إغلاق المودال لو ضغط جوه
+                >
+                  <div className="text-yellow-500 text-5xl mb-4">⚠️</div>
+                  <p className="mb-4 text-gray-700">
+                    Please select a branch before choosing an item.
+                  </p>
+                  <Button
+                    onClick={() => setShowBranchWarningDialog(false)}
+                    className=" px-4 py-2 rounded text-[#000] dark:text-[#fff]"
+                  >
+                    OK
+                  </Button>
+                </div>
+              </div>
+            )}
 
-{/* {sessionExpiredDialog && (
+            {/* {sessionExpiredDialog && (
   <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
     <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm text-center">
       <div className="text-yellow-500 text-5xl mb-4">⚠️</div>
@@ -3507,7 +3632,6 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
     </div>
   </div>
 )} */}
-
 
             {selectedUser && isOpenUserData && (
               <div className="mt-2 p-2  rounded-md">
@@ -3785,6 +3909,84 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                                       <span>EGP</span>
                                     </span>
                                   </div>
+                                  <div className="mt-1 flex flex-col gap-1 text-xs text-gray-700 dark:text-gray-300">
+                                    {/* Option */}
+                                    {item.selectedoption?.length > 0 && (
+                                      <div>
+                                        <div className="grid grid-cols-3 gap-x-2 gap-y-1 text-[12px]">
+                                          {item.selectedoption.map((opt, i) => (
+                                            <React.Fragment key={i}>
+                                              <span className="truncate">
+                                                {opt.name}
+                                              </span>
+                                              <span className="text-center">
+                                                ×1
+                                              </span>
+                                              <span className="text-end">
+                                                {opt.price?.toFixed(2)} EGP
+                                              </span>
+                                            </React.Fragment>
+                                          ))}
+                                        </div>
+                                        {/* <span className="text-end">{(extra.price * extra.quantity)?.toFixed(2)} EGP</span> */}
+                                      </div>
+                                    )}
+
+                                    {/* Extras */}
+                                    {item.selectedExtras?.length > 0 && (
+                                      <div>
+                                        <div className="grid grid-cols-3 gap-x-2 text-[12px] mt-2 mb-2">
+                                          {item.selectedExtras.map(
+                                            (extra, i) => (
+                                              <React.Fragment key={i}>
+                                                <span className="whitespace-normal break-words">
+                                                  {extra.name}
+                                                </span>
+                                                <span className="text-center">
+                                                  ×{extra.quantity}
+                                                </span>
+                                                <span className="text-end">
+                                                  {(
+                                                    extra.price * extra.quantity
+                                                  )?.toFixed(2)}{" "}
+                                                  EGP
+                                                </span>
+                                              </React.Fragment>
+                                            )
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Main Extras */}
+                                    {item.selectedMainExtras?.length > 0 && (
+                                      <div>
+                                        <div className="grid grid-cols-3 gap-x-2 gap-y-1 text-[12px]">
+                                          {item.selectedMainExtras.map(
+                                            (main, i) => (
+                                              <React.Fragment key={i}>
+                                                <span className="whitespace-normal break-words">
+                                                  {main.name}
+                                                </span>
+                                                <span className="text-center">
+                                                  ×{main.quantity || 1}
+                                                </span>
+                                                <span className="text-end">
+                                                  {(
+                                                    (Number(main?.price) || 0) *
+                                                    (Number(main?.quantity) ||
+                                                      1)
+                                                  ).toFixed(2)}{" "}
+                                                  EGP
+                                                </span>
+                                              </React.Fragment>
+                                            )
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+
                                   <div className="flex items-center justify-between">
                                     <div className="text-sm text-[#fff] mb-2">
                                       {item.selectedExtras?.map((extra) => (
@@ -3803,6 +4005,20 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                                           {extra.name_en}
                                         </p>
                                       ))}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="my-3">
+                                      <Input
+                                        type="text"
+                                        value={item.note || ""}
+                                        onChange={(e) =>
+                                          handleNoteChange(e, item.cartId)
+                                        }
+                                        placeholder="No note added"
+                                        className="w-full px-3 py- border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
+                                        //  className="w-16 text-center border border-gray-300 rounded-[6px] focus:outline-none focus:ring-2 focus:-blue-500 focus:border-transparent "
+                                      />
                                     </div>
                                     <div className="flex items-center">
                                       <button
@@ -3836,7 +4052,7 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                                             );
                                           }
                                         }}
-                                        className="w-16 text-center border border-gray-300 rounded-[6px] mx-2"
+                                        className="w-12 text-center border border-gray-300 rounded-[6px] mx-1"
                                       />
 
                                       <button
@@ -3848,18 +4064,6 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                                         +
                                       </button>
                                     </div>
-                                  </div>
-                                  <div className="my-3">
-                                    <Input
-                                      type="text"
-                                      value={item.note || ""}
-                                      onChange={(e) =>
-                                        handleNoteChange(e, item.cartId)
-                                      }
-                                      placeholder="No note added"
-                                      className="w-full px-3 py- border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
-                                      //  className="w-16 text-center border border-gray-300 rounded-[6px] focus:outline-none focus:ring-2 focus:-blue-500 focus:border-transparent "
-                                    />
                                   </div>
 
                                   <div className="flex justify-between items-center">
@@ -3909,7 +4113,14 @@ const [sessionExpiredDialog, setSessionExpiredDialog] = useState(false);
                                       </AlertDialog>
                                     </div>
                                     <span className="inline-flex items-center gap-1">
-                                      {itemTotal.toFixed(2)} EGP
+                                      {(
+                                        ((selectedItem?.price || 0) +
+                                          totalExtrasPrices +
+                                          totalOptionPrices +
+                                          totalMainExtrasPrices) *
+                                        item.quantity
+                                      ).toFixed(2)}{" "}
+                                      EGP
                                     </span>
                                   </div>
                                   {index !== cartItems.length - 1 && (

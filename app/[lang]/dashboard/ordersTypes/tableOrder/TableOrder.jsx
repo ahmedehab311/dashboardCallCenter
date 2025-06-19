@@ -43,6 +43,8 @@ export function BasicDataTable({
   isLoadingSearchUser,
   refetchSearchUser,
 }) {
+  // console.log("orders",orders);
+  
   const language =
     typeof window !== "undefined" ? localStorage.getItem("language") : null;
   const [hasSearched, setHasSearched] = useState(false);
