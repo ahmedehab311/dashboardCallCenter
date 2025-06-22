@@ -182,8 +182,8 @@ const Language = () => {
 
       setSelectedLanguage(langObj);
       dispatch(setLanguage(langObj.code));
-      localStorage.setItem("language", langObj.code);
-      Cookies.set("language", langObj.code);
+      localStorage.setItem("language", langObj.code || "en");
+      Cookies.set("language", langObj.code || "en");
       setRtl(langObj.dir === "rtl")
 
  

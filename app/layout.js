@@ -7,7 +7,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 export default function RootLayout({ children, params: { lang } }) {
   // useTokenValidation();
   return (
-    <html lang={lang}>
+    <html lang={lang || "en"}>
       <body>
         <Provider store={store}>{children}</Provider>
       </body>

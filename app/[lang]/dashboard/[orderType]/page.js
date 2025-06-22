@@ -250,6 +250,7 @@ function CreateOrder({ params }) {
   const [selectedBranchId, setSelectedBranchId] = useState(null);
   const [selectedBranchIdCreateOrder, setSelectedBranchIdCreateOrder] =
     useState(null);
+  // console.log("selectedBranchId",selectedBranchId);
 
   const [SelectedBranchPriceist, setSelectedBranchPriceList] = useState(1);
   const [selectedAddress, setSelectedAddress] = useState(null);
@@ -438,7 +439,7 @@ function CreateOrder({ params }) {
       // console.log(" Token loaded:", newToken); // مراقبة وجود التوك
     } else {
       console.error("No token found, redirecting to login...");
-      router.push("/login");
+      router.push(`/${language}/login`);
     }
   }, []);
   const [editingItemIndex, setEditingItemIndex] = useState(null);
@@ -465,7 +466,9 @@ function CreateOrder({ params }) {
     setTotalExtrasPrices(extrasTotal);
     setTotalMainExtrasPrices(mainExtrasTotal);
   }, [selectedItem]);
+
   const handleItemClick = async (item) => {
+    console.log("item handleItemClick", item);
     if (!selectedUser) {
       setShowUserWarningDialog(true);
       return;
@@ -512,14 +515,6 @@ function CreateOrder({ params }) {
         token,
         apiBaseUrl
       );
-      // console.log("Response from fetchViewItem:", response);
-
-      // if (response?.response === false) {
-      //   // console.log("Setting error message:", response.message);
-      //   setMassegeInvaildToken(response.message);
-      //   setSessionExpiredDialog(true);
-      //   return;
-      // }
 
       if (response?.response === false) {
         setMassegeInvaildToken(response.message);
@@ -624,96 +619,340 @@ function CreateOrder({ params }) {
     }
   }, [isOpen, selectedItem?.extrasData]);
 
+  // const handleEditItem = async (item) => {
+  //   setNote(item.note || "");
+  //   setCounter(item.quantity);
+  //   setTotalExtrasPrice(0);
+  //   setIsItemDialogOpen(true);
+
+  //   // نقوم بمقارنة العنصر في السلة باستخدام cartId
+  //   const cartItem = cartItems.find(
+  //     (cartItem) => cartItem.cartId === item.cartId
+  //   );
+
+  //   // إذا وجدنا العنصر في السلة، نقوم بتحديث selectedItem بناءً على الـ cartId
+  //   if (cartItem) {
+  //     setSelectedItem({
+  //       id: cartItem.id,
+  //       name: cartItem.selectedInfo,
+  //       image: cartItem.image,
+  //       price: cartItem.price,
+  //       selectedInfo: cartItem.selectedInfo || "",
+  //       selectedIdSize: cartItem.selectedIdSize || "",
+  //       selectedMainExtras: cartItem.selectedMainExtras || [],
+  //       selectedMainExtrasIds: cartItem.selectedMainExtrasIds || [],
+  //       selectedExtras: cartItem.selectedExtras || [],
+  //       selectedExtrasIds: cartItem.selectedExtrasIds || [],
+  //       selectedoption: cartItem.selectedoption || [],
+  //       selectedoptionId: cartItem.selectedoptionId || [],
+  //       extrasData: cartItem.extrasData || [],
+  //     });
+  //     // بعد ذلك، نستخدم الـ id لإجراء fetch
+  //     try {
+  //       const response = await fetchViewItem(
+  //         savedBranch?.value || selectedBranchInSelected?.value,
+  //         cartItem.id, // هنا نستخدم id للحصول على التفاصيل من الـ API
+  //         token,
+  //         apiBaseUrl
+  //       );
+  //       console.log("response", response);
+  //       if (response?.response === false) {
+  //         setMassegeInvaildToken(response.message);
+  //         return;
+  //       }
+
+  //       setMassegeInvaildToken(null);
+
+  //       if (response) {
+  //         setIsOpenMainOption(true);
+  //         setIsOpenMainExtra(true);
+  //         setIsOpen(true);
+  //         setInitialized(false);
+  //         // const firstInfo = response.info?.[0] || null;
+  //         // const firstInfo = response?.sizes?.[0] || null;
+  //         const selectedSizeInfo =
+  //           response?.sizes?.find((s) => s?.id === cartItem?.selectedIdSize) ||
+  //           response?.sizes?.[0];
+  //         const sizeCondiments = selectedSizeInfo?.size_condiments || [];
+  //         const itemCondiments = response?.item_condiments || [];
+
+  //         const extraMainGroup = itemCondiments.find(
+  //           (group) => group?.type === "extra"
+  //         );
+  //         const extraGroup = sizeCondiments.find(
+  //           (group) => group?.type === "extra"
+  //         );
+  //         const optionGroup = sizeCondiments.find(
+  //           (group) => group?.type === "option"
+  //         );
+
+  //         setSelectedItem((prev) => ({
+  //           ...prev,
+  //           cartId: item.cartId,
+  //           price: selectedSizeInfo?.price?.price,
+  //           availability: selectedSizeInfo?.availability?.availability,
+  //           info: response?.sizes || [],
+  //           mainExtras: extraMainGroup?.condiments || [],
+  //           groupNameMainExtras: extraMainGroup?.group_name || [],
+  //           itemExtras: selectedSizeInfo?.size_condiments || [],
+  //           extrasData: extraGroup?.condiments || [],
+  //           groupNameExtrasData: extraGroup?.group_name || [],
+  //           optionSize: optionGroup?.condiments || [],
+  //           groupNameSizes: optionGroup?.group_name || [],
+  //           selectedExtras: prev.selectedExtras || [],
+  //           selectedExtrasIds: prev.selectedExtrasIds || [],
+  //         }));
+  //         setIsItemDialogOpen(true);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching item details:", error);
+  //     }
+  //   }
+  // };
+
+  //   const handleEditItem = async (item) => {
+  //   setNote(item.note || "");
+  //   setCounter(item.quantity);
+  //   setTotalExtrasPrice(0);
+  //   setIsItemDialogOpen(true);
+
+  //   const cartItem = cartItems.find((cartItem) => cartItem.cartId === item.cartId);
+  // console.log("cartItem",cartItem);
+
+  //   if (!cartItem) return;
+
+  //   try {
+  //     const response = await fetchViewItem(
+  //       savedBranch?.value || selectedBranchInSelected?.value,
+  //       cartItem.id,
+  //       token,
+  //       apiBaseUrl
+  //     );
+
+  //     if (response?.response === false) {
+  //       setMassegeInvaildToken(response.message);
+  //       return;
+  //     }
+
+  //     setMassegeInvaildToken(null);
+
+  //     if (response) {
+  //       setIsOpenMainOption(true);
+  //       setIsOpenMainExtra(true);
+  //       setIsOpen(true);
+  //       setInitialized(false);
+  // console.log("response",response);
+
+  //       const selectedSizeInfo =
+  //         response?.sizes?.find((s) => s?.id === cartItem?.selectedIdSize) ||
+  //         response?.sizes?.[0];
+
+  //       const sizeCondiments = selectedSizeInfo?.size_condiments || [];
+  //       const itemCondiments = response?.item_condiments || [];
+
+  //       const extraMainGroup = itemCondiments.find((group) => group?.type === "extra");
+  //       const extraGroup = sizeCondiments.find((group) => group?.type === "extra");
+  //       const optionGroup = sizeCondiments.find((group) => group?.type === "option");
+
+  //       setSelectedItem({
+  //         id: cartItem.id,
+  //         name: response?.name_en,
+  //         description_en: response?.description_en,
+  //         description_ar: response?.description_ar,
+  //         image: response?.image,
+  //         price: selectedSizeInfo?.price?.price,
+  //         availability: selectedSizeInfo?.availability?.availability,
+  //         info: response?.sizes || [],
+  //         selectedInfo: cartItem?.selectedInfo || selectedSizeInfo?.size_en || "",
+  //         selectedIdSize: selectedSizeInfo?.id || "",
+  //         selectedMainExtras: cartItem?.selectedMainExtras || [],
+  //         selectedMainExtrasIds: cartItem?.selectedMainExtrasIds || [],
+  //         mainExtras: extraMainGroup?.condiments || [],
+  //         groupNameMainExtras: extraMainGroup?.group_name || [],
+  //         groupExtrasMainRule: {
+  //           max: extraMainGroup?.max,
+  //           min: extraMainGroup?.min,
+  //         },
+  //         itemExtras: selectedSizeInfo?.size_condiments || [],
+  //         extrasData: extraGroup?.condiments || [],
+  //         groupNameExtrasData: extraGroup?.group_name || [],
+  //         groupExtrasDataRule: {
+  //           max: extraGroup?.max,
+  //           min: extraGroup?.min,
+  //         },
+  //         optionSize: optionGroup?.condiments || [],
+  //         groupNameSizes: optionGroup?.group_name || [],
+  //         selectedExtras: cartItem?.selectedExtras || [],
+  //         selectedExtrasIds: cartItem?.selectedExtrasIds || [],
+  //         selectedoption: cartItem?.selectedoption || [],
+  //         selectedoptionId: cartItem?.selectedoptionId || [],
+  //         cartId: cartItem.cartId,
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching item details:", error);
+  //   }
+  // };
+
   const handleEditItem = async (item) => {
     setNote(item.note || "");
     setCounter(item.quantity);
     setTotalExtrasPrice(0);
     setIsItemDialogOpen(true);
+    console.log("item", item);
 
-    // نقوم بمقارنة العنصر في السلة باستخدام cartId
     const cartItem = cartItems.find(
       (cartItem) => cartItem.cartId === item.cartId
     );
+    if (!cartItem) return;
 
-    // إذا وجدنا العنصر في السلة، نقوم بتحديث selectedItem بناءً على الـ cartId
-    if (cartItem) {
-      setSelectedItem({
-        id: cartItem.id,
-        name: cartItem.selectedInfo,
-        image: cartItem.image,
-        price: cartItem.price,
-        selectedInfo: cartItem.selectedInfo || "",
-        selectedIdSize: cartItem.selectedIdSize || "",
-        selectedMainExtras: cartItem.selectedMainExtras || [],
-        selectedMainExtrasIds: cartItem.selectedMainExtrasIds || [],
-        selectedExtras: cartItem.selectedExtras || [],
-        selectedExtrasIds: cartItem.selectedExtrasIds || [],
-        selectedoption: cartItem.selectedoption || [],
-        selectedoptionId: cartItem.selectedoptionId || [],
-        extrasData: cartItem.extrasData || [],
-      });
-      // بعد ذلك، نستخدم الـ id لإجراء fetch
-      try {
-        const response = await fetchViewItem(
-          savedBranch?.value || selectedBranchInSelected?.value,
-          cartItem.id, // هنا نستخدم id للحصول على التفاصيل من الـ API
-          token,
-          apiBaseUrl
-        );
-        console.log("response", response);
-        if (response?.response === false) {
-          setMassegeInvaildToken(response.message);
-          return;
-        }
+    try {
+      const response = await fetchViewItem(
+        savedBranch?.value || selectedBranchInSelected?.value,
+        item.id,
+        token,
+        apiBaseUrl
+      );
+      console.log("cartItem.cartItems", cartItems);
+      console.log("cartItem.id", cartItem.id);
 
-        setMassegeInvaildToken(null);
-
-        if (response) {
-          setIsOpenMainOption(true);
-          setIsOpenMainExtra(true);
-          setIsOpen(true);
-          setInitialized(false);
-          // const firstInfo = response.info?.[0] || null;
-          // const firstInfo = response?.sizes?.[0] || null;
-          const selectedSizeInfo =
-            response?.sizes?.find((s) => s?.id === cartItem?.selectedIdSize) ||
-            response?.sizes?.[0];
-          const sizeCondiments = selectedSizeInfo?.size_condiments || [];
-          const itemCondiments = response?.item_condiments || [];
-
-          const extraMainGroup = itemCondiments.find(
-            (group) => group?.type === "extra"
-          );
-          const extraGroup = sizeCondiments.find(
-            (group) => group?.type === "extra"
-          );
-          const optionGroup = sizeCondiments.find(
-            (group) => group?.type === "option"
-          );
-
-          setSelectedItem((prev) => ({
-            ...prev,
-            cartId: item.cartId,
-            price: selectedSizeInfo?.price?.price,
-            availability: selectedSizeInfo?.availability?.availability,
-            info: response?.sizes || [],
-            mainExtras: extraMainGroup?.condiments || [],
-            groupNameMainExtras: extraMainGroup?.group_name || [],
-            itemExtras: selectedSizeInfo?.size_condiments || [],
-            extrasData: extraGroup?.condiments || [],
-            groupNameExtrasData: extraGroup?.group_name || [],
-            optionSize: optionGroup?.condiments || [],
-            groupNameSizes: optionGroup?.group_name || [],
-            selectedExtras: prev.selectedExtras || [],
-            selectedExtrasIds: prev.selectedExtrasIds || [],
-          }));
-          setIsItemDialogOpen(true);
-        }
-      } catch (error) {
-        console.error("Error fetching item details:", error);
+      if (response?.response === false) {
+        setMassegeInvaildToken(response.message);
+        return;
       }
+
+      setMassegeInvaildToken(null);
+
+      if (response) {
+        setIsOpenMainOption(true);
+        setIsOpenMainExtra(true);
+        setIsOpen(true);
+        setInitialized(false);
+
+        const selectedSizeInfo =
+          response?.sizes?.find((s) => s?.id === cartItem?.selectedIdSize) ||
+          response?.sizes?.[0];
+
+        const sizeCondiments = selectedSizeInfo?.size_condiments || [];
+        const itemCondiments = response?.item_condiments || [];
+
+        const extraMainGroup = itemCondiments.find(
+          (group) => group?.type === "extra"
+        );
+        const extraGroup = sizeCondiments.find(
+          (group) => group?.type === "extra"
+        );
+        const optionGroup = sizeCondiments.find(
+          (group) => group?.type === "option"
+        );
+
+        setSelectedItem({
+          id: response?.id,
+          name: response?.name_en, // ← الاسم الصحيح للمنتج
+          description_en: response?.description_en,
+          description_ar: response?.description_ar,
+          image: response?.image,
+          price: selectedSizeInfo?.price?.price,
+          availability: selectedSizeInfo?.availability?.availability,
+          info: response?.sizes || [],
+          selectedInfo:
+            cartItem?.selectedInfo || selectedSizeInfo?.size_en || "",
+          selectedIdSize: selectedSizeInfo?.id || "",
+          mainExtras: extraMainGroup?.condiments || [],
+          groupNameMainExtras: extraMainGroup?.group_name || [],
+          groupExtrasMainRule: {
+            max: extraMainGroup?.max,
+            min: extraMainGroup?.min,
+          },
+          itemExtras: selectedSizeInfo?.size_condiments || [],
+          extrasData: extraGroup?.condiments || [],
+          groupNameExtrasData: extraGroup?.group_name || [],
+          groupExtrasDataRule: {
+            max: extraGroup?.max,
+            min: extraGroup?.min,
+          },
+          optionSize: optionGroup?.condiments || [],
+          groupNameSizes: optionGroup?.group_name || [],
+          selectedExtras: cartItem?.selectedExtras || [],
+          selectedExtrasIds: cartItem?.selectedExtrasIds || [],
+          selectedMainExtras: cartItem?.selectedMainExtras || [],
+          selectedMainExtrasIds: cartItem?.selectedMainExtrasIds || [],
+          selectedoption: cartItem?.selectedoption || [],
+          selectedoptionId: cartItem?.selectedoptionId || [],
+          cartId: cartItem.cartId,
+        });
+        setSelectedItem((prev) => {
+          const sizeCondiments = cartItem.size_condiments || [];
+          const extrasData = prev.extrasData || [];
+          const optionSize = prev.optionSize || [];
+          const mainExtras = prev.mainExtras || [];
+          console.log("sizeCondiments handleEdit", sizeCondiments);
+          console.log("extrasData handleEdit", extrasData);
+          console.log("optionSize handleEdit", optionSize);
+          const filledExtras = sizeCondiments
+            .filter((cond) =>
+              extrasData.some((e) => e.id === cond.condiment_id)
+            )
+            .map((cond) => {
+              const matched = extrasData.find(
+                (e) => e.id === cond.condiment_id
+              );
+              return {
+                id: cond.condiment_id,
+                name: matched?.name || cond.condiment_info?.name_en,
+                price: parseFloat(cond.price),
+                quantity: cond.count,
+              };
+            });
+          const filledOptions = sizeCondiments
+            .filter((cond) =>
+              optionSize.some((e) => e.id === cond.condiment_id)
+            )
+            .map((cond) => {
+              const matched = optionSize.find(
+                (e) => e.id === cond.condiment_id
+              );
+              return {
+                id: cond.condiment_id,
+                name: matched?.name || cond.condiment_info?.name_en,
+                price: parseFloat(cond.price),
+                quantity: cond.count,
+              };
+            });
+          const filledMainExtras = sizeCondiments
+            .filter((cond) =>
+              mainExtras.some((e) => e.id === cond.condiment_id)
+            )
+            .map((cond) => {
+              const matched = mainExtras.find(
+                (e) => e.id === cond.condiment_id
+              );
+              return {
+                id: cond.condiment_id,
+                name: matched?.name || cond.condiment_info?.name_en,
+                price: parseFloat(cond.price),
+                quantity: cond.count,
+              };
+            });
+
+          console.log("filledExtras handleEdit", filledExtras);
+
+          return {
+            ...prev,
+            selectedMainExtras: filledMainExtras,
+            selectedMainExtrasIds: filledMainExtras.map((e) => e.id),
+            selectedExtras: filledExtras,
+            selectedExtrasIds: filledExtras.map((e) => e.id),
+            selectedoption: filledOptions,
+            selectedoptionId: filledOptions.map((o) => o.id),
+          };
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching item details:", error);
     }
   };
+
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
     setCollapsed(true);
@@ -859,6 +1098,7 @@ function CreateOrder({ params }) {
 
   const [branchOptions, setBranchOptions] = useState([]);
   const [savedBranch, setSavedBranch] = useState(null);
+
   const [orderNote, setOrderNote] = useState("");
 
   const [isEditMode, setIsEditMode] = useState(false);
@@ -933,8 +1173,6 @@ function CreateOrder({ params }) {
   // console.log("selected user ", selectedUser)
 
   useEffect(() => {
-    // console.log("Order Data:", orderData);
-    // setIsEditMode(true);
     if (isEditMode && orderData) {
       // Set the parsed data into state
       setIsEditMode(true);
@@ -946,23 +1184,12 @@ function CreateOrder({ params }) {
       const branchId = Number(orderData?.details?.branch_id) || "";
       const AdderssOrder = orderData?.details?.address_info;
       setDeliveryTypeFromOrder(deliveryType);
-      // const addressId = order?.address_info?.id || order?.address;
-      // const addressId = orderData?.details?.address_info?.id || orderData?.details?.address;
       setAddressId(addressId);
-      // if (restaurantId) {
-      //   setIsEditMode(true);
-      //   setInitialRestaurantIdFromOrder(Number(restaurantId));
-      // }
+
       if (restaurantidCheck) {
         setIsEditMode(true);
         setInitialRestaurantIdFromOrder(Number(restaurantidCheck));
       }
-
-      // if (deliveryType) {
-      //   const type = deliveryType === 2 ? "pickup" : "delivery";
-      //   setDeliveryMethod(type);
-      // }
-
       if (branchId && branchOptions.length > 0) {
         const matchedBranch = branchOptions.find(
           (branch) => branch.value === Number(branchId)
@@ -976,14 +1203,11 @@ function CreateOrder({ params }) {
           const matchedAddress = selectedUser.address.find(
             (add) => add.id === AdderssOrder.id
           );
-          // console.log("matchedAddress", matchedAddress);
 
           if (matchedAddress) {
             setSelectedAddress(matchedAddress);
           }
         }
-        // console.log("selectedAddress", selectedAddress);
-        // console.log("AdderssOrder", AdderssOrder);
 
         if (matchedBranch) {
           setSelectedBranchInSelected(matchedBranch);
@@ -1015,10 +1239,11 @@ function CreateOrder({ params }) {
       }
       // setNotesOrderNotes(orderNote);
       const items = orderData?.items;
+      console.log("orderData", orderData);
 
       if (Array.isArray(items)) {
         const transformedItems = items.map((item) => {
-          const id = item?.info?.id;
+          const id = item?.info?.item_code;
 
           return {
             id: id ? `${id}` : undefined,
@@ -1032,8 +1257,11 @@ function CreateOrder({ params }) {
             selectedInfo:
               item?.info?.price?.size_en || item?.info?.size_en || "",
             selectedExtras: item?.extras || [],
+            selectedIdSize: item?.info?.id,
             selectedMainExtras: [],
+            size_condiments: item?.size_condiments,
             note: item?.special || "",
+            total:item?.sub_total,
             cartId: uuidv4(),
           };
         });
@@ -1054,6 +1282,7 @@ function CreateOrder({ params }) {
       setDeliveryMethodHasBeenSet(true);
     }
   }, [isEditMode, deliveryTypeFromOrder, deliveryMethodHasBeenSet]);
+
   useEffect(() => {
     if (branches?.length) {
       setBranchOptions(
@@ -1498,7 +1727,7 @@ function CreateOrder({ params }) {
       setMassegeNotSelectedBranch("Select branch first");
     } else if (deliveryMethod === "delivery" && isEditMode) {
       setSelectedBranchInSelected(null);
-      setSavedBranch(null);
+      // setSavedBranch(null);
       setSelectedBranchId(null);
       setSelectedBranchName("");
     }
@@ -1643,10 +1872,11 @@ function CreateOrder({ params }) {
     }
   }, [selectedOrderType]);
 
+  console.log("selectedBranch", selectedBranch);
+  console.log("selectedBranchId", selectedBranchId);
   useEffect(() => {
     if (selectedOrderType?.value === 2) {
       const selectedBranch = getValueCreateOrder("branches"); // احصل على الفرع المختار داخل الكنترول
-      // console.log("selectedBranch", selectedBranch);
 
       if (selectedBranch) {
         const matchedBranch = branchOptions?.find(
@@ -2762,7 +2992,7 @@ function CreateOrder({ params }) {
                                       {extra.price !== 0 &&
                                         `(${extra.price} EGP)`}{" "}
                                     </span>
-                              
+
                                     {extra.max !== 1 && (
                                       <div className="flex items-center gap-1">
                                         <button
@@ -2987,111 +3217,113 @@ function CreateOrder({ params }) {
                           className="w-full text-[#000] dark:text-[#fff]"
                         />
                       </div>
-                 <div className="sticky bottom-0 bg-white dark:bg-black p-4 border-t z-50 mt-4">
-                      <div className="flex justify-end">
-                        <p className="text-sm font-semibold mr-1">Subtoal: </p>
-
-                        <p className="text-sm font-semibold mr-1">
-                          {(
-                            (selectedItem?.price || 0) * counter +
-                            totalExtrasPrices +
-                            totalOptionPrices +
-                            totalMainExtrasPrices
-                          ).toFixed(2)}
-                        </p>
-                        <p className="text-sm font-semibold ">EGP</p>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="text-sm font-semibold flex flex-wrap max-w-[500px]">
-                          {selectedItem?.selectedInfo && (
-                            <p>
-                              {counter > 1 ? `${counter}x` : ""}{" "}
-                              {selectedItem?.selectedInfo || ""}
-                            </p>
-                          )}
-
-                          <p className="text-gray-500 ml-3">
-                            {(selectedItem?.selectedoption || [])
-                              .map((option) => option.name)
-                              .join(", ")}
-
-                            {/* فاصل لو في option و extras */}
-                            {selectedItem?.selectedoption?.length > 0 &&
-                              selectedItem?.selectedExtras?.length > 0 &&
-                              ", "}
-
-                            {/* الإكسترا مع الكمية */}
-                            {(selectedItem?.selectedExtras || [])
-                              .map((extra) =>
-                                extra.quantity > 1
-                                  ? `${extra.name} x${extra.quantity}`
-                                  : `${extra.name}`
-                              )
-                              .join(", ")}
-
-                            {/* فاصل لو في main extras */}
-                            {selectedItem?.selectedMainExtras?.length > 0 &&
-                              (selectedItem?.selectedoption?.length > 0 ||
-                                selectedItem?.selectedExtras?.length > 0) &&
-                              ", "}
-
-                            {/* main extras */}
-                            {(selectedItem?.selectedMainExtras || [])
-                              .map((extra) =>
-                                extra.quantity > 1
-                                  ? `${extra.name} x${extra.quantity}`
-                                  : `${extra.name}`
-                              )
-                              .join(", ")}
+                      <div className="sticky bottom-0 bg-white dark:bg-black p-4 border-t z-50 mt-4">
+                        <div className="flex justify-end">
+                          <p className="text-sm font-semibold mr-1">
+                            Subtoal:{" "}
                           </p>
-                        </div>
 
-                        <DialogFooter className="mt-4">
-                          <div className="flex items-center gap-4">
-                            {/* <p className="text-sm font-semibold mr-1 ">
+                          <p className="text-sm font-semibold mr-1">
+                            {(
+                              (selectedItem?.price || 0) * counter +
+                              totalExtrasPrices +
+                              totalOptionPrices +
+                              totalMainExtrasPrices
+                            ).toFixed(2)}
+                          </p>
+                          <p className="text-sm font-semibold ">EGP</p>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <div className="text-sm font-semibold flex flex-wrap max-w-[500px]">
+                            {selectedItem?.selectedInfo && (
+                              <p>
+                                {counter > 1 ? `${counter}x` : ""}{" "}
+                                {selectedItem?.selectedInfo || ""}
+                              </p>
+                            )}
+
+                            <p className="text-gray-500 ml-3">
+                              {(selectedItem?.selectedoption || [])
+                                .map((option) => option.name)
+                                .join(", ")}
+
+                              {/* فاصل لو في option و extras */}
+                              {selectedItem?.selectedoption?.length > 0 &&
+                                selectedItem?.selectedExtras?.length > 0 &&
+                                ", "}
+
+                              {/* الإكسترا مع الكمية */}
+                              {(selectedItem?.selectedExtras || [])
+                                .map((extra) =>
+                                  extra.quantity > 1
+                                    ? `${extra.name} x${extra.quantity}`
+                                    : `${extra.name}`
+                                )
+                                .join(", ")}
+
+                              {/* فاصل لو في main extras */}
+                              {selectedItem?.selectedMainExtras?.length > 0 &&
+                                (selectedItem?.selectedoption?.length > 0 ||
+                                  selectedItem?.selectedExtras?.length > 0) &&
+                                ", "}
+
+                              {/* main extras */}
+                              {(selectedItem?.selectedMainExtras || [])
+                                .map((extra) =>
+                                  extra.quantity > 1
+                                    ? `${extra.name} x${extra.quantity}`
+                                    : `${extra.name}`
+                                )
+                                .join(", ")}
+                            </p>
+                          </div>
+
+                          <DialogFooter className="mt-4">
+                            <div className="flex items-center gap-4">
+                              {/* <p className="text-sm font-semibold mr-1 ">
                                                 {selectedUser ? massegeNotSerachPhone : ""} 
                                                 </p> */}
-                            {!selectedUser && massegeNotSerachPhone && (
-                              <p className="text-sm font-semibold mr-1">
-                                {massegeNotSerachPhone}
-                              </p>
-                            )}
+                              {!selectedUser && massegeNotSerachPhone && (
+                                <p className="text-sm font-semibold mr-1">
+                                  {massegeNotSerachPhone}
+                                </p>
+                              )}
 
-                            <p className="text-sm font-semibold mr-1 ">
-                              {deliveryMethod === "pickup" &&
-                              !isBranchManuallySelected
-                                ? massegeNotSelectedBranch
-                                : ""}
-                            </p>
-                            {massegeInvaildToken && (
-                              <p className="text-sm font-semibold text-red-500 mr-1">
-                                {massegeInvaildToken}{" "}
-                                <Link
-                                  href={`/${language}/login`}
-                                  className="text-blue-500 underline ml-1"
-                                >
-                                  Login here
-                                </Link>
+                              <p className="text-sm font-semibold mr-1 ">
+                                {deliveryMethod === "pickup" &&
+                                !isBranchManuallySelected
+                                  ? massegeNotSelectedBranch
+                                  : ""}
                               </p>
-                            )}
+                              {massegeInvaildToken && (
+                                <p className="text-sm font-semibold text-red-500 mr-1">
+                                  {massegeInvaildToken}{" "}
+                                  <Link
+                                    href={`/${language}/login`}
+                                    className="text-blue-500 underline ml-1"
+                                  >
+                                    Login here
+                                  </Link>
+                                </p>
+                              )}
 
-                            <Button
-                              type="submit"
-                              color="success"
-                              onClick={handleAddToCart}
-                              disabled={
-                                !selectedUser ||
-                                (deliveryMethod === "pickup" &&
-                                  !isBranchManuallySelected) ||
-                                !selectedItem?.selectedInfo
-                              }
-                            >
-                              Add to Cart
-                            </Button>
-                          </div>
-                        </DialogFooter>
+                              <Button
+                                type="submit"
+                                color="success"
+                                onClick={handleAddToCart}
+                                disabled={
+                                  !selectedUser ||
+                                  (deliveryMethod === "pickup" &&
+                                    !isBranchManuallySelected) ||
+                                  !selectedItem?.selectedInfo
+                                }
+                              >
+                                Add to Cart
+                              </Button>
+                            </div>
+                          </DialogFooter>
+                        </div>
                       </div>
-                 </div> 
                     </DialogContent>
                   </Dialog>
                 )}
@@ -3985,9 +4217,32 @@ function CreateOrder({ params }) {
                                         </div>
                                       </div>
                                     )}
+
+                                    {/* If selectedExtras exist, show them. Else, fallback to size_condiments */}
+{(item.selectedExtras?.length > 0 || item.size_condiments?.length > 0) && (
+  <div>
+    <div className="grid grid-cols-3 gap-x-2 text-[12px] mt-2 mb-2">
+      {(item.selectedExtras?.length > 0
+        ? item.selectedExtras
+        : item.size_condiments
+      ).map((extra, i) => (
+        <React.Fragment key={i}>
+          <span className="whitespace-normal break-words">
+            {extra.name || extra?.condiment_info?.name_en}
+          </span>
+          <span className="text-center">×{extra.quantity || extra.count}</span>
+          <span className="text-end">
+            {(Number(extra.price) * (extra.quantity || extra.count || 1)).toFixed(2)} EGP
+          </span>
+        </React.Fragment>
+      ))}
+    </div>
+  </div>
+)}
+
                                   </div>
 
-                                  <div className="flex items-center justify-between">
+                                  {/* <div className="flex items-center justify-between">
                                     <div className="text-sm text-[#fff] mb-2">
                                       {item.selectedExtras?.map((extra) => (
                                         <p
@@ -4006,7 +4261,7 @@ function CreateOrder({ params }) {
                                         </p>
                                       ))}
                                     </div>
-                                  </div>
+                                  </div> */}
                                   <div className="flex items-center gap-2">
                                     <div className="my-3">
                                       <Input
@@ -4112,7 +4367,7 @@ function CreateOrder({ params }) {
                                         </AlertDialogContent>
                                       </AlertDialog>
                                     </div>
-                                    <span className="inline-flex items-center gap-1">
+                                    {/* <span className="inline-flex items-center gap-1">
                                       {(
                                         ((selectedItem?.price || 0) +
                                           totalExtrasPrices +
@@ -4121,7 +4376,19 @@ function CreateOrder({ params }) {
                                         item.quantity
                                       ).toFixed(2)}{" "}
                                       EGP
-                                    </span>
+                                    </span> */}
+                                    <span className="inline-flex items-center gap-1">
+  {isEditMode
+    ? `${item.total?.toFixed(2)} EGP`
+    : (
+        ((selectedItem?.price || 0) +
+          totalExtrasPrices +
+          totalOptionPrices +
+          totalMainExtrasPrices) *
+        item.quantity
+      ).toFixed(2) + " EGP"}
+</span>
+
                                   </div>
                                   {index !== cartItems.length - 1 && (
                                     <div className="border-b border-gray-500 -mx-4 mt-4"></div>

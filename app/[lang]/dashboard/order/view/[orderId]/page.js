@@ -306,117 +306,146 @@ export default function OrderViewPage({ params }) {
         </div>
       </div>
 
-      <div className="flex gap-4">
-        <Card title="Order Info" className="w-1/2">
-          <BasicTable
-            OrderDetailsItem={OrderDetailsItem}
-            OrderDetails={OrderDetails}
+     <div className="flex gap-4">
+  {/* الجدول على الشمال */}
+  <div className="w-1/2">
+    <Card title="Order Info">
+      <BasicTable
+        OrderDetailsItem={OrderDetailsItem}
+        OrderDetails={OrderDetails}
+      />
+    </Card>
+  </div>
+
+  {/* الكروت على اليمين تحت بعض */}
+  <div className="w-1/2 flex flex-col gap-4">
+    {/* الكرت الأول */}
+    <Card title="Order Details" className="p-4">
+      <div className="flex justify-between my-2">
+        <p>Name: {OrderDetails?.user_data?.user_name}</p>
+        <p>Phone: {OrderDetails?.user_data?.phone}</p>
+      </div>
+      <div className="flex justify-between">
+        <p>Order date: {OrderDetails?.created_at}</p>
+        <p>Order id: {OrderDetails?.order_id}</p>
+      </div>
+
+      <div className="flex gap-2 justify-between my-4">
+        <div className="w-[48%]">
+          <p className="mb-1 text-sm">Change branch:</p>
+          <Select
+            options={branchOptions}
+            placeholder="Select branch"
+            className="react-select"
+            classNamePrefix="select"
+            styles={selectStyles(theme, color)}
+            value={selectedBranch}
+            onChange={handleChangeBranch}
           />
-        </Card>
-
-        <Card title="Order Details" className="w-1/2 p-4">
-          <div className="flex gap- justify-between my-2">
-            <p>Name: {OrderDetails?.user_data?.user_name}</p>
-            <p>Phone: {OrderDetails?.user_data?.phone}</p>
-          </div>
-          <div className="flex gap- justify-between">
-            <p>Order date: {OrderDetails?.created_at}</p>
-            <p>Order id: {OrderDetails?.order_id}</p>
-          </div>
-
-          <div className="flex gap-2 justify-between my-2">
-            <div className="w-[40%]">
-              <p className="mb-1 text-sm ">Change branch:</p>
-              <Select
-                options={branchOptions}
-                placeholder="Select branch"
-                className="react-select"
-                classNamePrefix="select"
-                styles={selectStyles(theme, color)}
-                value={selectedBranch}
-                // onChange={(selected) => setSelectedBranch(selected)}
-                onChange={handleChangeBranch}
-              />
-            </div>
-            <div className="w-[40%]">
-              <p className="mb-1 text-sm ">Change status:</p>
-              <Select
-                placeholder="Change Status"
-                className="react-select "
-                classNamePrefix="select"
-                styles={selectStyles(theme, color)}
-                options={statusOptions}
-                onChange={handleChangeStatus}
-                value={selectedStatus}
-              />
-            </div>
-           
-          </div>
-          <div className="flex justify-end ">
-            <div className="flex justify-end w-1/2">
-              <div className="flex gap-2 items-end">
-                <Button className="py-[6px]" onClick={handleEditOrder}>
-                  {/* <FiEdit /> */}
-                  Edit 
-                </Button>
-                <Button className="py-[6px]" onClick={() => handlePrint()}>
-                  Print
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Card>
+        </div>
+        <div className="w-[48%]">
+          <p className="mb-1 text-sm">Change status:</p>
+          <Select
+            placeholder="Change Status"
+            className="react-select"
+            classNamePrefix="select"
+            styles={selectStyles(theme, color)}
+            options={statusOptions}
+            value={selectedStatus}
+            onChange={handleChangeStatus}
+          />
+        </div>
       </div>
-      <div className="flex gap-4">
-        <Card title="Order Details" className="w-1/2 p-4">
-          <p>Address: {OrderDetails?.address_info?.address1 || "Pickup"}</p>
-          <div className=" justify-between mt-4 my-2">
-            <div className="flex gap-3">
-              <p>
-                Area: {OrderDetails?.address_info?.area_details?.area_name_en}
-              </p>
-              <p>Floor: {OrderDetails?.address_info?.floor || "-"}</p>
-            </div>
-            <div className="flex gap-5 my-2">
-              <p>Street: {OrderDetails?.address_info?.street || "-"}</p>
-              <p>Building: {OrderDetails?.address_info?.building || "-"}</p>
-            </div>
 
-            <div className="flex gap-5 my-2">
-              <p>Apartment: {OrderDetails?.address_info?.apartment || "-"} </p>
-              <p>
-                Additional Info: {OrderDetails?.address_info?.additional || "-"}
-              </p>
-            </div>
-          </div>
-        </Card>
-        <Card title="Order Details" className="w-1/2 p-4">
-          <h2>Delivery details</h2>
-          <div className="flex justify-between mt-4 my-2">
-            <p>Name : {OrderDetails?.delivery?.delivery_details?.user_name}</p>
-            <p>
-              Phone: {OrderDetails?.delivery?.delivery_details?.phone || "-"}
-            </p>
-            <p>
-              phone2: {OrderDetails?.delivery?.delivery_details?.phone2 || "-"}
-            </p>
-          </div>
-          {/* <Button>Change driver</Button> */}
-          <div className="w-[40%]">
-              <p className="mb-1 text-sm ">Change dispatcher:</p>
-              <Select
-                placeholder="Change dispatcher"
-                className="react-select "
-                classNamePrefix="select"
-                styles={selectStyles(theme, color)}
-                options={DeliveryOptions}
-                // onChange={(selected) => setSelectedStatus(selected)}
-                onChange={handleChangeDelivery}
-                value={selectedDelivery}
-              />
-            </div>
-        </Card>
+      <div className="flex justify-center items-center">
+        <div className="flex gap-2">
+          <Button className="py-[6px]" onClick={handleEditOrder}>
+            Edit
+          </Button>
+          <Button className="py-[6px]" onClick={() => handlePrint()}>
+            Print
+          </Button>
+        </div>
       </div>
+    </Card>
+
+    {/* الكرت الثاني */}
+  <Card title="Order Details" className="p-4">
+  {/* Address في أول الكارت */}
+  <p className="mb-4">
+    <span className="font-semibold">Address:</span>{" "}
+    {OrderDetails?.address_info?.address1 || "Pickup"}
+  </p>
+
+  {/* صفين، كل صف فيه 3 عناصر */}
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+      <span className="font-semibold">Area: </span>
+      {OrderDetails?.address_info?.area_details?.area_name_en || "-"}
+    </div>
+    <div>
+      <span className="font-semibold">Floor: </span>
+      {OrderDetails?.address_info?.floor || "-"}
+    </div>
+    <div>
+      <span className="font-semibold">Street: </span>
+      {OrderDetails?.address_info?.street || "-"}
+    </div>
+
+    <div>
+      <span className="font-semibold">Building: </span>
+      {OrderDetails?.address_info?.building || "-"}
+    </div>
+    <div>
+      <span className="font-semibold">Apartment: </span>
+      {OrderDetails?.address_info?.apartment || "-"}
+    </div>
+    <div>
+      <span className="font-semibold">Additional Info: </span>
+      {OrderDetails?.address_info?.additional || "-"}
+    </div>
+  </div>
+</Card>
+
+
+    {/* الكرت الثالث */}
+    <Card title="Order Details" className="p-4">
+      <h2 className="text-md font-semibold mb-2">Delivery details</h2>
+     <div className="flex justify-between my-2 flex-wrap gap-4">
+  <p>
+    <span className="font-semibold">Name:</span>{" "}
+    {OrderDetails?.delivery?.delivery_details?.user_name || "-"}
+  </p>
+  <p>
+    <span className="font-semibold">Phone:</span>{" "}
+    {OrderDetails?.delivery?.delivery_details?.phone || "-"}
+  </p>
+  <p>
+    <span className="font-semibold">Phone2:</span>{" "}
+    {OrderDetails?.delivery?.delivery_details?.phone2 || "-"}
+  </p>
+</div>
+
+   <div className="flex items-center gap-2 mb-2">
+  <p className="text-sm min-w-[130px] font-semibold">Change dispatcher:</p>
+  <div className="flex-1">
+    <Select
+      placeholder="Change dispatcher"
+      className="react-select"
+      classNamePrefix="select"
+      styles={selectStyles(theme, color)}
+      options={DeliveryOptions}
+      value={selectedDelivery}
+      onChange={handleChangeDelivery}
+    />
+  </div>
+</div>
+
+    </Card>
+  </div>
+</div>
+
+    
 
       {/* <Card className="col-span- h-full mt-0 w-[60%] p-5">
         <p>Customer Name: {OrderDetails?.user?.name}</p>
