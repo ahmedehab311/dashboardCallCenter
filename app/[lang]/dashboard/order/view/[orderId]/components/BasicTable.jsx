@@ -53,11 +53,10 @@ const BasicTable = ({ OrderDetails, OrderDetailsItem }) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Item</TableHead>
-              <TableHead>Count</TableHead>
-              <TableHead>Notes</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Total</TableHead>
+        <TableHead className="w-1/">Item</TableHead>
+<TableHead className="w-2/5">Notes</TableHead>
+<TableHead className="w-1/8">Price</TableHead>
+<TableHead className="w-1/8">Total</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -66,11 +65,9 @@ const BasicTable = ({ OrderDetails, OrderDetailsItem }) => {
                 {/* الصف الرئيسي للعنصر */}
                 <TableRow>
                   <TableCell className="text-[#000] dark:text-[#fff]">
-                    {item?.info?.size_en || item?.name?.item_name}
+                 {item?.count} × {item?.info?.size_en || item?.name?.item_name}
                   </TableCell>
-                  <TableCell className="text-[#000] dark:text-[#fff]">
-                    {item?.count}
-                  </TableCell>
+                
                   <TableCell className="text-[#000] dark:text-[#fff]">
                     {item?.special || "—"}
                   </TableCell>
@@ -91,15 +88,13 @@ const BasicTable = ({ OrderDetails, OrderDetailsItem }) => {
                   return (
                     <TableRow
                       key={`condiment-${index}-${i}`}
-                      className="bg-gray-50 dark:bg-gray-800"
+                      className="bg-gray-100 dark:bg-gray-800"
                     >
                       <TableCell className="pl-6 text-sm text-[#444] dark:text-[#ccc]">
-                        {condiment.condiment_info?.name_en ||
+                        {count}  × {condiment.condiment_info?.name_en ||
                           condiment.condiment_info?.name_en}
                       </TableCell>
-                      <TableCell className="text-sm text-[#444] dark:text-[#ccc]">
-                        {count}
-                      </TableCell>
+                  
                       <TableCell />
                       <TableCell className="text-sm text-[#444] dark:text-[#ccc]">
                         {price.toFixed(2)}

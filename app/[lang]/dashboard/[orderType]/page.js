@@ -83,6 +83,7 @@ import { useSelector } from "react-redux";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
+import CartItem from "./components/cartItem";
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   phone: z.string().regex(/^\d{3,15}$/, "Invalid phone number"),
@@ -468,7 +469,6 @@ function CreateOrder({ params }) {
   }, [selectedItem]);
 
   const handleItemClick = async (item) => {
-    console.log("item handleItemClick", item);
     if (!selectedUser) {
       setShowUserWarningDialog(true);
       return;
@@ -553,7 +553,7 @@ function CreateOrder({ params }) {
           groupNameMainExtras: extraMainGroup?.group_name || [], // group_name للاكسترات الاساسية للايتم
           itemExtras: firstInfo?.size_condiments || [],
           extrasData: extraGroup?.condiments || [], // الاكسترات الموجودة للسايز
-          groupExtrasDataRule: {
+          groupExtrasRules: {
             max: extraGroup?.max,
             min: extraGroup?.min,
           },
@@ -717,7 +717,6 @@ function CreateOrder({ params }) {
   //   setIsItemDialogOpen(true);
 
   //   const cartItem = cartItems.find((cartItem) => cartItem.cartId === item.cartId);
-  // console.log("cartItem",cartItem);
 
   //   if (!cartItem) return;
 
@@ -794,164 +793,393 @@ function CreateOrder({ params }) {
   //   }
   // };
 
-  const handleEditItem = async (item) => {
-    setNote(item.note || "");
-    setCounter(item.quantity);
-    setTotalExtrasPrice(0);
-    setIsItemDialogOpen(true);
-    console.log("item", item);
+//   const handleEditItem = async (item) => {
+//     setNote(item.note || "");
+//     setCounter(item.quantity);
+//     setTotalExtrasPrice(0);
+//     setIsItemDialogOpen(true);
+ 
 
-    const cartItem = cartItems.find(
-      (cartItem) => cartItem.cartId === item.cartId
+//     const cartItem = cartItems.find(
+//       (cartItem) => cartItem.cartId === item.cartId
+//     );
+//     if (!cartItem) return;
+
+//     try {
+//       const response = await fetchViewItem(
+//         savedBranch?.value || selectedBranchInSelected?.value,
+//         item.id,
+//         token,
+//         apiBaseUrl
+//       );
+
+//       if (response?.response === false) {
+//         setMassegeInvaildToken(response.message);
+//         return;
+//       }
+
+//       setMassegeInvaildToken(null);
+
+//       if (response) {
+//         setIsOpenMainOption(true);
+//         setIsOpenMainExtra(true);
+//         setIsOpen(true);
+//         setInitialized(false);
+
+//         const selectedSizeInfo =
+//           response?.sizes?.find((s) => s?.id === cartItem?.selectedIdSize) ||
+//           response?.sizes?.[0];
+
+//         const sizeCondiments = selectedSizeInfo?.size_condiments || [];
+//         const itemCondiments = response?.item_condiments || [];
+
+//         const extraMainGroup = itemCondiments.find(
+//           (group) => group?.type === "extra"
+//         );
+//         const extraGroup = sizeCondiments.find(
+//           (group) => group?.type === "extra"
+//         );
+//         const optionGroup = sizeCondiments.find(
+//           (group) => group?.type === "option"
+//         );
+
+//         setSelectedItem({
+//           id: response?.id,
+//           name: response?.name_en, // ← الاسم الصحيح للمنتج
+//           description_en: response?.description_en,
+//           description_ar: response?.description_ar,
+//           image: response?.image,
+//           price: selectedSizeInfo?.price?.price,
+//           availability: selectedSizeInfo?.availability?.availability,
+//           info: response?.sizes || [],
+//           selectedInfo:
+//             cartItem?.selectedInfo || selectedSizeInfo?.size_en || "",
+//           selectedIdSize: selectedSizeInfo?.id || "",
+//           mainExtras: extraMainGroup?.condiments || [],
+//           groupNameMainExtras: extraMainGroup?.group_name || [],
+//           groupExtrasMainRule: {
+//             max: extraMainGroup?.max,
+//             min: extraMainGroup?.min,
+//           },
+//           itemExtras: selectedSizeInfo?.size_condiments || [],
+//           extrasData: extraGroup?.condiments || [],
+//           groupNameExtrasData: extraGroup?.group_name || [],
+//           groupExtrasRules: {
+//             max: extraGroup?.max,
+//             min: extraGroup?.min,
+//           },
+//           groupExtrasMainRule: {
+//             max: extraMainGroup?.max,
+//             min: extraMainGroup?.min,
+//           },
+
+//           optionSize: optionGroup?.condiments || [],
+//           groupNameSizes: optionGroup?.group_name || [],
+//           selectedExtras: cartItem?.selectedExtras || [],
+//           selectedExtrasIds: cartItem?.selectedExtrasIds || [],
+//           selectedMainExtras: cartItem?.selectedMainExtras || [],
+//           selectedMainExtrasIds: cartItem?.selectedMainExtrasIds || [],
+//           selectedoption: cartItem?.selectedoption || [],
+//           selectedoptionId: cartItem?.selectedoptionId || [],
+//           cartId: cartItem.cartId,
+//         });
+//        setSelectedItem((prev) => {
+//   const sizeCondiments = cartItem.size_condiments?.length
+//     ? cartItem.size_condiments
+//     : [
+//         ...(cartItem.selectedExtras || []).map((e) => ({
+//           condiment_id: e.id,
+//           count: e.quantity || 1,
+//           price: e.price,
+//           condiment_info: { name_en: e.name },
+//         })),
+//         ...(cartItem.selectedMainExtras || []).map((e) => ({
+//           condiment_id: e.id,
+//           count: e.quantity || 1,
+//           price: e.price,
+//           condiment_info: { name_en: e.name },
+//         })),
+//         ...(cartItem.selectedoption || []).map((e) => ({
+//           condiment_id: e.id,
+//           count: 1,
+//           price: e.price,
+//           condiment_info: { name_en: e.name },
+//         })),
+//       ];
+
+//   const extrasData = prev.extrasData || [];
+//   const optionSize = prev.optionSize || [];
+//   const mainExtras = prev.mainExtras || [];
+
+//   const filledExtras = sizeCondiments.filter((cond) =>
+//     extrasData.some((e) => e.id === cond.condiment_id)
+//   ).map((cond) => {
+//     const matched = extrasData.find((e) => e.id === cond.condiment_id);
+//     return {
+//       id: cond.condiment_id,
+//       name: matched?.name || cond.condiment_info?.name_en,
+//       price: parseFloat(cond.price),
+//       quantity: cond.count,
+//     };
+//   });
+
+//   const filledOptions = sizeCondiments.filter((cond) =>
+//     optionSize.some((e) => e.id === cond.condiment_id)
+//   ).map((cond) => {
+//     const matched = optionSize.find((e) => e.id === cond.condiment_id);
+//     return {
+//       id: cond.condiment_id,
+//       name: matched?.name || cond.condiment_info?.name_en,
+//       price: parseFloat(cond.price),
+//       quantity: cond.count,
+//     };
+//   });
+
+//   const filledMainExtras = sizeCondiments.filter((cond) =>
+//     mainExtras.some((e) => e.id === cond.condiment_id)
+//   ).map((cond) => {
+//     const matched = mainExtras.find((e) => e.id === cond.condiment_id);
+//     return {
+//       id: cond.condiment_id,
+//       name: matched?.name || cond.condiment_info?.name_en,
+//       price: parseFloat(cond.price),
+//       quantity: cond.count,
+//     };
+//   });
+
+//   // ✅ احسب التوتال هنا
+//   const extrasTotal = filledExtras.reduce(
+//     (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+//     0
+//   );
+//   const mainExtrasTotal = filledMainExtras.reduce(
+//     (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+//     0
+//   );
+//   const optionsTotal = filledOptions.reduce(
+//     (sum, o) => sum + (Number(o.price) || 0) * (Number(o.quantity) || 1),
+//     0
+//   );
+//   const basePrice = Number(prev.price) || 0;
+//   const quantity = cartItem.quantity || 1;
+//   const total = (basePrice + extrasTotal + mainExtrasTotal + optionsTotal) * quantity;
+
+//   return {
+//     ...prev,
+//     selectedMainExtras: filledMainExtras,
+//     selectedMainExtrasIds: filledMainExtras.map((e) => e.id),
+//     selectedExtras: filledExtras,
+//     selectedExtrasIds: filledExtras.map((e) => e.id),
+//     selectedoption: filledOptions,
+//     selectedoptionId: filledOptions.map((o) => o.id),
+//     total, // ✅ التوتال هنا
+//   };
+// });
+
+//       }
+//     } catch (error) {
+//       console.error("Error fetching item details:", error);
+//     }
+//   };
+
+const handleEditItem = async (item) => {
+  setNote(item.note || "");
+  setCounter(item.quantity);
+  setTotalExtrasPrice(0);
+  setIsItemDialogOpen(true);
+
+  const cartItem = cartItems.find(
+    (cartItem) => cartItem.cartId === item.cartId
+  );
+  if (!cartItem) return;
+
+  try {
+    const response = await fetchViewItem(
+      savedBranch?.value || selectedBranchInSelected?.value,
+      item.id,
+      token,
+      apiBaseUrl
     );
-    if (!cartItem) return;
 
-    try {
-      const response = await fetchViewItem(
-        savedBranch?.value || selectedBranchInSelected?.value,
-        item.id,
-        token,
-        apiBaseUrl
-      );
-      console.log("cartItem.cartItems", cartItems);
-      console.log("cartItem.id", cartItem.id);
-
-      if (response?.response === false) {
-        setMassegeInvaildToken(response.message);
-        return;
-      }
-
-      setMassegeInvaildToken(null);
-
-      if (response) {
-        setIsOpenMainOption(true);
-        setIsOpenMainExtra(true);
-        setIsOpen(true);
-        setInitialized(false);
-
-        const selectedSizeInfo =
-          response?.sizes?.find((s) => s?.id === cartItem?.selectedIdSize) ||
-          response?.sizes?.[0];
-
-        const sizeCondiments = selectedSizeInfo?.size_condiments || [];
-        const itemCondiments = response?.item_condiments || [];
-
-        const extraMainGroup = itemCondiments.find(
-          (group) => group?.type === "extra"
-        );
-        const extraGroup = sizeCondiments.find(
-          (group) => group?.type === "extra"
-        );
-        const optionGroup = sizeCondiments.find(
-          (group) => group?.type === "option"
-        );
-
-        setSelectedItem({
-          id: response?.id,
-          name: response?.name_en, // ← الاسم الصحيح للمنتج
-          description_en: response?.description_en,
-          description_ar: response?.description_ar,
-          image: response?.image,
-          price: selectedSizeInfo?.price?.price,
-          availability: selectedSizeInfo?.availability?.availability,
-          info: response?.sizes || [],
-          selectedInfo:
-            cartItem?.selectedInfo || selectedSizeInfo?.size_en || "",
-          selectedIdSize: selectedSizeInfo?.id || "",
-          mainExtras: extraMainGroup?.condiments || [],
-          groupNameMainExtras: extraMainGroup?.group_name || [],
-          groupExtrasMainRule: {
-            max: extraMainGroup?.max,
-            min: extraMainGroup?.min,
-          },
-          itemExtras: selectedSizeInfo?.size_condiments || [],
-          extrasData: extraGroup?.condiments || [],
-          groupNameExtrasData: extraGroup?.group_name || [],
-          groupExtrasDataRule: {
-            max: extraGroup?.max,
-            min: extraGroup?.min,
-          },
-          optionSize: optionGroup?.condiments || [],
-          groupNameSizes: optionGroup?.group_name || [],
-          selectedExtras: cartItem?.selectedExtras || [],
-          selectedExtrasIds: cartItem?.selectedExtrasIds || [],
-          selectedMainExtras: cartItem?.selectedMainExtras || [],
-          selectedMainExtrasIds: cartItem?.selectedMainExtrasIds || [],
-          selectedoption: cartItem?.selectedoption || [],
-          selectedoptionId: cartItem?.selectedoptionId || [],
-          cartId: cartItem.cartId,
-        });
-        setSelectedItem((prev) => {
-          const sizeCondiments = cartItem.size_condiments || [];
-          const extrasData = prev.extrasData || [];
-          const optionSize = prev.optionSize || [];
-          const mainExtras = prev.mainExtras || [];
-          console.log("sizeCondiments handleEdit", sizeCondiments);
-          console.log("extrasData handleEdit", extrasData);
-          console.log("optionSize handleEdit", optionSize);
-          const filledExtras = sizeCondiments
-            .filter((cond) =>
-              extrasData.some((e) => e.id === cond.condiment_id)
-            )
-            .map((cond) => {
-              const matched = extrasData.find(
-                (e) => e.id === cond.condiment_id
-              );
-              return {
-                id: cond.condiment_id,
-                name: matched?.name || cond.condiment_info?.name_en,
-                price: parseFloat(cond.price),
-                quantity: cond.count,
-              };
-            });
-          const filledOptions = sizeCondiments
-            .filter((cond) =>
-              optionSize.some((e) => e.id === cond.condiment_id)
-            )
-            .map((cond) => {
-              const matched = optionSize.find(
-                (e) => e.id === cond.condiment_id
-              );
-              return {
-                id: cond.condiment_id,
-                name: matched?.name || cond.condiment_info?.name_en,
-                price: parseFloat(cond.price),
-                quantity: cond.count,
-              };
-            });
-          const filledMainExtras = sizeCondiments
-            .filter((cond) =>
-              mainExtras.some((e) => e.id === cond.condiment_id)
-            )
-            .map((cond) => {
-              const matched = mainExtras.find(
-                (e) => e.id === cond.condiment_id
-              );
-              return {
-                id: cond.condiment_id,
-                name: matched?.name || cond.condiment_info?.name_en,
-                price: parseFloat(cond.price),
-                quantity: cond.count,
-              };
-            });
-
-          console.log("filledExtras handleEdit", filledExtras);
-
-          return {
-            ...prev,
-            selectedMainExtras: filledMainExtras,
-            selectedMainExtrasIds: filledMainExtras.map((e) => e.id),
-            selectedExtras: filledExtras,
-            selectedExtrasIds: filledExtras.map((e) => e.id),
-            selectedoption: filledOptions,
-            selectedoptionId: filledOptions.map((o) => o.id),
-          };
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching item details:", error);
+    if (response?.response === false) {
+      setMassegeInvaildToken(response.message);
+      return;
     }
-  };
+
+    setMassegeInvaildToken(null);
+
+    if (response) {
+      setIsOpenMainOption(true);
+      setIsOpenMainExtra(true);
+      setIsOpen(true);
+      setInitialized(false);
+
+      const selectedSizeInfo =
+        response?.sizes?.find((s) => s?.id === cartItem?.selectedIdSize) ||
+        response?.sizes?.[0];
+
+      const sizeCondiments = selectedSizeInfo?.size_condiments || [];
+      const itemCondiments = response?.item_condiments || [];
+
+      const extraMainGroup = itemCondiments.find(
+        (group) => group?.type === "extra"
+      );
+      const extraGroup = sizeCondiments.find(
+        (group) => group?.type === "extra"
+      );
+      const optionGroup = sizeCondiments.find(
+        (group) => group?.type === "option"
+      );
+
+      setSelectedItem({
+        id: response?.id,
+        name: response?.name_en,
+        description_en: response?.description_en,
+        description_ar: response?.description_ar,
+        image: response?.image,
+        price: selectedSizeInfo?.price?.price,
+        availability: selectedSizeInfo?.availability?.availability,
+        info: response?.sizes || [],
+        selectedInfo:
+          cartItem?.selectedInfo || selectedSizeInfo?.size_en || "",
+        selectedIdSize: selectedSizeInfo?.id || "",
+        mainExtras: extraMainGroup?.condiments || [],
+        groupNameMainExtras: extraMainGroup?.group_name || [],
+        groupExtrasMainRule: {
+          max: extraMainGroup?.max,
+          min: extraMainGroup?.min,
+        },
+        itemExtras: selectedSizeInfo?.size_condiments || [],
+        extrasData: extraGroup?.condiments || [],
+        groupNameExtrasData: extraGroup?.group_name || [],
+        groupExtrasRules: {
+          max: extraGroup?.max,
+          min: extraGroup?.min,
+        },
+        groupExtrasMainRule: {
+          max: extraMainGroup?.max,
+          min: extraMainGroup?.min,
+        },
+        optionSize: optionGroup?.condiments || [],
+        groupNameSizes: optionGroup?.group_name || [],
+        cartId: cartItem.cartId,
+      });
+
+      // حساب التوتال داخل setSelectedItem الثاني
+      setSelectedItem((prev) => {
+        const sizeCondiments = cartItem.size_condiments?.length
+          ? cartItem.size_condiments
+          : [
+              ...(cartItem.selectedExtras || []).map((e) => ({
+                condiment_id: e.id,
+                count: e.quantity || 1,
+                price: e.price,
+                condiment_info: { name_en: e.name },
+              })),
+              ...(cartItem.selectedMainExtras || []).map((e) => ({
+                condiment_id: e.id,
+                count: e.quantity || 1,
+                price: e.price,
+                condiment_info: { name_en: e.name },
+              })),
+              ...(cartItem.selectedoption || []).map((e) => ({
+                condiment_id: e.id,
+                count: 1,
+                price: e.price,
+                condiment_info: { name_en: e.name },
+              })),
+            ];
+
+        const extrasData = prev.extrasData || [];
+        const optionSize = prev.optionSize || [];
+        const mainExtras = prev.mainExtras || [];
+
+        const filledExtras = sizeCondiments
+          .filter((cond) =>
+            extrasData.some((e) => e.id === cond.condiment_id)
+          )
+          .map((cond) => {
+            const matched = extrasData.find(
+              (e) => e.id === cond.condiment_id
+            );
+            return {
+              id: cond.condiment_id,
+              name: matched?.name || cond.condiment_info?.name_en,
+              price: parseFloat(cond.price),
+              quantity: cond.count,
+            };
+          });
+
+        const filledOptions = sizeCondiments
+          .filter((cond) =>
+            optionSize.some((e) => e.id === cond.condiment_id)
+          )
+          .map((cond) => {
+            const matched = optionSize.find(
+              (e) => e.id === cond.condiment_id
+            );
+            return {
+              id: cond.condiment_id,
+              name: matched?.name || cond.condiment_info?.name_en,
+              price: parseFloat(cond.price),
+              quantity: cond.count,
+            };
+          });
+
+        const filledMainExtras = sizeCondiments
+          .filter((cond) =>
+            mainExtras.some((e) => e.id === cond.condiment_id)
+          )
+          .map((cond) => {
+            const matched = mainExtras.find(
+              (e) => e.id === cond.condiment_id
+            );
+            return {
+              id: cond.condiment_id,
+              name: matched?.name || cond.condiment_info?.name_en,
+              price: parseFloat(cond.price),
+              quantity: cond.count,
+            };
+          });
+
+        const basePrice = Number(prev.price) || 0;
+        const quantity = cartItem.quantity || 1;
+
+        const extrasTotal = filledExtras.reduce(
+          (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+          0
+        );
+        const mainExtrasTotal = filledMainExtras.reduce(
+          (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+          0
+        );
+        const optionsTotal = filledOptions.reduce(
+          (sum, o) => sum + (Number(o.price) || 0) * (Number(o.quantity) || 1),
+          0
+        );
+
+        const total =
+          (basePrice + extrasTotal + mainExtrasTotal + optionsTotal) *
+          quantity;
+
+        return {
+          ...prev,
+          selectedMainExtras: filledMainExtras,
+          selectedMainExtrasIds: filledMainExtras.map((e) => e.id),
+          selectedExtras: filledExtras,
+          selectedExtrasIds: filledExtras.map((e) => e.id),
+          selectedoption: filledOptions,
+          selectedoptionId: filledOptions.map((o) => o.id),
+          quantity,
+          total,
+        };
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching item details:", error);
+  }
+};
+
 
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
@@ -1194,6 +1422,8 @@ function CreateOrder({ params }) {
         const matchedBranch = branchOptions.find(
           (branch) => branch.value === Number(branchId)
         );
+console.log("deliveryType",deliveryType);
+console.log("branchId",branchId);
 
         if (
           AdderssOrder &&
@@ -1261,7 +1491,7 @@ function CreateOrder({ params }) {
             selectedMainExtras: [],
             size_condiments: item?.size_condiments,
             note: item?.special || "",
-            total:item?.sub_total,
+            total: item?.sub_total,
             cartId: uuidv4(),
           };
         });
@@ -1485,7 +1715,32 @@ function CreateOrder({ params }) {
       setIsOpen(true);
       return; // وقف الإضافة
     }
+    
     setExtrasError("");
+ const calculateTotal = () => {
+  const basePrice =
+    Number(
+      selectedItem.info?.find(
+        (s) => s?.id === selectedItem.selectedIdSize
+      )?.price?.price
+    ) || 0;
+
+  const extrasTotal = (selectedItem.selectedExtras || []).reduce(
+    (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+    0
+  );
+  const mainExtrasTotal = (selectedItem.selectedMainExtras || []).reduce(
+    (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+    0
+  );
+  const optionsTotal = (selectedItem.selectedoption || []).reduce(
+    (sum, o) => sum + (Number(o.price) || 0) * (Number(o.quantity) || 1),
+    0
+  );
+
+  return (basePrice + extrasTotal + mainExtrasTotal + optionsTotal) * counter;
+};
+
     setCartItems((prevItems) => {
       const isEditing = !!selectedItem.cartId; // لو جاي من Edit هيكون عنده cartId
 
@@ -1500,7 +1755,8 @@ function CreateOrder({ params }) {
           updatedItems[existingItemIndex] = {
             ...selectedItem,
             quantity: counter,
-            total: counter * selectedItem.price,
+            total: calculateTotal(),
+
             note: note,
             cartId: selectedItem.cartId, // مهم
             mainExtras: [...(selectedItem.mainExtras || [])],
@@ -1508,6 +1764,8 @@ function CreateOrder({ params }) {
             selectedExtras: [...(selectedItem.selectedExtras || [])],
             selectedIdSize: selectedItem.selectedIdSize,
             selectedInfo: selectedItem.selectedInfo,
+            groupExtrasRules: selectedItem.groupExtrasRules,
+            groupExtrasMainRule: selectedItem.groupExtrasMainRule,
           };
           return updatedItems;
         }
@@ -1520,7 +1778,7 @@ function CreateOrder({ params }) {
           ...selectedItem,
           id: `${selectedItem.id}`,
           quantity: counter,
-          total: counter * selectedItem.price,
+         total: calculateTotal(),
           note: note,
           cartId: uuidv4(),
           mainExtras: [...(selectedItem.mainExtras || [])],
@@ -1872,8 +2130,6 @@ function CreateOrder({ params }) {
     }
   }, [selectedOrderType]);
 
-  console.log("selectedBranch", selectedBranch);
-  console.log("selectedBranchId", selectedBranchId);
   useEffect(() => {
     if (selectedOrderType?.value === 2) {
       const selectedBranch = getValueCreateOrder("branches"); // احصل على الفرع المختار داخل الكنترول
@@ -2655,7 +2911,7 @@ function CreateOrder({ params }) {
                     open={isItemDialogOpen}
                     onOpenChange={setIsItemDialogOpen}
                   >
-                    <DialogContent size="3xl" hiddenCloseIcon={true}>
+                    <DialogContent size="3xl"  hiddenCloseIcon={true}>
                       <div className=" flex justify-between items-center space-y-4">
                         <p className="text-xl">{selectedItem?.name}</p>
 
@@ -3217,8 +3473,18 @@ function CreateOrder({ params }) {
                           className="w-full text-[#000] dark:text-[#fff]"
                         />
                       </div>
-                      <div className="sticky bottom-0 bg-white dark:bg-black p-4 border-t z-50 mt-4">
-                        <div className="flex justify-end">
+                  <div className="sticky bottom-[-23px] bg-white dark:bg-black p-4 border-t border-gray-300 dark:border-gray-700 shadow-md z-50 mt-4">
+                       <div className="flex items-center justify-between">
+                      
+                        <div>
+                              {selectedItem?.selectedInfo && (
+                              <p className="font-semibold">
+                                {counter > 1 ? `${counter}x` : ""}{" "}
+                                {selectedItem?.selectedInfo || ""}
+                              </p>
+                            )}
+                        </div>
+                           <div className="flex justify-end">
                           <p className="text-sm font-semibold mr-1">
                             Subtoal:{" "}
                           </p>
@@ -3233,14 +3499,10 @@ function CreateOrder({ params }) {
                           </p>
                           <p className="text-sm font-semibold ">EGP</p>
                         </div>
+                       </div>
                         <div className="flex justify-between items-center">
                           <div className="text-sm font-semibold flex flex-wrap max-w-[500px]">
-                            {selectedItem?.selectedInfo && (
-                              <p>
-                                {counter > 1 ? `${counter}x` : ""}{" "}
-                                {selectedItem?.selectedInfo || ""}
-                              </p>
-                            )}
+                        
 
                             <p className="text-gray-500 ml-3">
                               {(selectedItem?.selectedoption || [])
@@ -4219,51 +4481,41 @@ function CreateOrder({ params }) {
                                     )}
 
                                     {/* If selectedExtras exist, show them. Else, fallback to size_condiments */}
-{(item.selectedExtras?.length > 0 || item.size_condiments?.length > 0) && (
-  <div>
-    <div className="grid grid-cols-3 gap-x-2 text-[12px] mt-2 mb-2">
-      {(item.selectedExtras?.length > 0
-        ? item.selectedExtras
-        : item.size_condiments
-      ).map((extra, i) => (
-        <React.Fragment key={i}>
-          <span className="whitespace-normal break-words">
-            {extra.name || extra?.condiment_info?.name_en}
-          </span>
-          <span className="text-center">×{extra.quantity || extra.count}</span>
-          <span className="text-end">
-            {(Number(extra.price) * (extra.quantity || extra.count || 1)).toFixed(2)} EGP
-          </span>
-        </React.Fragment>
-      ))}
-    </div>
-  </div>
-)}
-
+                                    {isEditMode &&
+                                      item.selectedExtras?.length === 0 &&
+                                      item.selectedMainExtras?.length === 0 &&
+                                      item.size_condiments?.length > 0 && (
+                                        <div>
+                                          <div className="grid grid-cols-3 gap-x-2 text-[12px] mt-2 mb-2">
+                                            {item.size_condiments.map(
+                                              (extra, i) => (
+                                                <React.Fragment key={i}>
+                                                  <span className="whitespace-normal break-words">
+                                                    {
+                                                      extra?.condiment_info
+                                                        ?.name_en
+                                                    }
+                                                  </span>
+                                                  <span className="text-center">
+                                                    ×{extra.count || 1}
+                                                  </span>
+                                                  <span className="text-end">
+                                                    {(
+                                                      Number(extra.price) *
+                                                      (extra.count || 1)
+                                                    ).toFixed(2)}{" "}
+                                                    EGP
+                                                  </span>
+                                                </React.Fragment>
+                                              )
+                                            )}
+                                          </div>
+                                        </div>
+                                      )}
                                   </div>
 
-                                  {/* <div className="flex items-center justify-between">
-                                    <div className="text-sm text-[#fff] mb-2">
-                                      {item.selectedExtras?.map((extra) => (
-                                        <p
-                                          key={extra.id}
-                                          className="mb-1 text-[#000] dark:text-[#fff]"
-                                        >
-                                          {extra.name_en}
-                                        </p>
-                                      ))}
-                                      {item.selectedMainExtras?.map((extra) => (
-                                        <p
-                                          key={extra.id}
-                                          className="mb-1 text-[#000] dark:text-[#fff]"
-                                        >
-                                          {extra.name_en}
-                                        </p>
-                                      ))}
-                                    </div>
-                                  </div> */}
-                                  <div className="flex items-center gap-2">
-                                    <div className="my-3">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="my-3 w-full">
                                       <Input
                                         type="text"
                                         value={item.note || ""}
@@ -4367,27 +4619,42 @@ function CreateOrder({ params }) {
                                         </AlertDialogContent>
                                       </AlertDialog>
                                     </div>
-                                    {/* <span className="inline-flex items-center gap-1">
-                                      {(
-                                        ((selectedItem?.price || 0) +
-                                          totalExtrasPrices +
-                                          totalOptionPrices +
-                                          totalMainExtrasPrices) *
-                                        item.quantity
-                                      ).toFixed(2)}{" "}
-                                      EGP
-                                    </span> */}
-                                    <span className="inline-flex items-center gap-1">
+<span>
   {isEditMode
     ? `${item.total?.toFixed(2)} EGP`
-    : (
-        ((selectedItem?.price || 0) +
-          totalExtrasPrices +
-          totalOptionPrices +
-          totalMainExtrasPrices) *
-        item.quantity
-      ).toFixed(2) + " EGP"}
+    : (() => {
+        if (
+          (item.selectedExtras?.length || 0) === 0 &&
+          (item.selectedMainExtras?.length || 0) === 0 &&
+          (item.selectedoption?.length || 0) === 0
+        ) {
+          return `${item.total?.toFixed(2)} EGP`; // عرض التوتال القديم لو مفيش إضافات
+        }
+
+        const optionsTotal = (item.selectedoption || []).reduce(
+          (sum, o) =>
+            sum + (Number(o.price) || 0) * (Number(o.quantity) || 1),
+          0
+        );
+        const extrasTotal = (item.selectedExtras || []).reduce(
+          (sum, e) =>
+            sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+          0
+        );
+        const mainExtrasTotal = (item.selectedMainExtras || []).reduce(
+          (sum, e) =>
+            sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+          0
+        );
+        const basePrice = Number(item.price) || 0;
+        const total =
+          (basePrice + optionsTotal + extrasTotal + mainExtrasTotal) *
+          item.quantity;
+
+        return `${total.toFixed(2)} EGP`;
+      })()}
 </span>
+
 
                                   </div>
                                   {index !== cartItems.length - 1 && (
@@ -4721,7 +4988,7 @@ function CreateOrder({ params }) {
                                           <Input
                                             {...field}
                                             type="date"
-                                            className="border -gray-300 rounded-md p-2 w-full"
+                                            className="border  rounded-md p-2 w-full"
                                             min="1900-01-01"
                                             max="2099-12-31"
                                           />
