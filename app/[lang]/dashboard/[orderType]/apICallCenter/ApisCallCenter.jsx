@@ -21,11 +21,13 @@ export const fetchRestaurantsList = async (token, apiBaseUrl) => {
 export const fetchBranches = async (restaurantId, area, token, apiBaseUrl) => {
   try {
     const response = await axios.get(
-      `${apiBaseUrl}/callcenter/get/branches?api_token=${token}&restaurantId=${restaurantId}&areaId=${area}`
+      `${apiBaseUrl}/callcenter/get/branches?api_token=${token}&restaurantId=${restaurantId}&areaId=${
+        area ? area : ""
+      }`
     );
 
-    // console.log("API Response branches:", response);
-    // console.log("API Response.data branches:", response.data.data);
+    console.log("API Response branches:", response);
+    console.log("API Response.data branches:", response.data.data);
     // // console.log("API Response branches:", response.data.messages.branches);
     // console.log("API Response branches restaurantId:", restaurantId);
     // console.log("API Response branches area:", area);

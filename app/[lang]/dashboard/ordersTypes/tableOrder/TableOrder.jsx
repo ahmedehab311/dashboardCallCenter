@@ -82,9 +82,13 @@ export function BasicDataTable({
       selectedStatus === "Total"
         ? baseOrders
         : baseOrders.filter((order) => order?.status === selectedStatus);
+
+         const sortedOrders = filteredOrders.sort((a, b) => {
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
     console.log("filteredOrders", filteredOrders);
 
-    return filteredOrders.map((order) => {
+    return sortedOrders.map((order) => {
       return {
         "Invoice Id": order?.order_id,
         status: order?.status,

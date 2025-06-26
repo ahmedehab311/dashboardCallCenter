@@ -285,7 +285,7 @@ function CreateOrder({ params }) {
         token,
         apiBaseUrl
       ),
-    enabled: !!selectedRestaurantId && !!selectedAddress?.area && !!token,
+    enabled: !!selectedRestaurantId && !!token,
   });
 
   const {
@@ -404,9 +404,10 @@ function CreateOrder({ params }) {
 
   // api branches
 
-  // if (process.env.NODE_ENV === "development") {
-  //   console.log("selectedUser", selectedUser);
-  // }
+  if (process.env.NODE_ENV === "development") {
+    console.log("branches", branches);
+    console.log("selectedUser", selectedUser);
+  }
 
   const [activeSection, setActiveSection] = useState("all");
   const [counter, setCounter] = useState(1);
@@ -793,281 +794,430 @@ function CreateOrder({ params }) {
   //   }
   // };
 
-//   const handleEditItem = async (item) => {
-//     setNote(item.note || "");
-//     setCounter(item.quantity);
-//     setTotalExtrasPrice(0);
-//     setIsItemDialogOpen(true);
- 
+  //   const handleEditItem = async (item) => {
+  //     setNote(item.note || "");
+  //     setCounter(item.quantity);
+  //     setTotalExtrasPrice(0);
+  //     setIsItemDialogOpen(true);
 
-//     const cartItem = cartItems.find(
-//       (cartItem) => cartItem.cartId === item.cartId
-//     );
-//     if (!cartItem) return;
+  //     const cartItem = cartItems.find(
+  //       (cartItem) => cartItem.cartId === item.cartId
+  //     );
+  //     if (!cartItem) return;
 
-//     try {
-//       const response = await fetchViewItem(
-//         savedBranch?.value || selectedBranchInSelected?.value,
-//         item.id,
-//         token,
-//         apiBaseUrl
-//       );
+  //     try {
+  //       const response = await fetchViewItem(
+  //         savedBranch?.value || selectedBranchInSelected?.value,
+  //         item.id,
+  //         token,
+  //         apiBaseUrl
+  //       );
 
-//       if (response?.response === false) {
-//         setMassegeInvaildToken(response.message);
-//         return;
-//       }
+  //       if (response?.response === false) {
+  //         setMassegeInvaildToken(response.message);
+  //         return;
+  //       }
 
-//       setMassegeInvaildToken(null);
+  //       setMassegeInvaildToken(null);
 
-//       if (response) {
-//         setIsOpenMainOption(true);
-//         setIsOpenMainExtra(true);
-//         setIsOpen(true);
-//         setInitialized(false);
+  //       if (response) {
+  //         setIsOpenMainOption(true);
+  //         setIsOpenMainExtra(true);
+  //         setIsOpen(true);
+  //         setInitialized(false);
 
-//         const selectedSizeInfo =
-//           response?.sizes?.find((s) => s?.id === cartItem?.selectedIdSize) ||
-//           response?.sizes?.[0];
+  //         const selectedSizeInfo =
+  //           response?.sizes?.find((s) => s?.id === cartItem?.selectedIdSize) ||
+  //           response?.sizes?.[0];
 
-//         const sizeCondiments = selectedSizeInfo?.size_condiments || [];
-//         const itemCondiments = response?.item_condiments || [];
+  //         const sizeCondiments = selectedSizeInfo?.size_condiments || [];
+  //         const itemCondiments = response?.item_condiments || [];
 
-//         const extraMainGroup = itemCondiments.find(
-//           (group) => group?.type === "extra"
-//         );
-//         const extraGroup = sizeCondiments.find(
-//           (group) => group?.type === "extra"
-//         );
-//         const optionGroup = sizeCondiments.find(
-//           (group) => group?.type === "option"
-//         );
+  //         const extraMainGroup = itemCondiments.find(
+  //           (group) => group?.type === "extra"
+  //         );
+  //         const extraGroup = sizeCondiments.find(
+  //           (group) => group?.type === "extra"
+  //         );
+  //         const optionGroup = sizeCondiments.find(
+  //           (group) => group?.type === "option"
+  //         );
 
-//         setSelectedItem({
-//           id: response?.id,
-//           name: response?.name_en, // ← الاسم الصحيح للمنتج
-//           description_en: response?.description_en,
-//           description_ar: response?.description_ar,
-//           image: response?.image,
-//           price: selectedSizeInfo?.price?.price,
-//           availability: selectedSizeInfo?.availability?.availability,
-//           info: response?.sizes || [],
-//           selectedInfo:
-//             cartItem?.selectedInfo || selectedSizeInfo?.size_en || "",
-//           selectedIdSize: selectedSizeInfo?.id || "",
-//           mainExtras: extraMainGroup?.condiments || [],
-//           groupNameMainExtras: extraMainGroup?.group_name || [],
-//           groupExtrasMainRule: {
-//             max: extraMainGroup?.max,
-//             min: extraMainGroup?.min,
-//           },
-//           itemExtras: selectedSizeInfo?.size_condiments || [],
-//           extrasData: extraGroup?.condiments || [],
-//           groupNameExtrasData: extraGroup?.group_name || [],
-//           groupExtrasRules: {
-//             max: extraGroup?.max,
-//             min: extraGroup?.min,
-//           },
-//           groupExtrasMainRule: {
-//             max: extraMainGroup?.max,
-//             min: extraMainGroup?.min,
-//           },
+  //         setSelectedItem({
+  //           id: response?.id,
+  //           name: response?.name_en, // ← الاسم الصحيح للمنتج
+  //           description_en: response?.description_en,
+  //           description_ar: response?.description_ar,
+  //           image: response?.image,
+  //           price: selectedSizeInfo?.price?.price,
+  //           availability: selectedSizeInfo?.availability?.availability,
+  //           info: response?.sizes || [],
+  //           selectedInfo:
+  //             cartItem?.selectedInfo || selectedSizeInfo?.size_en || "",
+  //           selectedIdSize: selectedSizeInfo?.id || "",
+  //           mainExtras: extraMainGroup?.condiments || [],
+  //           groupNameMainExtras: extraMainGroup?.group_name || [],
+  //           groupExtrasMainRule: {
+  //             max: extraMainGroup?.max,
+  //             min: extraMainGroup?.min,
+  //           },
+  //           itemExtras: selectedSizeInfo?.size_condiments || [],
+  //           extrasData: extraGroup?.condiments || [],
+  //           groupNameExtrasData: extraGroup?.group_name || [],
+  //           groupExtrasRules: {
+  //             max: extraGroup?.max,
+  //             min: extraGroup?.min,
+  //           },
+  //           groupExtrasMainRule: {
+  //             max: extraMainGroup?.max,
+  //             min: extraMainGroup?.min,
+  //           },
 
-//           optionSize: optionGroup?.condiments || [],
-//           groupNameSizes: optionGroup?.group_name || [],
-//           selectedExtras: cartItem?.selectedExtras || [],
-//           selectedExtrasIds: cartItem?.selectedExtrasIds || [],
-//           selectedMainExtras: cartItem?.selectedMainExtras || [],
-//           selectedMainExtrasIds: cartItem?.selectedMainExtrasIds || [],
-//           selectedoption: cartItem?.selectedoption || [],
-//           selectedoptionId: cartItem?.selectedoptionId || [],
-//           cartId: cartItem.cartId,
-//         });
-//        setSelectedItem((prev) => {
-//   const sizeCondiments = cartItem.size_condiments?.length
-//     ? cartItem.size_condiments
-//     : [
-//         ...(cartItem.selectedExtras || []).map((e) => ({
-//           condiment_id: e.id,
-//           count: e.quantity || 1,
-//           price: e.price,
-//           condiment_info: { name_en: e.name },
-//         })),
-//         ...(cartItem.selectedMainExtras || []).map((e) => ({
-//           condiment_id: e.id,
-//           count: e.quantity || 1,
-//           price: e.price,
-//           condiment_info: { name_en: e.name },
-//         })),
-//         ...(cartItem.selectedoption || []).map((e) => ({
-//           condiment_id: e.id,
-//           count: 1,
-//           price: e.price,
-//           condiment_info: { name_en: e.name },
-//         })),
-//       ];
+  //           optionSize: optionGroup?.condiments || [],
+  //           groupNameSizes: optionGroup?.group_name || [],
+  //           selectedExtras: cartItem?.selectedExtras || [],
+  //           selectedExtrasIds: cartItem?.selectedExtrasIds || [],
+  //           selectedMainExtras: cartItem?.selectedMainExtras || [],
+  //           selectedMainExtrasIds: cartItem?.selectedMainExtrasIds || [],
+  //           selectedoption: cartItem?.selectedoption || [],
+  //           selectedoptionId: cartItem?.selectedoptionId || [],
+  //           cartId: cartItem.cartId,
+  //         });
+  //        setSelectedItem((prev) => {
+  //   const sizeCondiments = cartItem.size_condiments?.length
+  //     ? cartItem.size_condiments
+  //     : [
+  //         ...(cartItem.selectedExtras || []).map((e) => ({
+  //           condiment_id: e.id,
+  //           count: e.quantity || 1,
+  //           price: e.price,
+  //           condiment_info: { name_en: e.name },
+  //         })),
+  //         ...(cartItem.selectedMainExtras || []).map((e) => ({
+  //           condiment_id: e.id,
+  //           count: e.quantity || 1,
+  //           price: e.price,
+  //           condiment_info: { name_en: e.name },
+  //         })),
+  //         ...(cartItem.selectedoption || []).map((e) => ({
+  //           condiment_id: e.id,
+  //           count: 1,
+  //           price: e.price,
+  //           condiment_info: { name_en: e.name },
+  //         })),
+  //       ];
 
-//   const extrasData = prev.extrasData || [];
-//   const optionSize = prev.optionSize || [];
-//   const mainExtras = prev.mainExtras || [];
+  //   const extrasData = prev.extrasData || [];
+  //   const optionSize = prev.optionSize || [];
+  //   const mainExtras = prev.mainExtras || [];
 
-//   const filledExtras = sizeCondiments.filter((cond) =>
-//     extrasData.some((e) => e.id === cond.condiment_id)
-//   ).map((cond) => {
-//     const matched = extrasData.find((e) => e.id === cond.condiment_id);
-//     return {
-//       id: cond.condiment_id,
-//       name: matched?.name || cond.condiment_info?.name_en,
-//       price: parseFloat(cond.price),
-//       quantity: cond.count,
-//     };
-//   });
+  //   const filledExtras = sizeCondiments.filter((cond) =>
+  //     extrasData.some((e) => e.id === cond.condiment_id)
+  //   ).map((cond) => {
+  //     const matched = extrasData.find((e) => e.id === cond.condiment_id);
+  //     return {
+  //       id: cond.condiment_id,
+  //       name: matched?.name || cond.condiment_info?.name_en,
+  //       price: parseFloat(cond.price),
+  //       quantity: cond.count,
+  //     };
+  //   });
 
-//   const filledOptions = sizeCondiments.filter((cond) =>
-//     optionSize.some((e) => e.id === cond.condiment_id)
-//   ).map((cond) => {
-//     const matched = optionSize.find((e) => e.id === cond.condiment_id);
-//     return {
-//       id: cond.condiment_id,
-//       name: matched?.name || cond.condiment_info?.name_en,
-//       price: parseFloat(cond.price),
-//       quantity: cond.count,
-//     };
-//   });
+  //   const filledOptions = sizeCondiments.filter((cond) =>
+  //     optionSize.some((e) => e.id === cond.condiment_id)
+  //   ).map((cond) => {
+  //     const matched = optionSize.find((e) => e.id === cond.condiment_id);
+  //     return {
+  //       id: cond.condiment_id,
+  //       name: matched?.name || cond.condiment_info?.name_en,
+  //       price: parseFloat(cond.price),
+  //       quantity: cond.count,
+  //     };
+  //   });
 
-//   const filledMainExtras = sizeCondiments.filter((cond) =>
-//     mainExtras.some((e) => e.id === cond.condiment_id)
-//   ).map((cond) => {
-//     const matched = mainExtras.find((e) => e.id === cond.condiment_id);
-//     return {
-//       id: cond.condiment_id,
-//       name: matched?.name || cond.condiment_info?.name_en,
-//       price: parseFloat(cond.price),
-//       quantity: cond.count,
-//     };
-//   });
+  //   const filledMainExtras = sizeCondiments.filter((cond) =>
+  //     mainExtras.some((e) => e.id === cond.condiment_id)
+  //   ).map((cond) => {
+  //     const matched = mainExtras.find((e) => e.id === cond.condiment_id);
+  //     return {
+  //       id: cond.condiment_id,
+  //       name: matched?.name || cond.condiment_info?.name_en,
+  //       price: parseFloat(cond.price),
+  //       quantity: cond.count,
+  //     };
+  //   });
 
-//   // ✅ احسب التوتال هنا
-//   const extrasTotal = filledExtras.reduce(
-//     (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
-//     0
-//   );
-//   const mainExtrasTotal = filledMainExtras.reduce(
-//     (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
-//     0
-//   );
-//   const optionsTotal = filledOptions.reduce(
-//     (sum, o) => sum + (Number(o.price) || 0) * (Number(o.quantity) || 1),
-//     0
-//   );
-//   const basePrice = Number(prev.price) || 0;
-//   const quantity = cartItem.quantity || 1;
-//   const total = (basePrice + extrasTotal + mainExtrasTotal + optionsTotal) * quantity;
+  //   // ✅ احسب التوتال هنا
+  //   const extrasTotal = filledExtras.reduce(
+  //     (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+  //     0
+  //   );
+  //   const mainExtrasTotal = filledMainExtras.reduce(
+  //     (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+  //     0
+  //   );
+  //   const optionsTotal = filledOptions.reduce(
+  //     (sum, o) => sum + (Number(o.price) || 0) * (Number(o.quantity) || 1),
+  //     0
+  //   );
+  //   const basePrice = Number(prev.price) || 0;
+  //   const quantity = cartItem.quantity || 1;
+  //   const total = (basePrice + extrasTotal + mainExtrasTotal + optionsTotal) * quantity;
 
-//   return {
-//     ...prev,
-//     selectedMainExtras: filledMainExtras,
-//     selectedMainExtrasIds: filledMainExtras.map((e) => e.id),
-//     selectedExtras: filledExtras,
-//     selectedExtrasIds: filledExtras.map((e) => e.id),
-//     selectedoption: filledOptions,
-//     selectedoptionId: filledOptions.map((o) => o.id),
-//     total, // ✅ التوتال هنا
-//   };
-// });
+  //   return {
+  //     ...prev,
+  //     selectedMainExtras: filledMainExtras,
+  //     selectedMainExtrasIds: filledMainExtras.map((e) => e.id),
+  //     selectedExtras: filledExtras,
+  //     selectedExtrasIds: filledExtras.map((e) => e.id),
+  //     selectedoption: filledOptions,
+  //     selectedoptionId: filledOptions.map((o) => o.id),
+  //     total, // ✅ التوتال هنا
+  //   };
+  // });
 
-//       }
-//     } catch (error) {
-//       console.error("Error fetching item details:", error);
-//     }
-//   };
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching item details:", error);
+  //     }
+  //   };
 
-const handleEditItem = async (item) => {
-  setNote(item.note || "");
-  setCounter(item.quantity);
-  setTotalExtrasPrice(0);
-  setIsItemDialogOpen(true);
+  // const handleEditItem = async (item) => {
+  //   setNote(item.note || "");
+  //   setCounter(item.quantity);
+  //   setTotalExtrasPrice(0);
+  //   setIsItemDialogOpen(true);
 
-  const cartItem = cartItems.find(
-    (cartItem) => cartItem.cartId === item.cartId
-  );
-  if (!cartItem) return;
+  //   const cartItem = cartItems.find(
+  //     (cartItem) => cartItem.cartId === item.cartId
+  //   );
+  //   if (!cartItem) return;
 
-  try {
-    const response = await fetchViewItem(
-      savedBranch?.value || selectedBranchInSelected?.value,
-      item.id,
-      token,
-      apiBaseUrl
-    );
+  //   try {
+  //     const response = await fetchViewItem(
+  //       savedBranch?.value || selectedBranchInSelected?.value,
+  //       item.id,
+  //       token,
+  //       apiBaseUrl
+  //     );
 
-    if (response?.response === false) {
-      setMassegeInvaildToken(response.message);
-      return;
-    }
+  //     if (response?.response === false) {
+  //       setMassegeInvaildToken(response.message);
+  //       return;
+  //     }
 
-    setMassegeInvaildToken(null);
+  //     setMassegeInvaildToken(null);
 
-    if (response) {
-      setIsOpenMainOption(true);
-      setIsOpenMainExtra(true);
-      setIsOpen(true);
-      setInitialized(false);
+  //     if (response) {
+  //       setIsOpenMainOption(true);
+  //       setIsOpenMainExtra(true);
+  //       setIsOpen(true);
+  //       setInitialized(false);
 
-      const selectedSizeInfo =
-        response?.sizes?.find((s) => s?.id === cartItem?.selectedIdSize) ||
-        response?.sizes?.[0];
+  //       const selectedSizeInfo =
+  //         response?.sizes?.find((s) => s?.id === cartItem?.selectedIdSize) ||
+  //         response?.sizes?.[0];
 
-      const sizeCondiments = selectedSizeInfo?.size_condiments || [];
-      const itemCondiments = response?.item_condiments || [];
+  //       const sizeCondiments = selectedSizeInfo?.size_condiments || [];
+  //       const itemCondiments = response?.item_condiments || [];
 
-      const extraMainGroup = itemCondiments.find(
-        (group) => group?.type === "extra"
+  //       const extraMainGroup = itemCondiments.find(
+  //         (group) => group?.type === "extra"
+  //       );
+  //       const extraGroup = sizeCondiments.find(
+  //         (group) => group?.type === "extra"
+  //       );
+  //       const optionGroup = sizeCondiments.find(
+  //         (group) => group?.type === "option"
+  //       );
+
+  //       setSelectedItem({
+  //         id: response?.id,
+  //         name: response?.name_en,
+  //         description_en: response?.description_en,
+  //         description_ar: response?.description_ar,
+  //         image: response?.image,
+  //         price: selectedSizeInfo?.price?.price,
+  //           // total: cartItem.total,
+  //         availability: selectedSizeInfo?.availability?.availability,
+  //         info: response?.sizes || [],
+  //         selectedInfo:
+  //           cartItem?.selectedInfo || selectedSizeInfo?.size_en || "",
+  //         selectedIdSize: selectedSizeInfo?.id || "",
+  //         mainExtras: extraMainGroup?.condiments || [],
+  //         groupNameMainExtras: extraMainGroup?.group_name || [],
+  //         groupExtrasMainRule: {
+  //           max: extraMainGroup?.max,
+  //           min: extraMainGroup?.min,
+  //         },
+  //         itemExtras: selectedSizeInfo?.size_condiments || [],
+  //         extrasData: extraGroup?.condiments || [],
+  //         groupNameExtrasData: extraGroup?.group_name || [],
+  //         groupExtrasRules: {
+  //           max: extraGroup?.max,
+  //           min: extraGroup?.min,
+  //         },
+  //         groupExtrasMainRule: {
+  //           max: extraMainGroup?.max,
+  //           min: extraMainGroup?.min,
+  //         },
+  //         optionSize: optionGroup?.condiments || [],
+  //         groupNameSizes: optionGroup?.group_name || [],
+  //         cartId: cartItem.cartId,
+  //       });
+
+  //       // حساب التوتال داخل setSelectedItem الثاني
+  //       setSelectedItem((prev) => {
+  //         const sizeCondiments = cartItem.size_condiments?.length
+  //           ? cartItem.size_condiments
+  //           : [
+  //               ...(cartItem.selectedExtras || []).map((e) => ({
+  //                 condiment_id: e.id,
+  //                 count: e.quantity || 1,
+  //                 price: e.price,
+  //                 condiment_info: { name_en: e.name },
+  //               })),
+  //               ...(cartItem.selectedMainExtras || []).map((e) => ({
+  //                 condiment_id: e.id,
+  //                 count: e.quantity || 1,
+  //                 price: e.price,
+  //                 condiment_info: { name_en: e.name },
+  //               })),
+  //               ...(cartItem.selectedoption || []).map((e) => ({
+  //                 condiment_id: e.id,
+  //                 count: 1,
+  //                 price: e.price,
+  //                 condiment_info: { name_en: e.name },
+  //               })),
+  //             ];
+
+  //         const extrasData = prev.extrasData || [];
+  //         const optionSize = prev.optionSize || [];
+  //         const mainExtras = prev.mainExtras || [];
+
+  //         const filledExtras = sizeCondiments
+  //           .filter((cond) =>
+  //             extrasData.some((e) => e.id === cond.condiment_id)
+  //           )
+  //           .map((cond) => {
+  //             const matched = extrasData.find(
+  //               (e) => e.id === cond.condiment_id
+  //             );
+  //             return {
+  //               id: cond.condiment_id,
+  //               name: matched?.name || cond.condiment_info?.name_en,
+  //               price: parseFloat(cond.price),
+  //               quantity: cond.count,
+  //             };
+  //           });
+
+  //         const filledOptions = sizeCondiments
+  //           .filter((cond) =>
+  //             optionSize.some((e) => e.id === cond.condiment_id)
+  //           )
+  //           .map((cond) => {
+  //             const matched = optionSize.find(
+  //               (e) => e.id === cond.condiment_id
+  //             );
+  //             return {
+  //               id: cond.condiment_id,
+  //               name: matched?.name || cond.condiment_info?.name_en,
+  //               price: parseFloat(cond.price),
+  //               quantity: cond.count,
+  //             };
+  //           });
+
+  //         const filledMainExtras = sizeCondiments
+  //           .filter((cond) =>
+  //             mainExtras.some((e) => e.id === cond.condiment_id)
+  //           )
+  //           .map((cond) => {
+  //             const matched = mainExtras.find(
+  //               (e) => e.id === cond.condiment_id
+  //             );
+  //             return {
+  //               id: cond.condiment_id,
+  //               name: matched?.name || cond.condiment_info?.name_en,
+  //               price: parseFloat(cond.price),
+  //               quantity: cond.count,
+  //             };
+  //           });
+
+  //         const basePrice = Number(prev.price) || 0;
+  //         const quantity = cartItem.quantity || 1;
+
+  //         const extrasTotal = filledExtras.reduce(
+  //           (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+  //           0
+  //         );
+  //         const mainExtrasTotal = filledMainExtras.reduce(
+  //           (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+  //           0
+  //         );
+  //         const optionsTotal = filledOptions.reduce(
+  //           (sum, o) => sum + (Number(o.price) || 0) * (Number(o.quantity) || 1),
+  //           0
+  //         );
+
+  //         const total =
+  //           (basePrice + extrasTotal + mainExtrasTotal + optionsTotal) *
+  //           quantity;
+
+  //         return {
+  //           ...prev,
+  //           selectedMainExtras: filledMainExtras,
+  //           selectedMainExtrasIds: filledMainExtras.map((e) => e.id),
+  //           selectedExtras: filledExtras,
+  //           selectedExtrasIds: filledExtras.map((e) => e.id),
+  //           selectedoption: filledOptions,
+  //           selectedoptionId: filledOptions.map((o) => o.id),
+  //           quantity,
+  //         total: cartItem.total,
+  //         };
+  //       });
+
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching item details:", error);
+  //   }
+  // };
+  const handleEditItem = async (item) => {
+    setNote(item.note || "");
+    setCounter(item.quantity);
+    setTotalExtrasPrice(0);
+    setIsItemDialogOpen(true);
+
+    const cartItem = cartItems.find((c) => c.cartId === item.cartId);
+    if (!cartItem) return;
+
+    try {
+      const response = await fetchViewItem(
+        savedBranch?.value || selectedBranchInSelected?.value,
+        item.id,
+        token,
+        apiBaseUrl
       );
-      const extraGroup = sizeCondiments.find(
-        (group) => group?.type === "extra"
-      );
-      const optionGroup = sizeCondiments.find(
-        (group) => group?.type === "option"
-      );
 
-      setSelectedItem({
-        id: response?.id,
-        name: response?.name_en,
-        description_en: response?.description_en,
-        description_ar: response?.description_ar,
-        image: response?.image,
-        price: selectedSizeInfo?.price?.price,
-        availability: selectedSizeInfo?.availability?.availability,
-        info: response?.sizes || [],
-        selectedInfo:
-          cartItem?.selectedInfo || selectedSizeInfo?.size_en || "",
-        selectedIdSize: selectedSizeInfo?.id || "",
-        mainExtras: extraMainGroup?.condiments || [],
-        groupNameMainExtras: extraMainGroup?.group_name || [],
-        groupExtrasMainRule: {
-          max: extraMainGroup?.max,
-          min: extraMainGroup?.min,
-        },
-        itemExtras: selectedSizeInfo?.size_condiments || [],
-        extrasData: extraGroup?.condiments || [],
-        groupNameExtrasData: extraGroup?.group_name || [],
-        groupExtrasRules: {
-          max: extraGroup?.max,
-          min: extraGroup?.min,
-        },
-        groupExtrasMainRule: {
-          max: extraMainGroup?.max,
-          min: extraMainGroup?.min,
-        },
-        optionSize: optionGroup?.condiments || [],
-        groupNameSizes: optionGroup?.group_name || [],
-        cartId: cartItem.cartId,
-      });
+      if (response?.response === false) {
+        setMassegeInvaildToken(response.message);
+        return;
+      }
 
-      // حساب التوتال داخل setSelectedItem الثاني
-      setSelectedItem((prev) => {
-        const sizeCondiments = cartItem.size_condiments?.length
+      setMassegeInvaildToken(null);
+
+      if (response) {
+        const selectedSizeInfo =
+          response?.sizes?.find((s) => s.id === cartItem.selectedIdSize) ||
+          response?.sizes?.[0];
+
+        const sizeCondiments = selectedSizeInfo?.size_condiments || [];
+        const itemCondiments = response?.item_condiments || [];
+
+        const extraMainGroup = itemCondiments.find((g) => g.type === "extra");
+        const extraGroup = sizeCondiments.find((g) => g.type === "extra");
+        const optionGroup = sizeCondiments.find((g) => g.type === "option");
+
+        const fullCondiments = cartItem.size_condiments?.length
           ? cartItem.size_condiments
           : [
               ...(cartItem.selectedExtras || []).map((e) => ({
@@ -1090,16 +1240,15 @@ const handleEditItem = async (item) => {
               })),
             ];
 
-        const extrasData = prev.extrasData || [];
-        const optionSize = prev.optionSize || [];
-        const mainExtras = prev.mainExtras || [];
-
-        const filledExtras = sizeCondiments
+        // 🟢 حساب الإضافات مرة واحدة
+        const filledExtras = fullCondiments
           .filter((cond) =>
-            extrasData.some((e) => e.id === cond.condiment_id)
+            (extraGroup?.condiments || []).some(
+              (e) => e.id === cond.condiment_id
+            )
           )
           .map((cond) => {
-            const matched = extrasData.find(
+            const matched = extraGroup.condiments.find(
               (e) => e.id === cond.condiment_id
             );
             return {
@@ -1110,12 +1259,14 @@ const handleEditItem = async (item) => {
             };
           });
 
-        const filledOptions = sizeCondiments
+        const filledMainExtras = fullCondiments
           .filter((cond) =>
-            optionSize.some((e) => e.id === cond.condiment_id)
+            (extraMainGroup?.condiments || []).some(
+              (e) => e.id === cond.condiment_id
+            )
           )
           .map((cond) => {
-            const matched = optionSize.find(
+            const matched = extraMainGroup.condiments.find(
               (e) => e.id === cond.condiment_id
             );
             return {
@@ -1126,12 +1277,14 @@ const handleEditItem = async (item) => {
             };
           });
 
-        const filledMainExtras = sizeCondiments
+        const filledOptions = fullCondiments
           .filter((cond) =>
-            mainExtras.some((e) => e.id === cond.condiment_id)
+            (optionGroup?.condiments || []).some(
+              (e) => e.id === cond.condiment_id
+            )
           )
           .map((cond) => {
-            const matched = mainExtras.find(
+            const matched = optionGroup.condiments.find(
               (e) => e.id === cond.condiment_id
             );
             return {
@@ -1142,44 +1295,80 @@ const handleEditItem = async (item) => {
             };
           });
 
-        const basePrice = Number(prev.price) || 0;
-        const quantity = cartItem.quantity || 1;
-
-        const extrasTotal = filledExtras.reduce(
-          (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
-          0
-        );
-        const mainExtrasTotal = filledMainExtras.reduce(
-          (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
-          0
-        );
-        const optionsTotal = filledOptions.reduce(
-          (sum, o) => sum + (Number(o.price) || 0) * (Number(o.quantity) || 1),
-          0
-        );
-
+        // 🟢 حساب التوتال للمخزن
         const total =
-          (basePrice + extrasTotal + mainExtrasTotal + optionsTotal) *
-          quantity;
+          (Number(selectedSizeInfo?.price?.price || 0) +
+            filledExtras.reduce(
+              (sum, e) => sum + (Number(e.price) || 0) * (e.quantity || 1),
+              0
+            ) +
+            filledMainExtras.reduce(
+              (sum, e) => sum + (Number(e.price) || 0) * (e.quantity || 1),
+              0
+            ) +
+            filledOptions.reduce(
+              (sum, e) => sum + (Number(e.price) || 0) * (e.quantity || 1),
+              0
+            )) *
+          (cartItem.quantity || 1);
+        console.log("total", total);
 
-        return {
-          ...prev,
+        // 🟡 حفظ بيانات العنصر المفتوح حاليًا
+        setSelectedItem({
+          id: response?.id,
+          name: response?.name_en,
+          description_en: response?.description_en,
+          description_ar: response?.description_ar,
+          image: response?.image,
+          price: selectedSizeInfo?.price?.price,
+          availability: selectedSizeInfo?.availability?.availability,
+          info: response?.sizes || [],
+          selectedInfo:
+            cartItem?.selectedInfo || selectedSizeInfo?.size_en || "",
+          selectedIdSize: selectedSizeInfo?.id || "",
+          mainExtras: extraMainGroup?.condiments || [],
+          groupNameMainExtras: extraMainGroup?.group_name || [],
+          groupExtrasMainRule: {
+            max: extraMainGroup?.max,
+            min: extraMainGroup?.min,
+          },
+          itemExtras: selectedSizeInfo?.size_condiments || [],
+          extrasData: extraGroup?.condiments || [],
+          groupNameExtrasData: extraGroup?.group_name || [],
+          groupExtrasRules: {
+            max: extraGroup?.max,
+            min: extraGroup?.min,
+          },
+          groupExtrasMainRule: {
+            max: extraMainGroup?.max,
+            min: extraMainGroup?.min,
+          },
+          optionSize: optionGroup?.condiments || [],
+          groupNameSizes: optionGroup?.group_name || [],
+          cartId: cartItem.cartId,
+
+          // 🟡 ملئ الإضافات المختارة
           selectedMainExtras: filledMainExtras,
           selectedMainExtrasIds: filledMainExtras.map((e) => e.id),
           selectedExtras: filledExtras,
           selectedExtrasIds: filledExtras.map((e) => e.id),
           selectedoption: filledOptions,
-          selectedoptionId: filledOptions.map((o) => o.id),
-          quantity,
-          total,
-        };
-      });
-    }
-  } catch (error) {
-    console.error("Error fetching item details:", error);
-  }
-};
+          selectedoptionId: filledOptions.map((e) => e.id),
+          quantity: cartItem.quantity,
+          total, // حفظ التوتال الحالي فقط هنا
+        });
 
+        // 🟢 تحديث الكارت بالتوتال الصحيح (مرة واحدة فقط)
+        setCartItems((prevItems) =>
+          prevItems.map((i) =>
+            i.cartId === cartItem.cartId ? { ...i, total } : i
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching item details:", error);
+    }
+  };
 
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
@@ -1422,15 +1611,17 @@ const handleEditItem = async (item) => {
         const matchedBranch = branchOptions.find(
           (branch) => branch.value === Number(branchId)
         );
-console.log("deliveryType",deliveryType);
-console.log("branchId",branchId);
+        console.log("deliveryType", deliveryType);
+        console.log("branchId", branchId);
+        console.log("branchOptions", branchOptions);
+        console.log("matchedBranch", matchedBranch);
 
         if (
           AdderssOrder &&
           Array.isArray(selectedAddressArray) &&
           !addressWasManuallySelected
         ) {
-          const matchedAddress = selectedUser.address.find(
+          const matchedAddress = selectedUser?.address?.find(
             (add) => add.id === AdderssOrder.id
           );
 
@@ -1471,19 +1662,51 @@ console.log("branchId",branchId);
       const items = orderData?.items;
       console.log("orderData", orderData);
 
+      // if (Array.isArray(items)) {
+      //   const transformedItems = items.map((item) => {
+      //     const id = item?.info?.item_code;
+
+      //     return {
+      //       id: id ? `${id}` : undefined,
+      //       quantity: item?.count || 1,
+      //       price: parseFloat(
+      //         item?.info?.price?.price
+      //       ),
+      //       selectedInfo:
+      //         item?.info?.price?.size_en || item?.info?.size_en || "",
+      //       selectedExtras: item?.extras || [],
+      //       selectedIdSize: item?.info?.id,
+      //       selectedMainExtras: [],
+      //       size_condiments: item?.size_condiments,
+      //       note: item?.special || "",
+      //       total: item?.sub_total,
+      //       sub_total: item?.sub_total,
+      //       cartId: uuidv4(),
+      //     };
+      //   });
+
+      //   console.log("loaded cart items:", transformedItems);
+      //   setCartItems(transformedItems);
+      // }
       if (Array.isArray(items)) {
         const transformedItems = items.map((item) => {
           const id = item?.info?.item_code;
+          const quantity = item?.count || 1;
+          const basePrice = parseFloat(item?.info?.price?.price || 0);
+
+          // 🧮 حساب الإضافات size_condiments
+          const condimentsTotal = (item?.size_condiments || []).reduce(
+            (sum, cond) =>
+              sum + (parseFloat(cond.price) || 0) * (cond.count || 1),
+            0
+          );
+
+          const total = (basePrice + condimentsTotal) * quantity;
 
           return {
             id: id ? `${id}` : undefined,
-            quantity: item?.count || 1,
-            price: parseFloat(
-              item?.info?.price?.price ||
-                item?.total_price ||
-                item?.sub_total ||
-                0
-            ),
+            quantity,
+            price: basePrice,
             selectedInfo:
               item?.info?.price?.size_en || item?.info?.size_en || "",
             selectedExtras: item?.extras || [],
@@ -1491,7 +1714,8 @@ console.log("branchId",branchId);
             selectedMainExtras: [],
             size_condiments: item?.size_condiments,
             note: item?.special || "",
-            total: item?.sub_total,
+            total, // السعر النهائي المحسوب
+            sub_total: total, // لو حبيت تستخدمه برضو
             cartId: uuidv4(),
           };
         });
@@ -1541,46 +1765,57 @@ console.log("branchId",branchId);
     }
   }, [branches, isEditMode]);
   const [addressId, setAddressId] = useState(null);
+  // useEffect(() => {
+  //   if (selectedUser?.address?.length > 0) {
+  //     setSelectedAddressArray(selectedUser.address);
+
+  //     if (!selectedAddress) {
+  //       const firstAddress = selectedUser.address[0];
+  //       setSelectedAddress(firstAddress);
+
+  //       // console.log("firstAddress", firstAddress);
+  //       setSelectedBranch(firstAddress.branch?.[0]);
+
+  //       // console.log("SelectedBranch (قبل التحديث)", firstAddress.branch?.[0]);
+  //     }
+  //   } else {
+  //     setSelectedAddress(null);
+  //     setSelectedAddressArray([]);
+  //     setSelectedBranch(null);
+  //     setBranchId(null);
+  //   }
+  // }, [selectedUser, selectedAddress]);
   useEffect(() => {
-    if (selectedUser?.address?.length > 0) {
-      setSelectedAddressArray(selectedUser.address);
+    if (!selectedUser) return;
 
+    const addresses = selectedUser.address || [];
+    setSelectedAddressArray(addresses);
+    console.log("selectedUser.address", selectedUser.address);
+    console.log("addresses", addresses);
+
+    if (addresses.length > 0) {
       if (!selectedAddress) {
-        const firstAddress = selectedUser.address[0];
+        const firstAddress = addresses[0];
         setSelectedAddress(firstAddress);
-
-        // console.log("firstAddress", firstAddress);
         setSelectedBranch(firstAddress.branch?.[0]);
-
-        // console.log("SelectedBranch (قبل التحديث)", firstAddress.branch?.[0]);
       }
     } else {
-      setSelectedAddress(null);
-      setSelectedAddressArray([]);
-      setSelectedBranch(null);
-      setBranchId(null);
-    }
-  }, [selectedUser, selectedAddress]);
-  useEffect(() => {
-    if (selectedUser?.address?.length > 0) {
-      setSelectedAddressArray(selectedUser.address);
-
-      if (!selectedAddress) {
-        const firstAddress = selectedUser.address[0];
-        setSelectedAddress(firstAddress);
-
-        // console.log("firstAddress", firstAddress);
-        setSelectedBranch(firstAddress.branch?.[0]);
-
-        // console.log("SelectedBranch (قبل التحديث)", firstAddress.branch?.[0]);
+      if (deliveryMethod !== "pickup") {
+        setDeliveryMethod("pickup");
       }
-    } else {
+
       setSelectedAddress(null);
-      setSelectedAddressArray([]);
       setSelectedBranch(null);
       setBranchId(null);
+
+      // ✅ تعيين فرع لو موجود فرع واحد فقط
+      if (branchOptions?.length === 1) {
+        const onlyBranch = branchOptions[0];
+        setSelectedBranchInSelected(onlyBranch);
+        setBranchId(onlyBranch.value);
+      }
     }
-  }, [selectedUser, selectedAddress]);
+  }, [selectedUser, branchOptions]);
 
   useEffect(() => {
     const handleBeforeUnload = (event) => {
@@ -1615,9 +1850,20 @@ console.log("branchId",branchId);
     if (search) {
       setPhone(search);
 
-      if (selectedUser?.address?.length > 0 && !selectedAddress) {
-        setSelectedAddress(selectedUser.address[0]);
+      // if (selectedUser?.address?.length > 0 && !selectedAddress) {
+      //   setSelectedAddress(selectedUser.address[0]);
+      // }
+      if (selectedUser?.address?.length > 0) {
+        if (!selectedAddress) {
+          setSelectedAddress(selectedUser.address[0]);
+        }
+      } else {
+        setDeliveryMethod("pickup");
+        setSelectedAddress(null);
+        setSelectedBranch(null);
+        setBranchId(null);
       }
+
       refetch();
       setErrorSearchUser("");
 
@@ -1715,31 +1961,32 @@ console.log("branchId",branchId);
       setIsOpen(true);
       return; // وقف الإضافة
     }
-    
+
     setExtrasError("");
- const calculateTotal = () => {
-  const basePrice =
-    Number(
-      selectedItem.info?.find(
-        (s) => s?.id === selectedItem.selectedIdSize
-      )?.price?.price
-    ) || 0;
+    const calculateTotal = () => {
+      const basePrice =
+        Number(
+          selectedItem.info?.find((s) => s?.id === selectedItem.selectedIdSize)
+            ?.price?.price
+        ) || 0;
 
-  const extrasTotal = (selectedItem.selectedExtras || []).reduce(
-    (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
-    0
-  );
-  const mainExtrasTotal = (selectedItem.selectedMainExtras || []).reduce(
-    (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
-    0
-  );
-  const optionsTotal = (selectedItem.selectedoption || []).reduce(
-    (sum, o) => sum + (Number(o.price) || 0) * (Number(o.quantity) || 1),
-    0
-  );
+      const extrasTotal = (selectedItem.selectedExtras || []).reduce(
+        (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+        0
+      );
+      const mainExtrasTotal = (selectedItem.selectedMainExtras || []).reduce(
+        (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+        0
+      );
+      const optionsTotal = (selectedItem.selectedoption || []).reduce(
+        (sum, o) => sum + (Number(o.price) || 0) * (Number(o.quantity) || 1),
+        0
+      );
 
-  return (basePrice + extrasTotal + mainExtrasTotal + optionsTotal) * counter;
-};
+      return (
+        basePrice * counter + (extrasTotal + mainExtrasTotal + optionsTotal)
+      );
+    };
 
     setCartItems((prevItems) => {
       const isEditing = !!selectedItem.cartId; // لو جاي من Edit هيكون عنده cartId
@@ -1776,9 +2023,9 @@ console.log("branchId",branchId);
         ...prevItems,
         {
           ...selectedItem,
-          id: `${selectedItem.id}`,
+          id: selectedItem.id,
           quantity: counter,
-         total: calculateTotal(),
+          total: calculateTotal(),
           note: note,
           cartId: uuidv4(),
           mainExtras: [...(selectedItem.mainExtras || [])],
@@ -1795,6 +2042,83 @@ console.log("branchId",branchId);
     setEditingItemIndex(null);
     setIsItemDialogOpen(false);
   };
+
+  //   const handleAddToCart = () => {
+  //   console.log("NOTE عند الإضافة:", note);
+
+  //   if (groupMin === 1 && selectedExtras.length === 0) {
+  //     setExtrasError("Please select at least one from this group.");
+  //     setIsOpen(true);
+  //     return;
+  //   }
+
+  //   setExtrasError("");
+
+  //   const calculateTotal = () => {
+  //     const basePrice =
+  //       Number(
+  //         selectedItem.info?.find(
+  //           (s) => s?.id === selectedItem.selectedIdSize
+  //         )?.price?.price
+  //       ) || 0;
+
+  //     const extrasTotal = (selectedItem.selectedExtras || []).reduce(
+  //       (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+  //       0
+  //     );
+  //     const mainExtrasTotal = (selectedItem.selectedMainExtras || []).reduce(
+  //       (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+  //       0
+  //     );
+  //     const optionsTotal = (selectedItem.selectedoption || []).reduce(
+  //       (sum, o) => sum + (Number(o.price) || 0) * (Number(o.quantity) || 1),
+  //       0
+  //     );
+
+  //     return (basePrice + extrasTotal + mainExtrasTotal + optionsTotal) * counter;
+  //   };
+
+  //   console.log("calculateTotal",calculateTotal());
+
+  //   // ✅ نعمل نسخة مستقلة من selectedItem
+
+  //   setCartItems((prevItems) => {
+  //     const isEditing = !!selectedItem.cartId;
+
+  //     if (isEditing) {
+  //       const existingItemIndex = prevItems.findIndex(
+  //         (item) => item.cartId === selectedItem.cartId
+  //       );
+
+  //       if (existingItemIndex !== -1) {
+  //         const updatedItems = [...prevItems];
+  //         updatedItems[existingItemIndex] = {
+  //           ...deepClonedItem,
+  //           quantity: counter,
+  //           total: calculateTotal(),
+  //           note: note,
+  //           cartId: selectedItem.cartId,
+  //         };
+  //         return updatedItems;
+  //       }
+  //     }
+
+  //     return [
+  //       ...prevItems,
+  //       {
+  //         ...deepClonedItem,
+  //         id: `${selectedItem.id}`,
+  //         quantity: counter,
+  //         total: calculateTotal(),
+  //         note: note,
+  //         cartId: uuidv4(),
+  //       },
+  //     ];
+  //   });
+
+  //   setEditingItemIndex(null);
+  //   setIsItemDialogOpen(false);
+  // };
 
   useEffect(() => {
     if (!selectedItem || isItemDialogOpen) return;
@@ -1938,56 +2262,39 @@ console.log("branchId",branchId);
     setSavedBranch(selectedOption);
     refetchMenu();
   };
-  // console.log("panding", pendingBranch);
 
   // useEffect(() => {
-  //   if (deliveryMethod === "pickup") {
+  //   if (deliveryMethod === "pickup" && !isEditMode) {
   //     setSelectedBranchInSelected(null);
   //     setSavedBranch(null);
   //     setSelectedBranchId(null);
   //     // setSelectedBranchPriceList(null);
   //     setMassegeNotSelectedBranch("Select branch first");
-  //   } else if (deliveryMethod === "delivery" && branchOptions.length > 0) {
+  //   } else if (
+  //     deliveryMethod === "delivery" &&
+  //     branchOptions.length > 0 &&
+  //     !isEditMode
+  //   ) {
   //     const firstBranch = branchOptions[0];
   //     setSelectedBranchId(firstBranch.value);
-  //     // setSelectedBranchName(firstBranch.label);
+  //     setSelectedBranchName(firstBranch.label);
   //     setSavedBranch(firstBranch);
   //     setMassegeNotSelectedBranch(null); // إزالة الرسالة إن وجدت
   //   }
   // }, [deliveryMethod, branchOptions]);
 
   useEffect(() => {
-    if (deliveryMethod === "pickup" && !isEditMode) {
-      setSelectedBranchInSelected(null);
-      setSavedBranch(null);
-      setSelectedBranchId(null);
-      // setSelectedBranchPriceList(null);
-      setMassegeNotSelectedBranch("Select branch first");
-    } else if (
-      deliveryMethod === "delivery" &&
-      branchOptions.length > 0 &&
-      !isEditMode
+    if (
+      deliveryMethod === "pickup" &&
+      !isEditMode &&
+      branchOptions.length > 0
     ) {
       const firstBranch = branchOptions[0];
       setSelectedBranchId(firstBranch.value);
-      // setSelectedBranchName(firstBranch.label);
+      setSelectedBranchName(firstBranch.label);
       setSavedBranch(firstBranch);
-      setMassegeNotSelectedBranch(null); // إزالة الرسالة إن وجدت
-    }
-  }, [deliveryMethod, branchOptions]);
-
-  useEffect(() => {
-    if (deliveryMethod === "pickup" && !isEditMode) {
-      setSelectedBranchInSelected(null);
-      setSavedBranch(null);
-      setSelectedBranchId(null);
-      // setSelectedBranchPriceList(null);
-      setMassegeNotSelectedBranch("Select branch first");
-    } else if (deliveryMethod === "delivery" && isEditMode) {
-      setSelectedBranchInSelected(null);
-      // setSavedBranch(null);
-      setSelectedBranchId(null);
-      setSelectedBranchName("");
+      setSelectedBranchInSelected(firstBranch);
+      setMassegeNotSelectedBranch(null);
     }
   }, [deliveryMethod, branchOptions]);
 
@@ -2029,12 +2336,16 @@ console.log("branchId",branchId);
       prevUserRef?.current !== null &&
       prevUserRef?.current?.id !== selectedUser?.id
     ) {
-      setDeliveryMethod("delivery");
-      setSelectedBranch(null);
-      setSelectedBranchName("");
-      // setSelectedBranchInSelected(null);
-      setSelectedBranchId(null);
-      setCartItems([]);
+      // setDeliveryMethod("delivery");
+      setDeliveryMethod(
+        selectedUser?.address?.length > 0 ? "delivery" : "pickup"
+      );
+      if (!isEditMode) {
+        setSelectedBranch(null);
+        setSelectedBranchName("");
+        setSelectedBranchInSelected(null);
+        setSelectedBranchId(null);
+      }
     }
 
     prevUserRef.current = selectedUser;
@@ -2117,7 +2428,14 @@ console.log("branchId",branchId);
     }
   }, [selectedBranchId, deliveryMethod, selectedAddress, setValueCreateOrder]);
   useEffect(() => {
-    if (deliveryMethod === "delivery" && selectedUser?.address?.length > 0) {
+    // if (deliveryMethod === "delivery" && selectedUser?.address?.length > 0) {
+    //   setSelectedAddress(selectedUser.address[0]);
+    // }
+    if (
+      deliveryMethod === "delivery" &&
+      selectedUser?.address?.length > 0 &&
+      !selectedAddress
+    ) {
       setSelectedAddress(selectedUser.address[0]);
     }
   }, [deliveryMethod, selectedUser]);
@@ -2581,8 +2899,7 @@ console.log("branchId",branchId);
     } finally {
       setLoading(false);
     }
-  };
-  const handleEditAddressTypeChange = (type) => {
+    const handleEditAddressTypeChange = (type) => {};
     seEditAddressType(type);
 
     if (type === "other") {
@@ -2695,7 +3012,18 @@ console.log("branchId",branchId);
       setDiscountValue("");
     }
   };
-
+  {
+    console.log(
+      ">>> TOTALS IN CART:",
+      cartItems.map((i) => ({
+        name: i.name,
+        total: i.total,
+        price: i.price,
+        price: i.sub_total,
+        quantity: i.quantity,
+      }))
+    );
+  }
   const handleCacelOrder = () => {
     setSearch("");
     setPhone("");
@@ -2911,7 +3239,7 @@ console.log("branchId",branchId);
                     open={isItemDialogOpen}
                     onOpenChange={setIsItemDialogOpen}
                   >
-                    <DialogContent size="3xl"  hiddenCloseIcon={true}>
+                    <DialogContent size="3xl" hiddenCloseIcon={true}>
                       <div className=" flex justify-between items-center space-y-4">
                         <p className="text-xl">{selectedItem?.name}</p>
 
@@ -3101,8 +3429,10 @@ console.log("branchId",branchId);
                                     {extra.name}
                                   </span>
                                   <span className="text-[#000] dark:text-[#fff]">
-                                    {extra.price !== 0 &&
-                                      `(${extra.price} EGP)`}{" "}
+                                    {Number(extra.price) > 0 &&
+                                      `(${Number(extra.price).toFixed(
+                                        2
+                                      )} EGP)`}{" "}
                                   </span>
                                 </label>
                               ))}
@@ -3173,6 +3503,11 @@ console.log("branchId",branchId);
                                     (ex) => ex.id === extra.id
                                   );
                                 const quantity = selected?.quantity || 0;
+                                const totalSelectedCount =
+                                  selectedItem.selectedExtras.reduce(
+                                    (sum, ex) => sum + (ex.quantity || 0),
+                                    0
+                                  );
 
                                 return (
                                   <div
@@ -3245,8 +3580,10 @@ console.log("branchId",branchId);
                                       {extra.name}
                                     </span>
                                     <span className="text-[#000] dark:text-[#fff]">
-                                      {extra.price !== 0 &&
-                                        `(${extra.price} EGP)`}{" "}
+                                      {Number(extra.price) > 0 &&
+                                        `(${Number(extra.price).toFixed(
+                                          2
+                                        )} EGP)`}{" "}
                                     </span>
 
                                     {extra.max !== 1 && (
@@ -3310,24 +3647,14 @@ console.log("branchId",branchId);
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            if (!selected) return;
+                                            if (
+                                              !selected ||
+                                              (extra.max > 0 &&
+                                                quantity >= extra.max)
+                                            )
+                                              return;
 
                                             setSelectedItem((prev) => {
-                                              const existing =
-                                                prev.selectedExtras.find(
-                                                  (ex) => ex.id === extra.id
-                                                );
-                                              const currentQty =
-                                                existing?.quantity || 0;
-
-                                              // تحقق من max لكل عنصر
-                                              if (
-                                                extra.max > 0 &&
-                                                currentQty >= extra.max
-                                              ) {
-                                                return prev;
-                                              }
-
                                               const updatedExtras =
                                                 prev.selectedExtras.map((ex) =>
                                                   ex.id === extra.id
@@ -3345,8 +3672,15 @@ console.log("branchId",branchId);
                                               };
                                             });
                                           }}
+                                          disabled={
+                                            !selected ||
+                                            (groupMax > 0 &&
+                                              totalSelectedCount >= groupMax)
+                                          }
                                           className={`px-2 text-sm border rounded ${
-                                            !selected
+                                            !selected ||
+                                            (extra.max > 0 &&
+                                              quantity >= extra.max)
                                               ? "opacity-50 pointer-events-none"
                                               : ""
                                           }`}
@@ -3453,8 +3787,10 @@ console.log("branchId",branchId);
                                     {extra.name}
                                   </span>
                                   <span className="text-[#000] dark:text-[#fff]">
-                                    {extra.price !== 0 &&
-                                      `(${extra.price} EGP)`}{" "}
+                                    {Number(extra.price) > 0 &&
+                                      `(${Number(extra.price).toFixed(
+                                        2
+                                      )} EGP)`}{" "}
                                   </span>
                                 </label>
                               ))}
@@ -3473,37 +3809,33 @@ console.log("branchId",branchId);
                           className="w-full text-[#000] dark:text-[#fff]"
                         />
                       </div>
-                  <div className="sticky bottom-[-23px] bg-white dark:bg-black p-4 border-t border-gray-300 dark:border-gray-700 shadow-md z-50 mt-4">
-                       <div className="flex items-center justify-between">
-                      
-                        <div>
-                              {selectedItem?.selectedInfo && (
+                      <div className="sticky bottom-[-23px] bg-white dark:bg-black p-4 border-t border-gray-300 dark:border-gray-700 shadow-md z-50 mt-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            {selectedItem?.selectedInfo && (
                               <p className="font-semibold">
                                 {counter > 1 ? `${counter}x` : ""}{" "}
                                 {selectedItem?.selectedInfo || ""}
                               </p>
                             )}
+                          </div>
+                          <div className="flex justify-end">
+                            <p className="text-sm font-semibold mr-1">
+                              Subtoal:{" "}
+                            </p>
+                            <p className="text-sm font-semibold mr-1">
+                              {(
+                                (selectedItem?.price || 0) * counter +
+                                totalExtrasPrices +
+                                totalOptionPrices +
+                                totalMainExtrasPrices
+                              ).toFixed(2)}
+                            </p>
+                            <p className="text-sm font-semibold ">EGP</p>
+                          </div>
                         </div>
-                           <div className="flex justify-end">
-                          <p className="text-sm font-semibold mr-1">
-                            Subtoal:{" "}
-                          </p>
-
-                          <p className="text-sm font-semibold mr-1">
-                            {(
-                              (selectedItem?.price || 0) * counter +
-                              totalExtrasPrices +
-                              totalOptionPrices +
-                              totalMainExtrasPrices
-                            ).toFixed(2)}
-                          </p>
-                          <p className="text-sm font-semibold ">EGP</p>
-                        </div>
-                       </div>
                         <div className="flex justify-between items-center">
                           <div className="text-sm font-semibold flex flex-wrap max-w-[500px]">
-                        
-
                             <p className="text-gray-500 ml-3">
                               {(selectedItem?.selectedoption || [])
                                 .map((option) => option.name)
@@ -4191,7 +4523,7 @@ console.log("branchId",branchId);
 )} */}
           </Card>
 
-          {selectedAddressArray?.length > 0 && (
+          {selectedUser && (
             <>
               <Card className="p-4 s w-full mt-0">
                 <div
@@ -4203,7 +4535,7 @@ console.log("branchId",branchId);
                       <p className="text-sm">{selectedAddress?.address1}</p>
                     </div>
                   )}
-                  {deliveryMethod === "pickup" && selectedAddress && (
+                  {deliveryMethod === "pickup" && (
                     <div>
                       <p className="text-sm">
                         Pickup
@@ -4250,7 +4582,9 @@ console.log("branchId",branchId);
 
                     {deliveryMethod === "delivery" && (
                       <div className="my-3">
-                        <h4 className="font-medium my-3">Address:</h4>
+                        {selectedAddressArray?.length > 0 && (
+                          <h4 className="font-medium my-3">Address:</h4>
+                        )}
                         {selectedAddressArray.map((address) => (
                           <div
                             key={address.id}
@@ -4417,7 +4751,10 @@ console.log("branchId",branchId);
                                                 ×1
                                               </span>
                                               <span className="text-end">
-                                                {opt.price?.toFixed(2)} EGP
+                                                {(
+                                                  Number(opt?.price) || 0
+                                                ).toFixed(2)}{" "}
+                                                EGP
                                               </span>
                                             </React.Fragment>
                                           ))}
@@ -4619,43 +4956,61 @@ console.log("branchId",branchId);
                                         </AlertDialogContent>
                                       </AlertDialog>
                                     </div>
-<span>
-  {isEditMode
-    ? `${item.total?.toFixed(2)} EGP`
-    : (() => {
-        if (
-          (item.selectedExtras?.length || 0) === 0 &&
-          (item.selectedMainExtras?.length || 0) === 0 &&
-          (item.selectedoption?.length || 0) === 0
-        ) {
-          return `${item.total?.toFixed(2)} EGP`; // عرض التوتال القديم لو مفيش إضافات
-        }
 
-        const optionsTotal = (item.selectedoption || []).reduce(
-          (sum, o) =>
-            sum + (Number(o.price) || 0) * (Number(o.quantity) || 1),
-          0
-        );
-        const extrasTotal = (item.selectedExtras || []).reduce(
-          (sum, e) =>
-            sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
-          0
-        );
-        const mainExtrasTotal = (item.selectedMainExtras || []).reduce(
-          (sum, e) =>
-            sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
-          0
-        );
-        const basePrice = Number(item.price) || 0;
-        const total =
-          (basePrice + optionsTotal + extrasTotal + mainExtrasTotal) *
-          item.quantity;
+                                    <span>
+                                      {(() => {
+                                        if (
+                                          (item.selectedExtras?.length || 0) ===
+                                            0 &&
+                                          (item.selectedMainExtras?.length ||
+                                            0) === 0 &&
+                                          (item.selectedoption?.length || 0) ===
+                                            0
+                                        ) {
+                                          return `${item.sub_total?.toFixed(
+                                            2
+                                          )} EGP`; // عرض التوتال القديم لو مفيش إضافات
+                                        }
 
-        return `${total.toFixed(2)} EGP`;
-      })()}
-</span>
+                                        const optionsTotal = (
+                                          item.selectedoption || []
+                                        ).reduce(
+                                          (sum, o) =>
+                                            sum +
+                                            (Number(o.price) || 0) *
+                                              (Number(o.quantity) || 1),
+                                          0
+                                        );
+                                        const extrasTotal = (
+                                          item.selectedExtras || []
+                                        ).reduce(
+                                          (sum, e) =>
+                                            sum +
+                                            (Number(e.price) || 0) *
+                                              (Number(e.quantity) || 1),
+                                          0
+                                        );
+                                        const mainExtrasTotal = (
+                                          item.selectedMainExtras || []
+                                        ).reduce(
+                                          (sum, e) =>
+                                            sum +
+                                            (Number(e.price) || 0) *
+                                              (Number(e.quantity) || 1),
+                                          0
+                                        );
+                                        const basePrice =
+                                          Number(item.price) || 0;
+                                        const total =
+                                          (basePrice +
+                                            optionsTotal +
+                                            extrasTotal +
+                                            mainExtrasTotal) *
+                                          item.quantity;
 
-
+                                        return `${total.toFixed(2)} EGP`;
+                                      })()}
+                                    </span>
                                   </div>
                                   {index !== cartItems.length - 1 && (
                                     <div className="border-b border-gray-500 -mx-4 mt-4"></div>
