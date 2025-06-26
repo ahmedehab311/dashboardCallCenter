@@ -148,30 +148,43 @@ export const createOrder = async ({
   orderCheck,
 }) => {
   const formattedItems = {
-    items: items.map((item) => ({
-      id: item.selectedIdSize,
-      choices: [],
-      condiments: [
+    items: items.map((item) => {
+       let condiments = []; 
+       if (isEditMode && Array.isArray(item.size_condiments) && item.size_condiments.length > 0) {
+        condiments = item.size_condiments.map((cond)=> ({
+          id:cond.condiment_id,
+           price: parseFloat(cond.price),
+             count: cond.count || 1,
+        }))
+       }else{
+         condiments = [
         ...(item.selectedoption || []).map((option) => ({
           id: option.id,
           price: parseFloat(option.price),
           count: option.quantity || 1,
         })),
-        ...(item?.selectedExtras || []).map((extra) => ({
+        ...(item.selectedExtras || []).map((extra) => ({
           id: extra.id,
           price: parseFloat(extra.price),
           count: extra.quantity || 1,
         })),
-        ...(item?.selectedMainExtras || []).map((extra) => ({
+        ...(item.selectedMainExtras || []).map((extra) => ({
           id: extra.id,
           price: parseFloat(extra.price),
           count: extra.quantity || 1,
         })),
-      ],
+      ];
+       }
+        return {
+      id: item.selectedIdSize,
+      choices: [],
+      condiments,
       count: item.quantity,
       special: item.note || "",
-    })),
+    };
+    }),
   };
+  console.log("items تغعديلب:", items);
   if (process.env.NODE_ENV === "development") {
     console.log("formattedItems:", formattedItems);
     console.log(
