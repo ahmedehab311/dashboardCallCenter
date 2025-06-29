@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/CardSections";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import "@/app/[lang]/dashboard/menus/index.css";
+import "./index.css";
 import { useSelector, useDispatch } from "react-redux";
 // import { fetchSections, deleteSection } from "@/store/slices/sectionsSlice";
 // import { updateStatus, deleteItem } from "@/api/apiService";
@@ -21,14 +21,14 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import TaskHeader from "@/app/[lang]/dashboard/menus/task-header.jsx";
+import TaskHeader from "./task-header.jsx";
 import { getDictionary } from "@/app/dictionaries.js";
-import "@/app/[lang]/dashboard/items/main.css";
+import "../items/main.css";
+import { Menus } from "./apisMenu";
 // import { saveArrangement } from "./apiSections.jsx";
 import ReactPaginate from "react-paginate";
 // import Dash from "@/app/[lang]/dashboard/DashboardPageView";
-import { sections } from "./sectionArray";
-const Sections = ({ params: { lang } }) => {
+const Menu = ({ params: { lang } }) => {
   const router = useRouter();
   // const {menuId} = router.query
 
@@ -36,7 +36,7 @@ const Sections = ({ params: { lang } }) => {
   const [trans, setTrans] = useState(null);
   // console.log("trans", trans);
 
-  const [filteredSections, setFilteredSections] = useState([]);
+  const [filteredMenu, setFilteredMenu] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState("");
   const [arrangement, setArrangement] = useState([]);
@@ -45,105 +45,26 @@ const Sections = ({ params: { lang } }) => {
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
-  const itemsCount = filteredSections?.length;
+  const itemsCount = filteredMenu?.length;
   const [isLoadingStatus, setIsLoadingStauts] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const language =
     typeof window !== "undefined" ? localStorage.getItem("language") : null;
   const itemsPerPage =
-    pageSize === "all" ? filteredSections.length : parseInt(pageSize);
+    pageSize === "all" ? filteredMenu.length : parseInt(pageSize);
 
-  // const sections = useMemo(
-  //   () => [
-  //     {
-  //       id: crypto.randomUUID(),
-  //       name: "Pizza",
-  //       description: "Pizza",
-  //       image: "",
-  //       items:[
-  //         {
-  //           id: crypto.randomUUID(),
-  //       name: "Margarita",
-  //       description: "Margarita",
-  //       image: "",
-  //         },
-  //         {
-  //           id: crypto.randomUUID(),
-  //       name: "Vegetarian",
-  //       description: "Vegetarian",
-  //       image: "",
-  //         },
-  //         {
-  //           id: crypto.randomUUID(),
-  //       name: "Cheese",
-  //       description: "Cheese",
-  //       image: "",
-  //         },
-  //         {
-  //           id: crypto.randomUUID(),
-  //       name: "Chicken",
-  //       description: "Chicken",
-  //       image: "",
-  //         },
-  //       ]
-  //     },
-  //     {
-  //       id: crypto.randomUUID(),
-  //       name: "Pasta",
-  //       description: "Pasta",
-  //       image: "",
-  //        items:[
-  //         {
-  //           id: crypto.randomUUID(),
-  //       name: "Beef Pasta",
-  //       description: "Margarita",
-  //       image: "",
-  //         },
-         
-  //         {
-  //           id: crypto.randomUUID(),
-  //       name: "Chicken Pasta",
-  //       description: "Margarita",
-  //       image: "",
-  //         },
-         
-  //         {
-  //           id: crypto.randomUUID(),
-  //       name: "Ranch Pasta",
-  //       description: "Margarita",
-  //       image: "",
-  //         },
-         
-  //       ]
-  //     },
-  //     {
-  //       id: crypto.randomUUID(),
-  //       name: "Sandwiches",
-  //       description: "Sandwiches",
-  //       image: "",
-  //     },
-  //     {
-  //       id: crypto.randomUUID(),
-  //       name: "Salad",
-  //       description: "Salad",
-  //       image: "",
-  //     },
-  //     {
-  //       id: crypto.randomUUID(),
-  //       name: "Water",
-  //       description: "Water",
-  //       image: "",
-  //     },
-  //     {
-  //       id: crypto.randomUUID(),
-  //       name: "Appetizers",
-  //       description: "Appetizers",
-  //       image: "",
-  //     },
-  //   ],
-  //   []
-  // );
-  // console.log("sections", filteredSections);
+  const Menus = useMemo(
+    () => [
+      {
+        id: "1",
+        name: "happy joys",
+        description: "happy joys",
+        image: "",
+      },
+    ],
+    []
+  );
+  // console.log("sections", filteredMenu);
   useEffect(() => {
     const fetchTranslations = async () => {
       try {
@@ -157,14 +78,14 @@ const Sections = ({ params: { lang } }) => {
     fetchTranslations();
   }, [lang]);
   const applyFiltersAndSort = () => {
-    let updatedSections = [...sections];
+    let updatedMenus = [...Menus];
 
     // search
     if (searchTerm) {
-      updatedSections = updatedSections.filter(
-        (section) =>
-          section.name?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
-          section?.description
+      updatedMenus = updatedMenus.filter(
+        (menu) =>
+          menu.name?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
+          menu?.description
             ?.toLowerCase()
             ?.includes(searchTerm.toLowerCase())
       );
@@ -172,42 +93,42 @@ const Sections = ({ params: { lang } }) => {
 
     // filter
     if (filterOption === "active") {
-      updatedSections = updatedSections.filter(
-        (section) => section?.status?.name === "active"
+      updatedMenus = updatedMenus.filter(
+        (menu) => menu?.status?.name === "active"
       );
     } else if (filterOption === "inactive") {
-      updatedSections = updatedSections.filter(
-        (section) => section?.status?.name === "inactive"
+      updatedMenus = updatedMenus.filter(
+        (menu) => menu?.status?.name === "inactive"
       );
     } else if (filterOption === "have_image") {
-      updatedSections = updatedSections.filter((section) => section.imageUrl);
+      updatedMenus = updatedMenus.filter((menu) => menu.imageUrl);
     }
 
     // arang
     if (sortOption === "alphabetical") {
-      updatedSections.sort((a, b) => a.name.localeCompare(b.name));
+      updatedMenus.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortOption === "recent") {
-      updatedSections.sort((a, b) => b.id - a.id);
+      updatedMenus.sort((a, b) => b.id - a.id);
     } else if (sortOption === "old") {
-      updatedSections.sort((a, b) => a.id - b.id);
+      updatedMenus.sort((a, b) => a.id - b.id);
     }
     // pagenation
     // if (pageSize !== "all") {
     //   const size = parseInt(pageSize, 10);
-    //   updatedSections = updatedSections.slice(0, size);
+    //   updatedMenus = updatedMenus.slice(0, size);
     // }
 
-    setFilteredSections(updatedSections);
+    setFilteredMenu(updatedMenus);
   };
 
   useEffect(() => {
     applyFiltersAndSort();
-  }, [searchTerm, sortOption, filterOption, pageSize, sections]);
+  }, [searchTerm, sortOption, filterOption, pageSize, Menus]);
   const ACTIVE_STATUS_ID = 2;
   const INACTIVE_STATUS_ID = 3;
 
   useEffect(() => {
-    let updatedSections = sections;
+    let updatedSections = Menus;
 
     if (filterOption === "active") {
       updatedSections = updatedSections.filter(
@@ -219,8 +140,8 @@ const Sections = ({ params: { lang } }) => {
       );
     }
 
-    setFilteredSections(updatedSections);
-  }, [sections, filterOption]);
+    setFilteredMenu(updatedSections);
+  }, [Menus, filterOption]);
   const truncateDescription = (description, maxLength = 50) => {
     // console.log("Description received:", description);
     if (!description) return "";
@@ -229,8 +150,8 @@ const Sections = ({ params: { lang } }) => {
       : description;
   };
 
-  const handleViewEdit = () => {
-    console.log("View/Edit clicked");
+  const handleViewEdit = (menuId) => {
+       router.push(`/${lang}/dashboard/section/${menuId}/view`);
   };
 
   const handleDelete = () => {
@@ -241,12 +162,12 @@ const Sections = ({ params: { lang } }) => {
     console.log("Toggle active:", checked);
   };
 
-const handleEnter = (sectionId) => {
-  router.push(`/${lang}/dashboard/section/${sectionId}`);
-};
+  const handleEnter = (menuId) => {
+    router.push(`/${lang}/dashboard/sections`);
+  };
 
   const handleDragStart = (e, localIndex) => {
-    const actualIndex = offset + localIndex; //  index الحقيقي من filteredSections
+    const actualIndex = offset + localIndex; //  index الحقيقي من filteredMenu
     setDraggedIndex(actualIndex);
     e.dataTransfer.effectAllowed = "move";
   };
@@ -258,8 +179,8 @@ const handleEnter = (sectionId) => {
   const handleDrop = (e, dropIndex) => {
     e.preventDefault();
 
-    // نسخ filteredSections لعدم التلاعب بالـ state مباشرة
-    const reorderedSections = [...filteredSections];
+    // نسخ filteredMenu لعدم التلاعب بالـ state مباشرة
+    const reorderedSections = [...filteredMenu];
 
     // سحب العنصر الذي تم سحبه من مكانه القديم
     const [draggedItem] = reorderedSections.splice(draggedIndex, 1);
@@ -267,11 +188,11 @@ const handleEnter = (sectionId) => {
     // إدخال العنصر في المكان الجديد
     reorderedSections.splice(dropIndex, 0, draggedItem);
 
-    // تحديث filteredSections في الـ state
-    setFilteredSections(reorderedSections);
+    // تحديث filteredMenu في الـ state
+    setFilteredMenu(reorderedSections);
     setDraggedIndex(null);
 
-    // حساب الترتيب الجديد بناءً على filteredSections
+    // حساب الترتيب الجديد بناءً على filteredMenu
     const arrangement = reorderedSections.map((_, index) => index + 1);
 
     // إظهار الترتيب الجديد في الكونسول
@@ -289,9 +210,9 @@ const handleEnter = (sectionId) => {
   const handleDragEnd = () => {
     setDraggedIndex(null);
   };
-  const pageCount = Math.ceil(filteredSections?.length / itemsPerPage);
+  const pageCount = Math.ceil(filteredMenu?.length / itemsPerPage);
   const offset = currentPage * itemsPerPage;
-  const currentItems = filteredSections?.slice(offset, offset + itemsPerPage);
+  const currentItems = filteredMenu?.slice(offset, offset + itemsPerPage);
 
   const getVisiblePages = (currentPage, pageCount) => {
     const pages = [];
@@ -328,11 +249,11 @@ const handleEnter = (sectionId) => {
   };
 
   //  edit & view
-  const handleNavigate = (sectionId) => {
-    router.push(`/${lang}/dashboard/section/${sectionId}/view`);
+  const handleNavigate = (menuId) => {
+    router.push(`/${lang}/dashboard/menu/${menuId}/view`);
   };
   const visiblePages = getVisiblePages(currentPage, pageCount);
-  if (!filteredSections) {
+  if (!filteredMenu) {
     return <div>Loading...</div>;
   }
   return (
@@ -346,9 +267,8 @@ const handleEnter = (sectionId) => {
           pageSize={pageSize}
           createButtonText={trans?.button?.section}
           // searchPlaceholder={trans?.sectionsItems.searchSections}
-          pageType="sections"
-           createTargetName="Section"
-          createTargetPath="section"
+         createTargetName="Menu"
+          createTargetPath="menu"
           // itemsCount={itemsCount}
           // filters={[
           //   { value: "active", label: "Active" },
@@ -383,15 +303,15 @@ const handleEnter = (sectionId) => {
         </div>
       ) : Array.isArray(currentItems) && currentItems.length ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
-          {currentItems.map((section, index) => (
+          {currentItems.map((menu, index) => (
             <div
-              key={section.id}
+              key={menu.id}
               className={`card bg-popover ${
                 draggedIndex === index ? "opacity-50" : ""
               }`}
             >
               <CardHeader
-                imageUrl={section.image}
+                imageUrl={menu.image}
                 draggable
                 onDragStart={(e) => handleDragStart(e, index)}
                 onDragOver={(e) => handleDragOver(e, index)}
@@ -400,25 +320,25 @@ const handleEnter = (sectionId) => {
               />
 
               <CardContent
-                sectionName={section?.name}
-                description={truncateDescription(section?.description, 80)}
-                isActive={section?.status?.id === ACTIVE_STATUS_ID}
+                sectionName={menu?.name}
+                description={truncateDescription(menu?.description, 80)}
+                isActive={menu?.status?.id === ACTIVE_STATUS_ID}
                 onToggleActive={(checked) =>
-                  handleToggleActive(checked, section.id, section.status?.id)
+                  handleToggleActive(checked, menu.id, menu.status?.id)
                 }
                 isSection={true}
                 className="card-content"
                 trans={trans}
-                deletedAt={section?.actions?.deletedAt}
+                deletedAt={menu?.actions?.deletedAt}
               />
               <CardFooter
-                sectionName={section?.name}
-                onViewEdit={() => handleNavigate(section.id)}
-                onDelete={() => handleDeleteSection(section.id)}
-                onEnter={() => handleEnter(section.id)}
-                isActive={section?.status?.id === ACTIVE_STATUS_ID}
+                sectionName={menu?.name}
+                onViewEdit={() => handleNavigate(menu.id)}
+                onDelete={() => handleDeleteSection(menu.id)}
+                onEnter={() => handleEnter(menu.id)}
+                isActive={menu?.status?.id === ACTIVE_STATUS_ID}
                 onToggleActive={(checked) =>
-                  handleToggleActive(checked, section.id, section.status?.id)
+                  handleToggleActive(checked, menu.id, menu.status?.id)
                 }
                 isSection={true}
                 trans={trans}
@@ -482,4 +402,4 @@ const handleEnter = (sectionId) => {
   );
 };
 
-export default Sections;
+export default Menu;

@@ -84,7 +84,8 @@
     "restaurants": "Restaurant",
     "branches": "Branch",
     "sections": "Section",
-    "items": "Item"
+    "items": "Item",
+    "sliders": "Slider"
   },
   "edit": "Edit",
   "view": "View",

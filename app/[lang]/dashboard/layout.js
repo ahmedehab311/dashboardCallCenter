@@ -7,6 +7,9 @@ import Loader from "@/components/layout-loader";
 import { getDictionary } from "@/app/dictionaries";
 import Cookies from "js-cookie";
 import { SessionProvider } from "@/provider/SessionContext";
+import DynamicBreadcrumbs from "@/components/ui/DynamicBreadcrumbs";
+import { BreadcrumbHistoryProvider } from "@/provider/BreadcrumbHistoryProvider";
+
 const Layout = ({ children }) => {
   const { currentLang } = useLanguage();
   const [trans, setTrans] = useState(null);
@@ -25,9 +28,12 @@ const Layout = ({ children }) => {
 
   return (
     <SessionProvider>
-      <DashBoardLayoutProvider trans={trans}>
-        {children}
-      </DashBoardLayoutProvider>
+      <BreadcrumbHistoryProvider>
+        <DashBoardLayoutProvider trans={trans}>
+          <DynamicBreadcrumbs />
+          {children}
+        </DashBoardLayoutProvider>
+      </BreadcrumbHistoryProvider>
     </SessionProvider>
   );
 };

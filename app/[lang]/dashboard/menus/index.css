@@ -1,0 +1,42 @@
+.card {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.card-header {
+  cursor: grab;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.card-header:active {
+  cursor: grabbing;
+}
+
+.card.opacity-50 {
+  opacity: 0.5;
+  transform: scale(1.05);
+}
+
+.pagination {
+  display: flex;
+  list-style: none;
+  justify-content: center;
+  padding: 10px;
+}
+
+.pagination li {
+  margin: 0 5px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.pagination .active {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+}
+
+.pagination .disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
