@@ -14,29 +14,33 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 function CreateMenu() {
+  const restOptions = [
+    { value: "123", label: "Happyjoes" }, // مثال
+  ];
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
+    setValue,
+    watch,
+    ...rest
   } = useForm({
     resolver: zodResolver(menuSchema),
-     defaultValues: {
-    restaurant: restOptions.length === 1 ? restOptions[0] : null,
-  },
+    defaultValues: {
+      restaurant: restOptions.length === 1 ? restOptions[0] : null,
+    },
   });
   const animatedComponents = makeAnimated();
   const { theme } = useTheme();
   const [color, setColor] = useState("");
 
-useEffect(() => {
-  if (restOptions.length === 1) {
-    setValue("restaurant", restOptions[0]);
-  }
-}, [restOptions]);
-const restOptions = [
-  { value: "123", label: "Happyjoes" } // مثال
-];
+  useEffect(() => {
+    if (restOptions.length === 1) {
+      setValue("restaurant", restOptions[0]);
+    }
+  }, [restOptions]);
+
   useEffect(() => {
     if (theme === "dark") {
       setColor("#fff");
