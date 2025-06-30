@@ -180,26 +180,61 @@
 
 // export default DynamicBreadcrumbs;
 
+// "use client";
+// import Link from "next/link";
+// import { Breadcrumbs, BreadcrumbItem } from "@/components/ui/breadcrumbs";
+// import { useBreadcrumbHistory } from "@/provider/BreadcrumbHistoryProvider";
+// import { usePathname } from "next/navigation";
+
+// const DynamicBreadcrumbs = () => {
+//   const { breadcrumbs } = useBreadcrumbHistory();
+//  const pathname = usePathname();
+//   if (!breadcrumbs.length) return null;
+
+//   return (
+//     <div className="py-1">
+//        <Breadcrumbs>
+//         {breadcrumbs.map((crumb, i) => {
+//           const isActive = pathname === crumb.path;
+//           return (
+//             <BreadcrumbItem
+//               key={i}
+//               className={isActive ? "text-primary font-semibold" : ""}
+//               isCurrent={isActive}
+//             >
+//               <Link href={crumb.path}>{crumb.label}</Link>
+
+//             </BreadcrumbItem>
+//           );
+//         })}
+//       </Breadcrumbs>
+//     </div>
+//   );
+// };
+
+// export default DynamicBreadcrumbs;
 "use client";
 import Link from "next/link";
 import { Breadcrumbs, BreadcrumbItem } from "@/components/ui/breadcrumbs";
 import { useBreadcrumbHistory } from "@/provider/BreadcrumbHistoryProvider";
 import { usePathname } from "next/navigation";
+
 const DynamicBreadcrumbs = () => {
   const { breadcrumbs } = useBreadcrumbHistory();
- const pathname = usePathname();
+  const pathname = usePathname();
+
   if (!breadcrumbs.length) return null;
 
   return (
-    <div className="p-4">
-       <Breadcrumbs>
+    <div className="py-1">
+      <Breadcrumbs>
         {breadcrumbs.map((crumb, i) => {
           const isActive = pathname === crumb.path;
           return (
             <BreadcrumbItem
               key={i}
-              className={isActive ? "text-primary font-semibold" : ""}
               isCurrent={isActive}
+              className={isActive ? "text-primary font-semibold" : ""}
             >
               <Link href={crumb.path}>{crumb.label}</Link>
             </BreadcrumbItem>

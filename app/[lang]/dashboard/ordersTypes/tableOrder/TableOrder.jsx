@@ -86,7 +86,7 @@ export function BasicDataTable({
          const sortedOrders = filteredOrders.sort((a, b) => {
     return new Date(b.created_at) - new Date(a.created_at);
   });
-    console.log("filteredOrders", filteredOrders);
+    // console.log("filteredOrders", filteredOrders);
 
     return sortedOrders.map((order) => {
       return {

@@ -1356,6 +1356,7 @@ function CreateOrder({ params }) {
           selectedoptionId: filledOptions.map((e) => e.id),
           quantity: cartItem.quantity,
           total, // حفظ التوتال الحالي فقط هنا
+          sub_total:total, // حفظ التوتال الحالي فقط هنا
         });
 
         // 🟢 تحديث الكارت بالتوتال الصحيح (مرة واحدة فقط)
@@ -1790,8 +1791,8 @@ function CreateOrder({ params }) {
 
     const addresses = selectedUser.address || [];
     setSelectedAddressArray(addresses);
-    console.log("selectedUser.address", selectedUser.address);
-    console.log("addresses", addresses);
+    // console.log("selectedUser.address", selectedUser.address);
+    // console.log("addresses", addresses);
 
     if (addresses.length > 0) {
       if (!selectedAddress) {
@@ -1984,7 +1985,7 @@ function CreateOrder({ params }) {
       );
 
       return (
-        basePrice * counter + (extrasTotal + mainExtrasTotal + optionsTotal)
+       ( basePrice * counter )+ (extrasTotal + mainExtrasTotal + optionsTotal)
       );
     };
 
@@ -2003,7 +2004,6 @@ function CreateOrder({ params }) {
             ...selectedItem,
             quantity: counter,
             total: calculateTotal(),
-
             note: note,
             cartId: selectedItem.cartId, // مهم
             mainExtras: [...(selectedItem.mainExtras || [])],
@@ -2026,6 +2026,7 @@ function CreateOrder({ params }) {
           id: selectedItem.id,
           quantity: counter,
           total: calculateTotal(),
+          sub_total:calculateTotal(),
           note: note,
           cartId: uuidv4(),
           mainExtras: [...(selectedItem.mainExtras || [])],
@@ -2925,37 +2926,81 @@ function CreateOrder({ params }) {
 
   //   return sum + itemTotal;
   // }, 0);
-  const grandTotal = cartItems.reduce((sum, item) => {
-    const basePrice = parseFloat(item.price) || 0;
-    const quantity = parseFloat(item.quantity) || 1;
+  // const grandTotal = cartItems.reduce((sum, item) => {
+  //   const basePrice = parseFloat(item.price) || 0;
+  //   const quantity = parseFloat(item.quantity) || 1;
 
-    // Extras
-    const extrasTotal =
-      item.selectedExtras?.reduce(
-        (acc, extra) =>
-          acc + (parseFloat(extra.price) || 0) * (extra.quantity || 1),
-        0
-      ) || 0;
+  //   // Extras
+  //   const extrasTotal =
+  //     item.selectedExtras?.reduce(
+  //       (acc, extra) =>
+  //         acc + (parseFloat(extra.price) || 0) * (extra.quantity || 1),
+  //       0
+  //     ) || 0;
 
-    // Options (radio)
-    const optionTotal =
-      item.selectedoption?.reduce(
-        (acc, option) => acc + (parseFloat(option.price) || 0),
-        0
-      ) || 0;
+  //   // Options (radio)
+  //   const optionTotal =
+  //     item.selectedoption?.reduce(
+  //       (acc, option) => acc + (parseFloat(option.price) || 0),
+  //       0
+  //     ) || 0;
 
-    // Main Extras
-    const mainExtrasTotal =
-      item.selectedMainExtras?.reduce(
-        (acc, extra) => acc + (parseFloat(extra.price_en) || 0),
-        0
-      ) || 0;
+  //   // Main Extras
+  //   const mainExtrasTotal =
+  //     item.selectedMainExtras?.reduce(
+  //       (acc, extra) => acc + (parseFloat(extra.price_en) || 0),
+  //       0
+  //     ) || 0;
 
-    const itemTotal =
-      (basePrice + extrasTotal + optionTotal + mainExtrasTotal) * quantity;
+  //   const itemTotal =
+  //     (basePrice * quantity )  + extrasTotal + optionTotal + mainExtrasTotal; 
 
+  //   return sum + itemTotal;
+  // }, 0);
+const grandTotal = cartItems.reduce((sum, item) => {
+  const basePrice = parseFloat(item.price) || 0;
+  const quantity = parseFloat(item.quantity) || 1;
+
+  let extrasTotal = 0;
+  let optionTotal = 0;
+  let mainExtrasTotal = 0;
+
+  // 🟡 الحالة الأولى: size_condiments موجودة
+  if (Array.isArray(item.size_condiments) && item.size_condiments.length > 0) {
+    const sizeCondimentsTotal = item.size_condiments.reduce(
+      (acc, cond) =>
+        acc + (parseFloat(cond.price) || 0) * (cond.count || 1),
+      0
+    );
+    const itemTotal = (basePrice + sizeCondimentsTotal) * quantity;
     return sum + itemTotal;
-  }, 0);
+  }
+
+  // 🟢 الحالة الثانية: نحسب من selectedExtras و options
+  extrasTotal =
+    item.selectedExtras?.reduce(
+      (acc, extra) =>
+        acc + (parseFloat(extra.price) || 0) * (extra.quantity || 1),
+      0
+    ) || 0;
+
+  optionTotal =
+    item.selectedoption?.reduce(
+      (acc, option) => acc + (parseFloat(option.price) || 0),
+      0
+    ) || 0;
+
+  mainExtrasTotal =
+    item.selectedMainExtras?.reduce(
+      (acc, extra) => acc + (parseFloat(extra.price) || 0),
+      0
+    ) || 0;
+
+  const itemTotal =
+    (basePrice  + extrasTotal + optionTotal + mainExtrasTotal)* quantity;
+
+  return sum + itemTotal;
+}, 0);
 
   // const formattedGrandTotal = parseFloat(grandTotal).toFixed(2);
 
@@ -3012,18 +3057,7 @@ function CreateOrder({ params }) {
       setDiscountValue("");
     }
   };
-  {
-    console.log(
-      ">>> TOTALS IN CART:",
-      cartItems.map((i) => ({
-        name: i.name,
-        total: i.total,
-        price: i.price,
-        price: i.sub_total,
-        quantity: i.quantity,
-      }))
-    );
-  }
+  
   const handleCacelOrder = () => {
     setSearch("");
     setPhone("");
@@ -3825,10 +3859,10 @@ function CreateOrder({ params }) {
                             </p>
                             <p className="text-sm font-semibold mr-1">
                               {(
-                                (selectedItem?.price || 0) * counter +
-                                totalExtrasPrices +
+                                (selectedItem?.price + totalExtrasPrices +
                                 totalOptionPrices +
-                                totalMainExtrasPrices
+                                totalMainExtrasPrices  )  * counter
+                        
                               ).toFixed(2)}
                             </p>
                             <p className="text-sm font-semibold ">EGP</p>
@@ -4957,7 +4991,7 @@ function CreateOrder({ params }) {
                                       </AlertDialog>
                                     </div>
 
-                                    <span>
+                                    {/* <span>
                                       {(() => {
                                         if (
                                           (item.selectedExtras?.length || 0) ===
@@ -5002,15 +5036,50 @@ function CreateOrder({ params }) {
                                         const basePrice =
                                           Number(item.price) || 0;
                                         const total =
-                                          (basePrice +
-                                            optionsTotal +
-                                            extrasTotal +
-                                            mainExtrasTotal) *
-                                          item.quantity;
+                                          (basePrice *item.quantity) + (optionsTotal + extrasTotal +  mainExtrasTotal)
 
                                         return `${total.toFixed(2)} EGP`;
                                       })()}
-                                    </span>
+                                    </span> */}
+                                    <span>
+  {(() => {
+    const isUnchangedItem =
+      (item.selectedExtras?.length || 0) === 0 &&
+      (item.selectedMainExtras?.length || 0) === 0 &&
+      (item.selectedoption?.length || 0) === 0 &&
+      item.sub_total;
+
+    if (isUnchangedItem) {
+      const baseSubTotal = Number(item.sub_total) || 0;
+      {/* const quantity = Number(item.quantity) || 1; */}
+      return `${(baseSubTotal ).toFixed(2)} EGP`;
+    }
+
+    const optionsTotal = (item.selectedoption || []).reduce(
+      (sum, o) => sum + (Number(o.price) || 0) * (Number(o.quantity) || 1),
+      0
+    );
+
+    const extrasTotal = (item.selectedExtras || []).reduce(
+      (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+      0
+    );
+
+    const mainExtrasTotal = (item.selectedMainExtras || []).reduce(
+      (sum, e) => sum + (Number(e.price) || 0) * (Number(e.quantity) || 1),
+      0
+    );
+
+    const basePrice = Number(item.price) || 0;
+    const quantity = Number(item.quantity) || 1;
+
+    const total =
+     ( basePrice  + optionsTotal + extrasTotal + mainExtrasTotal) * quantity;
+
+    return `${total.toFixed(2)} EGP`;
+  })()}
+</span>
+
                                   </div>
                                   {index !== cartItems.length - 1 && (
                                     <div className="border-b border-gray-500 -mx-4 mt-4"></div>

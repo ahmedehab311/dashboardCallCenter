@@ -327,9 +327,9 @@ export const updateUserAddress = async ({
   token,
   apiBaseUrl,
 }) => {
-  console.log("apiBaseUrl:", apiBaseUrl);
-  console.log("token:", token);
-  console.log("address_name:", address_name);
+  // console.log("apiBaseUrl:", apiBaseUrl);
+  // console.log("token:", token);
+  // console.log("address_name:", address_name);
   const basePath =
     typeof window !== "undefined" &&
     window.location.origin.includes("localhost")

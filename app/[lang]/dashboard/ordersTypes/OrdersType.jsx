@@ -92,7 +92,7 @@ const {
     setDisplayOrders(orders.data.data);
   },
 });
-  console.log("orders",orders);
+  // console.log("orders",orders);
 
 
   const [orderIdOrPhone, setOrderIdOrPhone] = useState("");

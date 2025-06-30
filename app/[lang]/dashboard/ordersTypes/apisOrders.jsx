@@ -99,7 +99,7 @@ export async function getServerSideProps(context) {
     `${apiBaseUrl}/callcenter/orders?api_token=${token}&from=${selectedDayNumber}`
   );
   const orders = await res.json();
-  console.log("Orders Data: ", orders); // للتحقق من البيانات المسترجعة من الـ API
+  // console.log("Orders Data: ", orders); // للتحقق من البيانات المسترجعة من الـ API
 
   // إرجاع البيانات كـ props
   return {
@@ -117,7 +117,7 @@ export const fetchViewOrder = async (token, apiBaseUrl, orderId) => {
     );
 
     return response.data.data;
-    console.log("response.data.data ", response.data.data);
+    // console.log("response.data.data ", response.data.data);
   } catch (error) {
     console.error("Error fetching Orders:", error);
     throw error;

@@ -10,7 +10,7 @@ import {
 import React from "react";
 const BasicTable = ({ OrderDetails, OrderDetailsItem }) => {
   if (!OrderDetailsItem) return null;
-  console.log("OrderDetailsItem", OrderDetailsItem);
+  // console.log("OrderDetailsItem", OrderDetailsItem);
   // console.log("OrderDetails", OrderDetails);
 
   return (
@@ -53,10 +53,10 @@ const BasicTable = ({ OrderDetails, OrderDetailsItem }) => {
         <Table>
           <TableHeader>
             <TableRow>
-        <TableHead className="w-1/">Item</TableHead>
-<TableHead className="w-2/5">Notes</TableHead>
-<TableHead className="w-1/8">Price</TableHead>
-<TableHead className="w-1/8">Total</TableHead>
+              <TableHead className="w-1/">Item</TableHead>
+              <TableHead className="w-2/5">Notes</TableHead>
+              <TableHead className="w-1/8">Price</TableHead>
+              <TableHead className="w-1/8">Total</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -65,9 +65,10 @@ const BasicTable = ({ OrderDetails, OrderDetailsItem }) => {
                 {/* الصف الرئيسي للعنصر */}
                 <TableRow>
                   <TableCell className="text-[#000] dark:text-[#fff]">
-                 {item?.count} × {item?.info?.size_en || item?.name?.item_name}
+                    {item?.count} ×{" "}
+                    {item?.info?.size_en || item?.name?.item_name}
                   </TableCell>
-                
+
                   <TableCell className="text-[#000] dark:text-[#fff]">
                     {item?.special || "—"}
                   </TableCell>
@@ -91,10 +92,11 @@ const BasicTable = ({ OrderDetails, OrderDetailsItem }) => {
                       className="bg-gray-100 dark:bg-gray-800"
                     >
                       <TableCell className="pl-6 text-sm text-[#444] dark:text-[#ccc]">
-                        {count}  × {condiment.condiment_info?.name_en ||
+                        {count} ×{" "}
+                        {condiment.condiment_info?.name_en ||
                           condiment.condiment_info?.name_en}
                       </TableCell>
-                  
+
                       <TableCell />
                       <TableCell className="text-sm text-[#444] dark:text-[#ccc]">
                         {price.toFixed(2)}
@@ -110,44 +112,51 @@ const BasicTable = ({ OrderDetails, OrderDetailsItem }) => {
           </TableBody>
         </Table>
       </div>
-
-      <div className="flex gap-6 my-4 mx-2 justify-between">
-        <p>
-          Payment type: {OrderDetails?.payment_method === 1 ? "Cash" : "Visa"}
-        </p>
-        <p>
-          Delivery fees: {OrderDetails?.delivery_fees?.match(/\.\d+$/)
-            ? OrderDetails.delivery_fees
-            : OrderDetails?.delivery_fees?.replace(/\.$/, "")}
-        </p>
-
-        <p>Tax fees: {OrderDetails?.tax_fees}</p>
+      {/* الصف الأول */}
+      <div className="grid grid-cols-3 gap-6 my-4 mx-2 text-sm p-2">
+        <div className="flex gap-1">
+          <span className="font-semibold">Payment type :</span>
+          <span> {OrderDetails?.payment_method === 1 ? "Cash" : "Visa"}</span>
+        </div>
+        <div className="flex gap-1">
+          <span className="font-semibold">Delivery fees :</span>
+          <span>
+            {OrderDetails?.delivery_fees?.match(/\.\d+$/)
+              ? OrderDetails.delivery_fees
+              : OrderDetails?.delivery_fees?.replace(/\.$/, "")}
+          </span>
+        </div>
+        <div className="flex gap-1">
+          <span className="font-semibold">Tax fees:</span>
+          <span>{OrderDetails?.tax_fees}</span> 
+        </div>
       </div>
 
-      <div className="flex gap-6 my-2 mx-2 justify-between">
-        {/* <p>
-          Sub Total (Before Discount and Taxes):{" "}
-          {OrderDetailsItem.reduce(
-            (acc, item) => acc + parseFloat(item?.sub_total || 0),
-            0
-          ).toFixed(2)}
-        </p> */}
-        <p>
-          Sub Total (Before Discount and Taxes):{" "}
-          {OrderDetails?.sub_total?.toFixed(2)}
-        </p>
-
-        <p>Notes: {OrderDetails?.notes || "-"}</p>
-      </div>
-      <div className="flex gap-6 my-2 mx-2 justify-between">
-        <p>
-          Total Amount:{" "}
-          {OrderDetails?.total
-            ? parseFloat(
-                OrderDetails.total.replace(/\s/g, "").replace(",", ".")
-              ).toFixed(2)
-            : "0.00"}
-        </p>
+      {/* الصف الثاني */}
+      <div className="grid grid-cols-3 gap-6 my-2 mx-2 text-sm p-2">
+        <div className="flex gap-1">
+          <span className="font-semibold">Notes :</span>
+          <span>{OrderDetails?.notes || "-"}</span>
+        </div>
+        <div className="flex gap-1">
+          <span className="font-semibold">
+            Sub Total :
+            {/* (Before Discount and Taxes) */}
+            
+          </span>
+          <span>{OrderDetails?.sub_total?.toFixed(2)}</span>
+        </div>
+      
+        <div className="flex gap-1">
+          <span className="font-semibold">Total Amount :</span>
+          <span>
+            {OrderDetails?.total
+              ? parseFloat(
+                  OrderDetails.total.replace(/\s/g, "").replace(",", ".")
+                ).toFixed(2)
+              : "0.00"}
+          </span>
+        </div>
       </div>
     </>
   );

@@ -130,7 +130,7 @@ const Textarea = React.forwardRef(
     ref
   ) => {
     return (
-      <div className=" ">
+      <div className=" w-full">
       
         <textarea
           className={cn(
