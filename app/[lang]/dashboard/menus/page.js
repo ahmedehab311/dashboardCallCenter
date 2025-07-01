@@ -27,32 +27,11 @@ import "../items/main.css";
 import { Menus } from "./apisMenu";
 // import { saveArrangement } from "./apiSections.jsx";
 import ReactPaginate from "react-paginate";
+import useTranslate from "@/hooks/useTranslate";
+import useApplyFiltersAndSort from "../../components/hooks/useApplyFiltersAndSort";
 // import Dash from "@/app/[lang]/dashboard/DashboardPageView";
 const Menu = ({ params: { lang } }) => {
   const router = useRouter();
-  // const {menuId} = router.query
-
-  const dispatch = useDispatch();
-  const [trans, setTrans] = useState(null);
-  // console.log("trans", trans);
-
-  const [filteredMenu, setFilteredMenu] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortOption, setSortOption] = useState("");
-  const [arrangement, setArrangement] = useState([]);
-  const [filterOption, setFilterOption] = useState("");
-  const [pageSize, setPageSize] = useState("10");
-  const [draggedIndex, setDraggedIndex] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const itemsCount = filteredMenu?.length;
-  const [isLoadingStatus, setIsLoadingStauts] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0);
-  const language =
-    typeof window !== "undefined" ? localStorage.getItem("language") : null;
-  const itemsPerPage =
-    pageSize === "all" ? filteredMenu.length : parseInt(pageSize);
-
   const Menus = useMemo(
     () => [
       {
@@ -64,66 +43,29 @@ const Menu = ({ params: { lang } }) => {
     ],
     []
   );
-  // console.log("sections", filteredMenu);
-  useEffect(() => {
-    const fetchTranslations = async () => {
-      try {
-        const dictionary = await getDictionary(lang);
-        setTrans(dictionary);
-      } catch (error) {
-        console.error("Error fetching dictionary:", error);
-      }
-    };
+  const { trans } = useTranslate(lang);
+  const {
+    filteredMenu,
+    setFilteredMenu,
+    searchTerm,
+    setSearchTerm,
+    sortOption,
+    setSortOption,
+    filterOption,
+    setFilterOption,
+    pageSize,
+    setPageSize,
+  } = useApplyFiltersAndSort(Menus);
+  const [arrangement, setArrangement] = useState([]);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const itemsCount = filteredMenu?.length;
+  const [isLoadingStatus, setIsLoadingStauts] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage =
+    pageSize === "all" ? filteredMenu.length : parseInt(pageSize);
 
-    fetchTranslations();
-  }, [lang]);
-  const applyFiltersAndSort = () => {
-    let updatedMenus = [...Menus];
-
-    // search
-    if (searchTerm) {
-      updatedMenus = updatedMenus.filter(
-        (menu) =>
-          menu.name?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
-          menu?.description
-            ?.toLowerCase()
-            ?.includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // filter
-    if (filterOption === "active") {
-      updatedMenus = updatedMenus.filter(
-        (menu) => menu?.status?.name === "active"
-      );
-    } else if (filterOption === "inactive") {
-      updatedMenus = updatedMenus.filter(
-        (menu) => menu?.status?.name === "inactive"
-      );
-    } else if (filterOption === "have_image") {
-      updatedMenus = updatedMenus.filter((menu) => menu.imageUrl);
-    }
-
-    // arang
-    if (sortOption === "alphabetical") {
-      updatedMenus.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortOption === "recent") {
-      updatedMenus.sort((a, b) => b.id - a.id);
-    } else if (sortOption === "old") {
-      updatedMenus.sort((a, b) => a.id - b.id);
-    }
-    // pagenation
-    // if (pageSize !== "all") {
-    //   const size = parseInt(pageSize, 10);
-    //   updatedMenus = updatedMenus.slice(0, size);
-    // }
-
-    setFilteredMenu(updatedMenus);
-  };
-
-  useEffect(() => {
-    applyFiltersAndSort();
-  }, [searchTerm, sortOption, filterOption, pageSize, Menus]);
   const ACTIVE_STATUS_ID = 2;
   const INACTIVE_STATUS_ID = 3;
 
@@ -151,7 +93,7 @@ const Menu = ({ params: { lang } }) => {
   };
 
   const handleViewEdit = (menuId) => {
-       router.push(`/${lang}/dashboard/section/${menuId}/view`);
+    router.push(`/${lang}/dashboard/section/${menuId}/view`);
   };
 
   const handleDelete = () => {
@@ -267,15 +209,9 @@ const Menu = ({ params: { lang } }) => {
           pageSize={pageSize}
           createButtonText={trans?.button?.section}
           // searchPlaceholder={trans?.sectionsItems.searchSections}
-         createTargetName="Menu"
+          createTargetName="Menu"
           createTargetPath="menu"
-          // itemsCount={itemsCount}
-          // filters={[
-          //   { value: "active", label: "Active" },
-          //   { value: "inactive", label: "Inactive" },
-          //   { value: "have_image", label: "Have Image" },
-          //   { value: "all", label: "All" },
-          // ]}
+
           filters={[
             { value: "active", label: trans?.sectionsItems?.active },
             { value: "inactive", label: trans?.sectionsItems?.inactive },

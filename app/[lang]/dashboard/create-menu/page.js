@@ -1,22 +1,32 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSubdomin } from "@/provider/SubdomainContext";
 import Card from "@/components/ui/card-snippet";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import makeAnimated from "react-select/animated";
 import { selectStyles } from "@/lib/utils";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
 import { menuSchema } from "./menuSchema";
-import Select from "react-select";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import {
+  NameFields,
+  DescriptionFields,
+  RestaurantField,
+  StatusFields,
+  DefaultStatusFields,
+  ImageUploadField,
+  ButtonSubmit,
+} from "../../components/FormFields";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import useRestaurantFetch from "../[orderType]/apICallCenter/hooksFetch/userestaurantFetch";
 function CreateMenu() {
-  const restOptions = [
-    { value: "123", label: "Happyjoes" }, // مثال
-  ];
+  const { theme, color } = useThemeColor();
+  const { restaurantOptions } = useRestaurantFetch();
+  const fileInputRef = useRef(null);
+  const [trans, setTrans] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
+
   const {
     register,
     handleSubmit,
@@ -28,88 +38,70 @@ function CreateMenu() {
   } = useForm({
     resolver: zodResolver(menuSchema),
     defaultValues: {
-      restaurant: restOptions.length === 1 ? restOptions[0] : null,
+      restaurant: restaurantOptions?.length === 1 ? restaurantOptions[0] : null,
+      status: 1,
+      default: 1,
     },
   });
-  const animatedComponents = makeAnimated();
-  const { theme } = useTheme();
-  const [color, setColor] = useState("");
-
   useEffect(() => {
-    if (restOptions.length === 1) {
-      setValue("restaurant", restOptions[0]);
+    if (restaurantOptions?.length === 1) {
+      setValue("restaurant", restaurantOptions[0]);
     }
-  }, [restOptions]);
+  }, [restaurantOptions, setValue]);
 
-  useEffect(() => {
-    if (theme === "dark") {
-      setColor("#fff");
-    } else {
-      setColor("#000");
+  const handleRemoveImage = () => {
+    setImagePreview(null);
+    setValue("image", null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
-  }, [theme]);
+  };
+  const onSubmit = (data) => {
+    console.log(data);
+  };
   return (
     <Card>
-      <form onSubmit={handleSubmit((data) => console.log(data))}>
-        <div className="flex items-center gap-2 w-full">
-          <div className="col-span-2 flex flex-col lg:flex-row lg:items-start gap-2 mb-2">
-            <Label className="lg:min-w-[160px]">English Name:</Label>
-            <div className="flex flex-col w-full">
-              <Input {...register("enName")} className="w-[%]" />
-              {errors.enName && (
-                <span className="text-red-500 text-sm mt-1">
-                  {errors.enName.message}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="col-span-2 flex flex-col lg:flex-row lg:items-start gap-2 mb-2">
-            <Label className="lg:min-w-[160px] pt-2">Arabic Name:</Label>
-            <div className="flex flex-col w-full">
-              <Input {...register("arName")} className="w-full" />
-              {errors.arName && (
-                <span className="text-red-500 text-sm mt-1">
-                  {errors.arName.message}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="col-span-2 flex flex-col lg:items-center lg:flex-row lg:gap-0 gap-2 mb-2">
-          <Label className="lg:min-w-[160px]">English Description:</Label>
-          <Textarea {...register("enDesc")} className="w-[50%]" />
-        </div>
-        <div className="col-span-2 flex flex-col lg:items-center lg:flex-row lg:gap-0 gap-2 mb-2">
-          <Label className="lg:min-w-[160px]">Arabic Description:</Label>
-          <Textarea {...register("arDesc")} className="w-[50%]" />
-        </div>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <NameFields
+          register={register}
+          errors={errors}
+          labelEn="Menu Name En"
+          labelAr="Manu Name AR"
+          maxLength={20}
+        />
+        <DescriptionFields
+          register={register}
+          errors={errors}
+          labelEn="Menu description En"
+          labelAr="Manu description AR"
+          // maxLength={20}
+        />
+        <RestaurantField
+          restaurantOptions={restaurantOptions}
+          selectStyles={selectStyles(theme, color)}
+          control={control}
+          register={register}
+          errors={errors}
+        />
 
-        <div className="col-span-2 flex flex-col lg:items-center lg:flex-row lg:gap-0 gap-2 mb-2">
-          <Label className="lg:min-w-[160px]">Restaurant:</Label>
-          <Controller
+        <div className="flex items-center gap-2">
+          <StatusFields control={control} register={register} name="status" />
+          <DefaultStatusFields
             control={control}
-            name="restaurant"
-            render={({ field }) => (
-              <Select
-                className="w-[70%]"
-                styles={selectStyles(theme, color)}
-                components={animatedComponents}
-                options={restOptions}
-                // value={selectedRestaurant}
-                // onChange={handleRestaurantChange}
-                placeholder="Select Restaurant"
-                // className="react-select w-full"
-                classNamePrefix="select"
-              />
-            )}
+            register={register}
+            name="default"
           />
-          {errors.restaurant && (
-            <span className="text-red-500 text-sm">
-              {errors.restaurant.message}
-            </span>
-          )}
         </div>
-        <Button type="submit">Add Menu</Button>
+        <ImageUploadField
+          errors={errors}
+          control={control}
+          fileInputRef={fileInputRef}
+          handleRemoveImage={handleRemoveImage}
+          imagePreview={imagePreview}
+          setImagePreview={setImagePreview}
+        />
+
+        <ButtonSubmit label="Add menu" />
       </form>
     </Card>
   );

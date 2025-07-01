@@ -241,11 +241,9 @@ function CreateOrder({ params }) {
   const router = useRouter();
 
   const searchParams = useSearchParams();
-  const { theme } = useTheme();
+    const { theme, color,setColor } = useThemeColor();
   const setCollapsed = useSidebar((state) => state.setCollapsed);
-
   const queryClient = useQueryClient();
-  const [color, setColor] = useState("");
   const [phone, setPhone] = useState("");
   const [selectedRestaurantId, setSelectedRestaurantId] = useState(1);
   const [selectedBranchId, setSelectedBranchId] = useState(null);
@@ -1894,13 +1892,7 @@ function CreateOrder({ params }) {
     setIsEditMode(false);
   };
 
-  useEffect(() => {
-    if (theme === "dark") {
-      setColor("#fff");
-    } else {
-      setColor("#000");
-    }
-  }, [theme]);
+ 
 
   const [selectedEditAddress, setSelectedEditAddress] = useState(null);
 

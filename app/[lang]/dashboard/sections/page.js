@@ -28,20 +28,18 @@ import "@/app/[lang]/dashboard/items/main.css";
 import ReactPaginate from "react-paginate";
 // import Dash from "@/app/[lang]/dashboard/DashboardPageView";
 import { sections } from "./sectionArray";
+import useTranslate from "@/hooks/useTranslate";
+import useApplyFiltersAndSort from "../../components/hooks/useApplyFiltersAndSort";
 const Sections = ({ params: { lang } }) => {
   const router = useRouter();
-  // const {menuId} = router.query
-
   const dispatch = useDispatch();
-  const [trans, setTrans] = useState(null);
-  // console.log("trans", trans);
-
+  const { trans } = useTranslate(lang);
   const [filteredSections, setFilteredSections] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortOption, setSortOption] = useState("");
-  const [arrangement, setArrangement] = useState([]);
-  const [filterOption, setFilterOption] = useState("");
-  const [pageSize, setPageSize] = useState("10");
+  // const [searchTerm, setSearchTerm] = useState("");
+  // const [sortOption, setSortOption] = useState("");
+  // const [arrangement, setArrangement] = useState([]);
+  // const [filterOption, setFilterOption] = useState("");
+  // const [pageSize, setPageSize] = useState("10");
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -53,156 +51,19 @@ const Sections = ({ params: { lang } }) => {
   const itemsPerPage =
     pageSize === "all" ? filteredSections.length : parseInt(pageSize);
 
-  // const sections = useMemo(
-  //   () => [
-  //     {
-  //       id: crypto.randomUUID(),
-  //       name: "Pizza",
-  //       description: "Pizza",
-  //       image: "",
-  //       items:[
-  //         {
-  //           id: crypto.randomUUID(),
-  //       name: "Margarita",
-  //       description: "Margarita",
-  //       image: "",
-  //         },
-  //         {
-  //           id: crypto.randomUUID(),
-  //       name: "Vegetarian",
-  //       description: "Vegetarian",
-  //       image: "",
-  //         },
-  //         {
-  //           id: crypto.randomUUID(),
-  //       name: "Cheese",
-  //       description: "Cheese",
-  //       image: "",
-  //         },
-  //         {
-  //           id: crypto.randomUUID(),
-  //       name: "Chicken",
-  //       description: "Chicken",
-  //       image: "",
-  //         },
-  //       ]
-  //     },
-  //     {
-  //       id: crypto.randomUUID(),
-  //       name: "Pasta",
-  //       description: "Pasta",
-  //       image: "",
-  //        items:[
-  //         {
-  //           id: crypto.randomUUID(),
-  //       name: "Beef Pasta",
-  //       description: "Margarita",
-  //       image: "",
-  //         },
-         
-  //         {
-  //           id: crypto.randomUUID(),
-  //       name: "Chicken Pasta",
-  //       description: "Margarita",
-  //       image: "",
-  //         },
-         
-  //         {
-  //           id: crypto.randomUUID(),
-  //       name: "Ranch Pasta",
-  //       description: "Margarita",
-  //       image: "",
-  //         },
-         
-  //       ]
-  //     },
-  //     {
-  //       id: crypto.randomUUID(),
-  //       name: "Sandwiches",
-  //       description: "Sandwiches",
-  //       image: "",
-  //     },
-  //     {
-  //       id: crypto.randomUUID(),
-  //       name: "Salad",
-  //       description: "Salad",
-  //       image: "",
-  //     },
-  //     {
-  //       id: crypto.randomUUID(),
-  //       name: "Water",
-  //       description: "Water",
-  //       image: "",
-  //     },
-  //     {
-  //       id: crypto.randomUUID(),
-  //       name: "Appetizers",
-  //       description: "Appetizers",
-  //       image: "",
-  //     },
-  //   ],
-  //   []
-  // );
-  // console.log("sections", filteredSections);
-  useEffect(() => {
-    const fetchTranslations = async () => {
-      try {
-        const dictionary = await getDictionary(lang);
-        setTrans(dictionary);
-      } catch (error) {
-        console.error("Error fetching dictionary:", error);
-      }
-    };
-
-    fetchTranslations();
-  }, [lang]);
-  const applyFiltersAndSort = () => {
-    let updatedSections = [...sections];
-
-    // search
-    if (searchTerm) {
-      updatedSections = updatedSections.filter(
-        (section) =>
-          section.name?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
-          section?.description
-            ?.toLowerCase()
-            ?.includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // filter
-    if (filterOption === "active") {
-      updatedSections = updatedSections.filter(
-        (section) => section?.status?.name === "active"
-      );
-    } else if (filterOption === "inactive") {
-      updatedSections = updatedSections.filter(
-        (section) => section?.status?.name === "inactive"
-      );
-    } else if (filterOption === "have_image") {
-      updatedSections = updatedSections.filter((section) => section.imageUrl);
-    }
-
-    // arang
-    if (sortOption === "alphabetical") {
-      updatedSections.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortOption === "recent") {
-      updatedSections.sort((a, b) => b.id - a.id);
-    } else if (sortOption === "old") {
-      updatedSections.sort((a, b) => a.id - b.id);
-    }
-    // pagenation
-    // if (pageSize !== "all") {
-    //   const size = parseInt(pageSize, 10);
-    //   updatedSections = updatedSections.slice(0, size);
-    // }
-
-    setFilteredSections(updatedSections);
-  };
-
-  useEffect(() => {
-    applyFiltersAndSort();
-  }, [searchTerm, sortOption, filterOption, pageSize, sections]);
+  const {
+    applyFiltersAndSort,
+    filteredMenu,
+    setFilteredMenu,
+    searchTerm,
+    setSearchTerm,
+    sortOption,
+    setSortOption,
+    filterOption,
+    setFilterOption,
+    pageSize,
+    setPageSize,
+  } = useApplyFiltersAndSort(sections);
   const ACTIVE_STATUS_ID = 2;
   const INACTIVE_STATUS_ID = 3;
 
@@ -241,9 +102,9 @@ const Sections = ({ params: { lang } }) => {
     console.log("Toggle active:", checked);
   };
 
-const handleEnter = (sectionId) => {
-  router.push(`/${lang}/dashboard/section/${sectionId}`);
-};
+  const handleEnter = (sectionId) => {
+    router.push(`/${lang}/dashboard/section/${sectionId}`);
+  };
 
   const handleDragStart = (e, localIndex) => {
     const actualIndex = offset + localIndex; //  index الحقيقي من filteredSections
@@ -347,7 +208,7 @@ const handleEnter = (sectionId) => {
           createButtonText={trans?.button?.section}
           // searchPlaceholder={trans?.sectionsItems.searchSections}
           pageType="sections"
-           createTargetName="Section"
+          createTargetName="Section"
           createTargetPath="section"
           // itemsCount={itemsCount}
           // filters={[

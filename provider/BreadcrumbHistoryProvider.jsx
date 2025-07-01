@@ -230,7 +230,7 @@ export const useBreadcrumbHistory = () => useContext(BreadcrumbContext);
 const getSmartLabel = (pathname) => {
   const parts = pathname.split("/").filter(Boolean);
 
-  // ✅ تجاهل اللغة مثل "en" أو "ar"
+  //  تجاهل اللغة مثل "en" أو "ar"
   const langCodes = ["en", "ar", "fr"]; // لو عندك لغات تانية ضيفها هنا
   const cleanedParts = langCodes.includes(parts[0]) ? parts.slice(1) : parts;
 
@@ -238,7 +238,7 @@ const getSmartLabel = (pathname) => {
   const prev = cleanedParts[cleanedParts.length - 2];
   const beforePrev = cleanedParts[cleanedParts.length - 3];
 
-  // 👇 باقي الكود بنفس الطريقة لكن استبدل `parts` بـ `cleanedParts`
+  //  باقي الكود بنفس الطريقة لكن استبدل `parts` بـ `cleanedParts`
   if (last === "view") {
     const id = prev;
     const type = beforePrev;
