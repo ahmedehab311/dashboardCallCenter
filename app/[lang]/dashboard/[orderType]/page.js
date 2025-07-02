@@ -84,6 +84,7 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import CartItem from "./components/cartItem";
+import { useThemeColor } from "@/hooks/useThemeColor";
 const editUserDataSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   phone: z.string().regex(/^\d{3,15}$/, "Invalid phone number"),
