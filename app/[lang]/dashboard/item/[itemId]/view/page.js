@@ -2,14 +2,14 @@
 import { useParams } from "next/navigation";
 import React from "react";
 
-function ViewAndEditMenu() {
+function ViewAndEditItem() {
   const { itemId: id } = useParams();
   return (
     <>
-      <div>ViewAndEditMenu </div>
-      <div>id menu:{id} </div>
+      <div>ViewAndEditItem </div>
+      <div>id Item:{id} </div>
     </>
   );
 }
 
-export default ViewAndEditMenu;
+export default ViewAndEditItem;

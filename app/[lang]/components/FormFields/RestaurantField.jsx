@@ -8,7 +8,7 @@ function RestaurantField({
   label,
   restaurantOptions,
   control,
-  selectStyles
+  selectStyles,isEditing
 }) {
   return (
     <div className="col-span-2 flex flex-col lg:items-center lg:flex-row lg:gap-0 gap-2 mb-2">
@@ -25,6 +25,7 @@ function RestaurantField({
               className="w-[50%]"
               isDisabled={restaurantOptions?.length === 1}
               styles={selectStyles}
+               disabled={isEditing}
             />
           )}
         />

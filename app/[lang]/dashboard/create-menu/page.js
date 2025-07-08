@@ -15,7 +15,7 @@ import {
   StatusFields,
   DefaultStatusFields,
   ImageUploadField,
-  ButtonSubmit,
+  SubmitButton,
 } from "../../components/FormFields";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useRestaurantFetch from "../[orderType]/apICallCenter/hooksFetch/userestaurantFetch";
@@ -101,7 +101,7 @@ function CreateMenu() {
           setImagePreview={setImagePreview}
         />
 
-        <ButtonSubmit label="Add menu" />
+        <SubmitButton label="Add menu" />
       </form>
     </Card>
   );
