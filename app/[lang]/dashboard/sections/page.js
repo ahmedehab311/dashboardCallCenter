@@ -34,6 +34,19 @@ const Sections = ({ params: { lang } }) => {
   const router = useRouter();
   const dispatch = useDispatch();
   const { trans } = useTranslate(lang);
+  const {
+    applyFiltersAndSort,
+    filteredMenu,
+    setFilteredMenu,
+    searchTerm,
+    setSearchTerm,
+    sortOption,
+    setSortOption,
+    filterOption,
+    setFilterOption,
+    pageSize,
+    setPageSize,
+  } = useApplyFiltersAndSort(sections);
   const [filteredSections, setFilteredSections] = useState([]);
   // const [searchTerm, setSearchTerm] = useState("");
   // const [sortOption, setSortOption] = useState("");
@@ -51,19 +64,6 @@ const Sections = ({ params: { lang } }) => {
   const itemsPerPage =
     pageSize === "all" ? filteredSections.length : parseInt(pageSize);
 
-  const {
-    applyFiltersAndSort,
-    filteredMenu,
-    setFilteredMenu,
-    searchTerm,
-    setSearchTerm,
-    sortOption,
-    setSortOption,
-    filterOption,
-    setFilterOption,
-    pageSize,
-    setPageSize,
-  } = useApplyFiltersAndSort(sections);
   const ACTIVE_STATUS_ID = 2;
   const INACTIVE_STATUS_ID = 3;
 

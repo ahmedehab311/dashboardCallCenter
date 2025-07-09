@@ -162,6 +162,7 @@ const Button = React.forwardRef(
         className={cn(buttonVariants({ variant, size, color, className }))}
         ref={ref}
         {...props}
+        
       />
     );
   }

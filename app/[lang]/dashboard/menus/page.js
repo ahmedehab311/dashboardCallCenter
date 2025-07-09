@@ -29,6 +29,8 @@ import { Menus } from "./apisMenu";
 import ReactPaginate from "react-paginate";
 import useTranslate from "@/hooks/useTranslate";
 import useApplyFiltersAndSort from "../../components/hooks/useApplyFiltersAndSort";
+import { useReorderableList } from "@/hooks/useReorderableList";
+import { usePagination } from "@/hooks/usePagination";
 // import Dash from "@/app/[lang]/dashboard/DashboardPageView";
 const Menu = ({ params: { lang } }) => {
   const router = useRouter();
@@ -43,6 +45,7 @@ const Menu = ({ params: { lang } }) => {
     ],
     []
   );
+
   const { trans } = useTranslate(lang);
   const {
     filteredMenu,
@@ -56,15 +59,16 @@ const Menu = ({ params: { lang } }) => {
     pageSize,
     setPageSize,
   } = useApplyFiltersAndSort(Menus);
+  const itemsPerPage =
+    pageSize === "all" ? filteredMenu.length : parseInt(pageSize);
+
   const [arrangement, setArrangement] = useState([]);
-  const [draggedIndex, setDraggedIndex] = useState(null);
+  // const [draggedIndex, setDraggedIndex] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
   const itemsCount = filteredMenu?.length;
   const [isLoadingStatus, setIsLoadingStauts] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-  const itemsPerPage =
-    pageSize === "all" ? filteredMenu.length : parseInt(pageSize);
 
   const ACTIVE_STATUS_ID = 2;
   const INACTIVE_STATUS_ID = 3;
@@ -91,10 +95,18 @@ const Menu = ({ params: { lang } }) => {
       ? description.slice(0, maxLength) + "..."
       : description;
   };
-
-  const handleViewEdit = (menuId) => {
-    router.push(`/${lang}/dashboard/section/${menuId}/view`);
-  };
+  const {
+    draggedIndex,
+    handleDragStart,
+    handleDragOver,
+    handleDrop,
+    handleDragEnd,
+  } = useReorderableList(filteredMenu, setFilteredMenu);
+  const { offset, currentItems, pageCount, getVisiblePages } = usePagination(
+    filteredMenu,
+    itemsPerPage,
+    currentPage
+  );
 
   const handleDelete = () => {
     console.log("Delete clicked");
@@ -104,94 +116,12 @@ const Menu = ({ params: { lang } }) => {
     console.log("Toggle active:", checked);
   };
 
-  const handleEnter = (menuId) => {
+  const handleEnter = () => {
     router.push(`/${lang}/dashboard/sections`);
   };
 
-  const handleDragStart = (e, localIndex) => {
-    const actualIndex = offset + localIndex; //  index الحقيقي من filteredMenu
-    setDraggedIndex(actualIndex);
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  const handleDragOver = (e, index) => {
-    e.preventDefault();
-    if (draggedIndex === index) return;
-  };
-  const handleDrop = (e, dropIndex) => {
-    e.preventDefault();
-
-    // نسخ filteredMenu لعدم التلاعب بالـ state مباشرة
-    const reorderedSections = [...filteredMenu];
-
-    // سحب العنصر الذي تم سحبه من مكانه القديم
-    const [draggedItem] = reorderedSections.splice(draggedIndex, 1);
-
-    // إدخال العنصر في المكان الجديد
-    reorderedSections.splice(dropIndex, 0, draggedItem);
-
-    // تحديث filteredMenu في الـ state
-    setFilteredMenu(reorderedSections);
-    setDraggedIndex(null);
-
-    // حساب الترتيب الجديد بناءً على filteredMenu
-    const arrangement = reorderedSections.map((_, index) => index + 1);
-
-    // إظهار الترتيب الجديد في الكونسول
-    // console.log("Updated Arrangement:", arrangement);
-
-    // تعريف الـ ids بناءً على العناصر
-    const ids = reorderedSections.map((section) => section.id); // هنا نحصل على الـ ids من العناصر المعدلة
-
-    // إظهار الـ IDs في الترتيب الجديد
-    const updatedIds = arrangement.map((index) => ids[index - 1]);
-
-    // console.log("Updated IDs:", updatedIds);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-  };
-  const pageCount = Math.ceil(filteredMenu?.length / itemsPerPage);
-  const offset = currentPage * itemsPerPage;
-  const currentItems = filteredMenu?.slice(offset, offset + itemsPerPage);
-
-  const getVisiblePages = (currentPage, pageCount) => {
-    const pages = [];
-
-    if (pageCount <= 5) {
-      return Array.from({ length: pageCount }, (_, i) => i);
-    }
-
-    pages.push(0); // always show first page
-
-    if (currentPage > 2) {
-      pages.push("start-ellipsis"); // ...
-    }
-
-    if (currentPage > 1 && currentPage < pageCount - 2) {
-      pages.push(currentPage - 1);
-      pages.push(currentPage);
-      pages.push(currentPage + 1);
-    } else if (currentPage <= 1) {
-      pages.push(1);
-      pages.push(2);
-    } else if (currentPage >= pageCount - 2) {
-      pages.push(pageCount - 3);
-      pages.push(pageCount - 2);
-    }
-
-    if (currentPage < pageCount - 3) {
-      pages.push("end-ellipsis"); // ...
-    }
-
-    pages.push(pageCount - 1); // always show last page
-
-    return pages;
-  };
-
   //  edit & view
-  const handleNavigate = (menuId) => {
+  const handleViewEdit = (menuId) => {
     router.push(`/${lang}/dashboard/menu/${menuId}/view`);
   };
   const visiblePages = getVisiblePages(currentPage, pageCount);
@@ -211,7 +141,6 @@ const Menu = ({ params: { lang } }) => {
           // searchPlaceholder={trans?.sectionsItems.searchSections}
           createTargetName="Menu"
           createTargetPath="menu"
-
           filters={[
             { value: "active", label: trans?.sectionsItems?.active },
             { value: "inactive", label: trans?.sectionsItems?.inactive },

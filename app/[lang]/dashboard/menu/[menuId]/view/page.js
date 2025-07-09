@@ -69,7 +69,6 @@ function ViewAndEditMenu() {
       setValue("restaurant", staticMenuData.restaurant);
       setValue("status", staticMenuData.status);
       setValue("default", staticMenuData.default);
-      // الخ ...
     }
   }, [setValue]);
   const handleRemoveImage = () => {
@@ -83,7 +82,7 @@ function ViewAndEditMenu() {
     console.log(data);
   };
   const onEditChange = () => {
-    setIsEditing((prev) =>! prev);
+    setIsEditing((prev) => !prev);
   };
   return (
     <Card>
@@ -96,16 +95,16 @@ function ViewAndEditMenu() {
         <NameFields
           register={register}
           errors={errors}
-          labelEn="Menu Name En"
-          labelAr="Manu Name AR"
+          labelEn="Name En"
+          labelAr="Name AR"
           maxLength={20}
           isEditing={isEditing}
         />
         <DescriptionFields
           register={register}
           errors={errors}
-          labelEn="Menu description En"
-          labelAr="Manu description AR"
+          labelEn="description En"
+          labelAr="description AR"
           // maxLength={20}
           isEditing={isEditing}
         />
@@ -119,7 +118,12 @@ function ViewAndEditMenu() {
         />
 
         <div className="flex items-center gap-2">
-          <StatusFields control={control} register={register} name="status" />
+          <StatusFields
+            control={control}
+            register={register}
+            name="status"
+            isEditing={isEditing}
+          />
           <DefaultStatusFields
             control={control}
             register={register}
@@ -137,7 +141,7 @@ function ViewAndEditMenu() {
           isEditing={isEditing}
         />
 
-        <SubmitButton label="Add menu" />
+        <SubmitButton label="Edit menu" isEditing={isEditing} />
       </form>
     </Card>
   );
