@@ -213,9 +213,9 @@ const Menu = ({ params: { lang } }) => {
                 // checked={getStatusDefault(menu)}
 
                 isActiveDefault={getStatusDefault(menu)}
-                onToggleDefaultActive={(checked) =>
-                  handleToggleDefaultActive(checked, menu.id)
-                }
+              onToggleDefaultActive={(checked) =>
+  handleToggleDefaultActive(checked, menu.id)
+}
                 isSection={true}
                 trans={trans}
                 isLoading={isLoadingStatus}
