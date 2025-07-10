@@ -101,8 +101,6 @@
 //   return result;
 // };
 
-
-
 // useEffect(() => {
 //   if (!pathname) return;
 
@@ -123,8 +121,6 @@
 //   setBreadcrumbs(builtBreadcrumbs);
 // }, [pathname]);
 
-
-
 //   return (
 //     <BreadcrumbContext.Provider value={{ breadcrumbs }}>
 //       {children}
@@ -143,29 +139,51 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { Menus } from "@/app/[lang]/dashboard/menus/apisMenu";
 import { sections } from "@/app/[lang]/dashboard/sections/sectionArray";
+import { useSubdomin } from "./SubdomainContext";
+import { useMenus } from "@/app/[lang]/dashboard/menus/apisMenu";
 
 const BreadcrumbContext = createContext();
 
 export const BreadcrumbHistoryProvider = ({ children }) => {
+  const { apiBaseUrl, token } = useSubdomin(); // بتجيب التوكن واللينك
+  const {
+    data: Menus,
+    isLoading,
+    error,
+    refetch,
+  } = useMenus(token, apiBaseUrl);
   const pathname = usePathname();
   const [breadcrumbs, setBreadcrumbs] = useState([]);
 
+  // useEffect(() => {
+  //   if (!pathname) return;
+
+  //   setBreadcrumbs((prev) => {
+  //     const existingIndex = prev.findIndex((b) => b.path === pathname);
+  //     if (existingIndex !== -1) {
+  //       // رجعت لواحد قديم → امسح اللي بعده
+  //       return prev.slice(0, existingIndex + 1);
+  //     }
+
+  //     const label = getSmartLabel(pathname, Menus);
+  //     return [...prev, { path: pathname, label }];
+  //   });
+  // }, [pathname]);
   useEffect(() => {
-    if (!pathname) return;
+  if (!pathname || isLoading || !Menus?.length) return;
 
-    setBreadcrumbs((prev) => {
-      const existingIndex = prev.findIndex((b) => b.path === pathname);
-      if (existingIndex !== -1) {
-        // رجعت لواحد قديم → امسح اللي بعده
-        return prev.slice(0, existingIndex + 1);
-      }
+  setBreadcrumbs((prev) => {
+    const existingIndex = prev.findIndex((b) => b.path === pathname);
+    if (existingIndex !== -1) {
+      return prev.slice(0, existingIndex + 1);
+    }
 
-      const label = getSmartLabel(pathname);
-      return [...prev, { path: pathname, label }];
-    });
-  }, [pathname]);
+    const label = getSmartLabel(pathname, Menus);
+    return [...prev, { path: pathname, label }];
+  });
+}, [pathname, Menus, isLoading]);
+
 
   return (
     <BreadcrumbContext.Provider value={{ breadcrumbs }}>
@@ -176,58 +194,7 @@ export const BreadcrumbHistoryProvider = ({ children }) => {
 
 export const useBreadcrumbHistory = () => useContext(BreadcrumbContext);
 
-// ✅ توليد اسم واقعي من المسار
-// const getSmartLabel = (pathname) => {
-//   const parts = pathname.split("/").filter(Boolean);
-  
-//   const last = parts[parts.length - 1];
-//   const prev = parts[parts.length - 2];
-
-//   if (last === "view") {
-//     const id = prev;
-//     const type = parts[parts.length - 3];
-
-//     if (type === "menu") {
-//       const found = Menus.find((m) => m.id === id);
-//       return found ? `${found.name} View` : `Menu ${id} View`;
-//     }
-
-//     if (type === "section") {
-//       const found = sections.find((s) => s.id === id);
-//       return found ? `${found.name} View` : `Section ${id} View`;
-//     }
-
-//     if (type === "item") {
-//       for (const section of sections) {
-//         const item = section.items?.find((i) => i.id === id);
-//         if (item) return `${item.name} View`;
-//       }
-//       return `Item ${id} View`;
-//     }
-//   }
-
-//   if (prev === "menu") {
-//     const found = Menus.find((m) => m.id === last);
-//     return found?.name || `Menu ${last}`;
-//   }
-
-//   if (prev === "section") {
-//     const found = sections.find((s) => s.id === last);
-//     return found?.name || `Section ${last}`;
-//   }
-
-//   if (prev === "item") {
-//     for (const section of sections) {
-//       const item = section.items?.find((i) => i.id === last);
-//       if (item) return item.name;
-//     }
-//     return `Item ${last}`;
-//   }
-
-//   // fallback
-//   return formatLabel(last);
-// };
-const getSmartLabel = (pathname) => {
+const getSmartLabel = (pathname, Menus) => {
   const parts = pathname.split("/").filter(Boolean);
 
   //  تجاهل اللغة مثل "en" أو "ar"
@@ -244,12 +211,11 @@ const getSmartLabel = (pathname) => {
     const type = beforePrev;
 
     if (type === "menu") {
-      const found = Menus.find((m) => m.id === id);
-      return found ? `${found.name} View` : `Menu ${id} View`;
+      const found = Menus?.find((m) => m.id === Number(id));
+      return found ? `${found.name_en} View` : `Menu ${id} View`;
     }
-
     if (type === "section") {
-      const found = sections.find((s) => s.id === id);
+      const found = sections?.find((m) => m.id === Number(id));
       return found ? `${found.name} View` : `Section ${id} View`;
     }
 
@@ -263,8 +229,8 @@ const getSmartLabel = (pathname) => {
   }
 
   if (prev === "menu") {
-    const found = Menus.find((m) => m.id === last);
-    return found?.name || `Menu ${last}`;
+    const found = Menus?.find((m) => m.id === Number(last));
+    return found?.name_en || `Menu ${last}`;
   }
 
   if (prev === "section") {

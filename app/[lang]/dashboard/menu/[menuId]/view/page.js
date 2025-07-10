@@ -22,24 +22,32 @@ import {
 } from "@/app/[lang]/components/FormFields";
 import { useParams } from "next/navigation";
 import img from "./1664289141.jpeg";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { BASE_URL } from "@/api/BaseUrl";
+import { fetchAllMenu, useMenus } from "../../../menus/apisMenu";
+
 function ViewAndEditMenu() {
   const { menuId: id } = useParams();
+  const { apiBaseUrl, subdomain, token } = useSubdomin();
+  const {
+    data: Menus,
+    isLoading,
+    error,
+    refetch,
+  } = useMenus(token, apiBaseUrl);
+
+  const queryClient = useQueryClient();
+  // const menus = queryClient.getQueryData(["MenusList"]);
+
+  const currentMenu = Menus?.find((menu) => menu.id === Number(id));
+  // const currentMenu = menus?.find((menu) => menu.id === Number(menuId));
+
   const { theme, color } = useThemeColor();
   const { restaurantOptions } = useRestaurantFetch();
   const fileInputRef = useRef(null);
   const [isEditing, setIsEditing] = useState(true);
   const [trans, setTrans] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const staticMenuData = {
-    enName: "Breakfast Menu",
-    arName: "قائمة الإفطار",
-    descriptionEn: "A variety of breakfast options.",
-    descriptionAr: "مجموعة متنوعة من وجبات الإفطار.",
-    restaurant: { value: 1, label: "Restaurant A" },
-    status: 1,
-    default: 1,
-    image: img, // لو عايز تضيف صورة مبدئية لاحقًا
-  };
 
   const {
     register,
@@ -52,7 +60,7 @@ function ViewAndEditMenu() {
   } = useForm({
     resolver: zodResolver(menuSchema),
     defaultValues: {
-      ...staticMenuData,
+      ...currentMenu,
     },
   });
   useEffect(() => {
@@ -61,16 +69,21 @@ function ViewAndEditMenu() {
     }
   }, [restaurantOptions, setValue]);
   useEffect(() => {
-    if (staticMenuData) {
-      setValue("enName", staticMenuData.enName);
-      setValue("arName", staticMenuData.arName);
-      setValue("enDesc", staticMenuData.descriptionEn);
-      setValue("arDesc", staticMenuData.descriptionAr);
-      setValue("restaurant", staticMenuData.restaurant);
-      setValue("status", staticMenuData.status);
-      setValue("default", staticMenuData.default);
+    if (currentMenu) {
+      setValue("enName", currentMenu.name_en);
+      setValue("arName", currentMenu.name_ar);
+      setValue("enDesc", currentMenu.description_en);
+      setValue("arDesc", currentMenu.description_ar);
+      setValue("restaurant", currentMenu.restaurant_id);
+      setValue("status", currentMenu.status ? 1 : 2);
+      setValue("default", currentMenu.default ? 1 : 2);
+      if (currentMenu.image) {
+        setImagePreview(`${BASE_URL()}/${subdomain}/${currentMenu.image}`);
+      }
     }
-  }, [setValue]);
+  }, [setValue, currentMenu]);
+  // console.log("currentMenu.default", currentMenu.default);
+
   const handleRemoveImage = () => {
     setImagePreview(null);
     setValue("image", null);

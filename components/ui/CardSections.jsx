@@ -138,6 +138,8 @@ const CardContent = React.forwardRef(
       className,
       isSection,
       deletedAt,
+      isLoading,
+      isActiveDefault,
       ...props
     },
     ref
@@ -155,17 +157,27 @@ const CardContent = React.forwardRef(
           >
             {sectionName}
           </h3>
-
-          {/* {isSection && (
-            <Switch
-              checked={isActive}
-              onCheckedChange={(checked) => {
-                console.log(`Switch value for ${sectionName}:`, checked);
-                onToggleActive(checked);
-              }}
-              aria-label={isActive ? trans?.active : trans?.inactive}
-            />
-          )} */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <Switch
+                    checked={isActive}
+                    disabled={isLoading}
+                    onCheckedChange={(checked) => {
+                      console.log(`Switch value for ${sectionName}:`, checked);
+                      onToggleActive(checked);
+                    }}
+                    className="flex items-center mb-3"
+                    aria-label={isActive ? trans?.active : trans?.inactive}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Status </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         <p className="text-sm text-gray-600 min-h-[60px]">{description}</p>
@@ -187,6 +199,8 @@ const CardFooter = React.forwardRef(
       className,
       isSection,
       isActive,
+      isActiveDefault,
+      onToggleDefaultActive,
       onToggleActive,
       handleToggleActive,
       trans,
@@ -197,71 +211,89 @@ const CardFooter = React.forwardRef(
   ) => (
     <div ref={ref} className={cn("p-4 space-y-3", className)} {...props}>
       <div className="flex items-center justify-between">
-      <TooltipProvider>
-      <div className="flex items-center gap-4 mb-3">
-        {/* زر الحذف مع Tooltip و AlertDialog */}
-        <AlertDialog>
+        <TooltipProvider>
+          <div className="flex items-center gap-4 mb-3">
+            {/* زر الحذف مع Tooltip و AlertDialog */}
+            <AlertDialog>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <AlertDialogTrigger asChild>
+                    <button className="flex items-center text-red-500 gap-[2px]">
+                      <FiTrash2 className="text-xl" />
+                    </button>
+                  </AlertDialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{trans?.delete}</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {/* محتوى الـ Dialog التحذيري */}
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    your account and remove your data from our servers.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel
+                    type="button"
+                    variant="outline"
+                    color="info"
+                  >
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive hover:bg-destructive/80"
+                    onClick={onDelete}
+                  >
+                    Ok
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {/* زر التعديل مع Tooltip */}
+            {isSection && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={onViewEdit}
+                    className="flex items-center text-blue-500"
+                  >
+                    <FiEdit className="mr-1 text-xl" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{trans?.viewEdit}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        </TooltipProvider>
+        <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <AlertDialogTrigger asChild>
-                <button className="flex items-center text-red-500 gap-[2px]">
-                  <FiTrash2 className="text-xl" />
-                </button>
-              </AlertDialogTrigger>
+              <div>
+                <Switch
+                  checked={isActiveDefault}
+                  disabled={isLoading}
+                  onCheckedChange={(checked) => {
+                    console.log(`Switch value for ${sectionName}:`, checked);
+                    onToggleDefaultActive(checked);
+                  }}
+                  className="flex items-center mb-3"
+                  aria-label={isActiveDefault ? trans?.active : trans?.inactive}
+                />
+              </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{trans?.delete}</p>
+              <p>Default </p>
             </TooltipContent>
           </Tooltip>
-
-          {/* محتوى الـ Dialog التحذيري */}
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your account and remove your data from our servers.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel type="button" variant="outline" color="info">
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-destructive hover:bg-destructive/80"
-                onClick={onDelete}
-              >
-                Ok
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {/* زر التعديل مع Tooltip */}
-        {isSection && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button onClick={onViewEdit} className="flex items-center text-blue-500">
-                <FiEdit className="mr-1 text-xl" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{trans?.viewEdit}</p>
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </div>
-    </TooltipProvider>
-
-        <Switch
-          checked={isActive}
-          disabled={isLoading}
-          onCheckedChange={(checked) => {
-            console.log(`Switch value for ${sectionName}:`, checked);
-            onToggleActive(checked);
-          }}
-          className="flex items-center mb-3"
-          aria-label={isActive ? trans?.active : trans?.inactive}
-        />
+        </TooltipProvider>
       </div>
 
       <Button

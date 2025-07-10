@@ -13,7 +13,7 @@ function ImageUploadField({
   handleRemoveImage,
   imagePreview,
   setImagePreview,
-  isEditing
+  isEditing,
 }) {
   return (
     <div className="col-span-2 flex flex-col lg:items-center lg:flex-row lg:gap-0 gap-2 mb-4">
@@ -24,15 +24,19 @@ function ImageUploadField({
           control={control}
           render={({ field }) => (
             <>
-              <Label   className={cn(
-          "cursor-pointer flex items-center",
-          isEditing && "pointer-events-none opacity-50"
-        )}>
-                <Button asChild  disabled={isEditing}>
-                  <div>
-                    <Upload className="mr-2 h-4 w-4"  /> Choose File
-                  </div>
-                </Button>
+              <Label
+                className={cn(
+                  "cursor-pointer flex items-center",
+                  isEditing && "pointer-events-none opacity-50"
+                )}
+              >
+                {!isEditing && (
+                  <Button asChild disabled={isEditing}>
+                    <div>
+                      <Upload className="mr-2 h-4 w-4" /> Choose File
+                    </div>
+                  </Button>
+                )}
                 <Input
                   ref={fileInputRef}
                   type="file"
@@ -51,7 +55,7 @@ function ImageUploadField({
             </>
           )}
         />
-       {/* <Controller
+        {/* <Controller
   name="image"
   control={control}
   render={({ field }) => (
@@ -82,7 +86,6 @@ function ImageUploadField({
   )}
 /> */}
 
-
         {errors.image && (
           <span className="text-red-500 text-sm mt-1">
             {errors.image.message}
@@ -98,14 +101,14 @@ function ImageUploadField({
               alt="Preview"
               className="w-40 h-40 object-cover rounded-md border"
             />
-            <button
-             disabled={isEditing}
-              type="button"
-              onClick={handleRemoveImage}
-              className="absolute top-1 right-1 font-bold text-red-700 cursor-pointer text-[22px] px-2 py-1 rounded shadow "
-            >
-              X
-            </button>
+            {/* <button
+              disabled={isEditing}
+                type="button"
+                onClick={handleRemoveImage}
+                className="absolute top-1 right-1 font-bold text-red-700 cursor-pointer text-[22px] px-2 py-1 rounded shadow "
+              >
+                X
+              </button> */}
           </div>
         )}
       </div>

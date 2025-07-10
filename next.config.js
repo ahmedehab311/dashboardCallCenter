@@ -62,7 +62,7 @@ const nextConfig = {
     return config;
   },
   images: {
-    domains: ["ordrz.me"],
+     domains: ['myres.me'],
   },
 };
 

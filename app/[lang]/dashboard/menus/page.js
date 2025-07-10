@@ -24,32 +24,36 @@ import {
 import TaskHeader from "./task-header.jsx";
 import { getDictionary } from "@/app/dictionaries.js";
 import "../items/main.css";
-import { Menus } from "./apisMenu";
+import { fetchAllMenu, Menus, useMenus } from "./apisMenu";
 // import { saveArrangement } from "./apiSections.jsx";
 import ReactPaginate from "react-paginate";
 import useTranslate from "@/hooks/useTranslate";
 import useApplyFiltersAndSort from "../../components/hooks/useApplyFiltersAndSort";
 import { useReorderableList } from "@/hooks/useReorderableList";
 import { usePagination } from "@/hooks/usePagination";
+import { useQuery } from "@tanstack/react-query";
+import { useSubdomin } from "@/provider/SubdomainContext";
+import { BASE_URL } from "@/api/BaseUrl";
 // import Dash from "@/app/[lang]/dashboard/DashboardPageView";
 const Menu = ({ params: { lang } }) => {
   const router = useRouter();
-  const Menus = useMemo(
-    () => [
-      {
-        id: "1",
-        name: "happy joys",
-        description: "happy joys",
-        image: "",
-      },
-    ],
-    []
-  );
+  const { apiBaseUrl, subdomain, token } = useSubdomin();
+
+  const {
+    data: Menus,
+    isLoading,
+    error,
+    refetch,
+  } = useMenus(token, apiBaseUrl);
+  if (process.env.NODE_ENV === "development") {
+    console.log("apiBaseUrl", apiBaseUrl);
+    console.log("Menus", Menus);
+    console.log("token", token);
+  }
 
   const { trans } = useTranslate(lang);
   const {
     filteredMenu,
-    setFilteredMenu,
     searchTerm,
     setSearchTerm,
     sortOption,
@@ -64,30 +68,12 @@ const Menu = ({ params: { lang } }) => {
 
   const [arrangement, setArrangement] = useState([]);
   // const [draggedIndex, setDraggedIndex] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(false);
   const itemsCount = filteredMenu?.length;
   const [isLoadingStatus, setIsLoadingStauts] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
+  const [localStatuses, setLocalStatuses] = useState({});
+  const [localStatusesDefault, setLocalStatusesDefault] = useState({});
 
-  const ACTIVE_STATUS_ID = 2;
-  const INACTIVE_STATUS_ID = 3;
-
-  useEffect(() => {
-    let updatedSections = Menus;
-
-    if (filterOption === "active") {
-      updatedSections = updatedSections.filter(
-        (section) => section?.status?.id === ACTIVE_STATUS_ID
-      );
-    } else if (filterOption === "inactive") {
-      updatedSections = updatedSections.filter(
-        (section) => section?.status?.id === INACTIVE_STATUS_ID
-      );
-    }
-
-    setFilteredMenu(updatedSections);
-  }, [Menus, filterOption]);
   const truncateDescription = (description, maxLength = 50) => {
     // console.log("Description received:", description);
     if (!description) return "";
@@ -101,7 +87,7 @@ const Menu = ({ params: { lang } }) => {
     handleDragOver,
     handleDrop,
     handleDragEnd,
-  } = useReorderableList(filteredMenu, setFilteredMenu);
+  } = useReorderableList(filteredMenu);
   const { offset, currentItems, pageCount, getVisiblePages } = usePagination(
     filteredMenu,
     itemsPerPage,
@@ -112,8 +98,29 @@ const Menu = ({ params: { lang } }) => {
     console.log("Delete clicked");
   };
 
-  const handleToggleActive = (checked) => {
-    console.log("Toggle active:", checked);
+  const handleToggleActive = (checked, menuId) => {
+    setLocalStatuses((prev) => ({
+      ...prev,
+      [menuId]: checked,
+    }));
+  };
+  const getStatus = (menu) => {
+    // لو المستخدم غيّر السويتش، نستخدم القيمة اللي في localStatuses
+    if (menu.id in localStatuses) return localStatuses[menu.id];
+    // وإلا نرجع القيمة الأصلية من الـ API
+    return !!menu.status;
+  };
+  const handleToggleDefaultActive = (checked, menuId) => {
+    setLocalStatusesDefault((prev) => ({
+      ...prev,
+      [menuId]: checked,
+    }));
+  };
+  const getStatusDefault = (menu) => {
+    // لو المستخدم غيّر السويتش، نستخدم القيمة اللي في localStatuses
+    if (menu.id in localStatuses) return localStatuses[menu.id];
+    // وإلا نرجع القيمة الأصلية من الـ API
+    return !!menu.default;
   };
 
   const handleEnter = () => {
@@ -176,7 +183,7 @@ const Menu = ({ params: { lang } }) => {
               }`}
             >
               <CardHeader
-                imageUrl={menu.image}
+                imageUrl={`${BASE_URL()}/${subdomain}/${menu.image}`}
                 draggable
                 onDragStart={(e) => handleDragStart(e, index)}
                 onDragOver={(e) => handleDragOver(e, index)}
@@ -185,25 +192,29 @@ const Menu = ({ params: { lang } }) => {
               />
 
               <CardContent
-                sectionName={menu?.name}
-                description={truncateDescription(menu?.description, 80)}
-                isActive={menu?.status?.id === ACTIVE_STATUS_ID}
+                sectionName={menu?.name_en}
+                description={truncateDescription(menu?.description_en, 80)}
+                isActive={getStatus(menu)}
                 onToggleActive={(checked) =>
-                  handleToggleActive(checked, menu.id, menu.status?.id)
+                  handleToggleActive(checked, menu.id)
                 }
                 isSection={true}
                 className="card-content"
                 trans={trans}
                 deletedAt={menu?.actions?.deletedAt}
+                isLoading={isLoadingStatus}
               />
               <CardFooter
                 sectionName={menu?.name}
-                onViewEdit={() => handleNavigate(menu.id)}
+                onViewEdit={() => handleViewEdit(menu.id)}
                 onDelete={() => handleDeleteSection(menu.id)}
                 onEnter={() => handleEnter(menu.id)}
-                isActive={menu?.status?.id === ACTIVE_STATUS_ID}
-                onToggleActive={(checked) =>
-                  handleToggleActive(checked, menu.id, menu.status?.id)
+
+                // checked={getStatusDefault(menu)}
+
+                isActiveDefault={getStatusDefault(menu)}
+                onToggleDefaultActive={(checked) =>
+                  handleToggleDefaultActive(checked, menu.id)
                 }
                 isSection={true}
                 trans={trans}

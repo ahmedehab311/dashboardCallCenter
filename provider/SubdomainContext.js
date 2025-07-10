@@ -6,34 +6,33 @@ export const useSubdomin = () => useContext(subdomainContext);
 export const SubdominProvider = ({ children }) => {
   const [subdomain, setSubdomin] = useState(null);
   const [apiBaseUrl, setApiBaseUrl] = useState("");
-
+  const [token, setToken] = useState(null);
   useEffect(() => {
-    const host = window.location.hostname; 
-    const subdomain = host?.split(".")[0]; 
+    const host = window.location.hostname;
+    const subdomain = host?.split(".")[0];
     setSubdomin(subdomain);
   }, []);
 
-
-
   useEffect(() => {
+    // get domin
     const detectedSubdomain = getSubdomain();
     setSubdomin(detectedSubdomain);
+    // get token
+    const storedToken = localStorage.getItem("token");
+    setToken(storedToken);
   }, []);
 
   useEffect(() => {
     if (subdomain) {
-      const baseUrl = BASE_URL(); 
-  
-      let cleanedBaseUrl = baseUrl?.replace(/\/api\/?$/, ""); 
-  
+      const baseUrl = BASE_URL();
+
+      let cleanedBaseUrl = baseUrl?.replace(/\/api\/?$/, "");
+
       setApiBaseUrl(`${cleanedBaseUrl}/${subdomain}/api`);
     }
   }, [subdomain]);
-  ;
-  
-
   return (
-    <subdomainContext.Provider value={{subdomain,apiBaseUrl}} >
+    <subdomainContext.Provider value={{ subdomain, apiBaseUrl, token }}>
       {children}
     </subdomainContext.Provider>
   );
