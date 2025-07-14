@@ -6,7 +6,6 @@ export const useSubdomin = () => useContext(subdomainContext);
 export const SubdominProvider = ({ children }) => {
   const [subdomain, setSubdomin] = useState(null);
   const [apiBaseUrl, setApiBaseUrl] = useState("");
-  const [token, setToken] = useState(null);
   useEffect(() => {
     const host = window.location.hostname;
     const subdomain = host?.split(".")[0];
@@ -17,9 +16,7 @@ export const SubdominProvider = ({ children }) => {
     // get domin
     const detectedSubdomain = getSubdomain();
     setSubdomin(detectedSubdomain);
-    // get token
-    const storedToken = localStorage.getItem("token");
-    setToken(storedToken);
+  
   }, []);
 
   useEffect(() => {
@@ -32,7 +29,7 @@ export const SubdominProvider = ({ children }) => {
     }
   }, [subdomain]);
   return (
-    <subdomainContext.Provider value={{ subdomain, apiBaseUrl, token }}>
+    <subdomainContext.Provider value={{ subdomain, apiBaseUrl }}>
       {children}
     </subdomainContext.Provider>
   );

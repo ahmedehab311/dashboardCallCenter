@@ -40,7 +40,7 @@ import {
   CardFooter,
 } from "@/components/ui/CardSections";
 import Image from "next/image";
-import { useRouter,useParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import "@/app/[lang]/dashboard/menus/index.css";
 import { useSelector, useDispatch } from "react-redux";
 import TaskHeader from "@/app/[lang]/dashboard/menus/task-header.jsx";
@@ -58,6 +58,7 @@ import {
   PaginationNext,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
+import SubSectionView from "./SubSectionView";
 
 const Items = ({ params: { lang } }) => {
   const router = useRouter();
@@ -67,6 +68,7 @@ const Items = ({ params: { lang } }) => {
 
   const [trans, setTrans] = useState(null);
   const [filteredItem, setFilteredItem] = useState([]);
+  const [filteredSubSection, setFilteredSubSection] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState("");
   const [filterOption, setFilterOption] = useState("");
@@ -76,7 +78,8 @@ const Items = ({ params: { lang } }) => {
   const [error, setError] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
 
-  const itemsPerPage = pageSize === "all" ? filteredItem.length : parseInt(pageSize);
+  const itemsPerPage =
+    pageSize === "all" ? filteredItem.length : parseInt(pageSize);
 
   useEffect(() => {
     const fetchTranslations = async () => {
@@ -92,32 +95,41 @@ const Items = ({ params: { lang } }) => {
 
   useEffect(() => {
     let itemsToDisplay = [];
+    let subSectionsToDisplay = [];
     if (section) {
       const selectedSection = sections.find((sec) => sec.id === section);
       itemsToDisplay = selectedSection?.items || [];
+      subSectionsToDisplay = selectedSection?.subSection || [];
     } else {
       // جمع كل الآيتمز من كل السيكشنز
       itemsToDisplay = sections.flatMap((section) => section.items || []);
+      subSectionsToDisplay = sections.flatMap(
+        (section) => section.subSection || []
+      );
     }
 
     if (searchTerm) {
       itemsToDisplay = itemsToDisplay.filter((item) =>
         item.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
+      subSectionsToDisplay = subSectionsToDisplay.filter((subSection) =>
+        subSection.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
     setFilteredItem(itemsToDisplay);
+    setFilteredSubSection(subSectionsToDisplay);
   }, [section, searchTerm]);
 
   const truncateDescription = (desc, maxLength = 50) => {
     if (!desc) return "";
     return desc.length > maxLength ? desc.slice(0, maxLength) + "..." : desc;
   };
-const handleEnter = (sectionId) => {
-  router.push(`/${lang}/dashboard/section/${sectionId}`);
-};
+  const handleEnter = (sectionId) => {
+    router.push(`/${lang}/dashboard/section/${sectionId}`);
+  };
 
- //  edit & view
+  //  edit & view
   const handleNavigate = (itemId) => {
     router.push(`/${lang}/dashboard/item/${itemId}/view`);
   };
@@ -146,99 +158,107 @@ const handleEnter = (sectionId) => {
   const visiblePages = getVisiblePages(currentPage, pageCount);
 
   return (
-    <Card className="gap-6 p-4">
-      <TaskHeader
-        onSearch={(term) => setSearchTerm(term)}
-        onPageSizeChange={(value) => setPageSize(value)}
-        pageSize={pageSize}
-        createButtonText={trans?.button?.item}
-               pageType="sections"
-        createTargetName="Item"
-        createTargetPath="item"
-        filters={[]}
-        trans={trans}
-        isLoading={isLoading}
-        itemsCount={filteredItem.length}
-      />
+    <>
+      <SubSectionView lang={lang} filteredSubSection={filteredSubSection} />
+      <Card className="gap-6 p-4">
+        <TaskHeader
+          onSearch={(term) => setSearchTerm(term)}
+          onPageSizeChange={(value) => setPageSize(value)}
+          pageSize={pageSize}
+          createButtonText={trans?.button?.item}
+          pageType="items"
+          pageTypeLabel="items"
+          createTargetName="Item"
+          createTargetPath="item"
+          filters={[
+            { value: "active", label: trans?.sectionsItems?.active },
+            { value: "inactive", label: trans?.sectionsItems?.inactive },
+            { value: "have_image", label: trans?.sectionsItems?.haveImage },
+            { value: "all", label: trans?.sectionsItems?.all },
+          ]}
+          trans={trans}
+          isLoading={isLoading}
+          itemsCount={filteredItem.length}
+        />
 
-      {isLoading ? (
-        <p className="text-center text-gray-500 py-10">Loading...</p>
-      ) : error ? (
-        <p className="text-center text-gray-500 py-10">Error loading items</p>
-      ) : Array.isArray(currentItems) && currentItems.length ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
-          {currentItems.map((item, index) => (
-            <div key={item.id} className="card bg-popover">
-              <CardHeader imageUrl={item.image} />
-              <CardContent
-                sectionName={item.name}
-                description={truncateDescription(item.description, 80)}
-                isSection={false}
-                trans={trans}
-              />
-              <CardFooter
-                sectionName={item?.name}
-                onViewEdit={() => handleNavigate(item.id)}
-                // onDelete={() => handleDeleteitem(item.id)}
-                onEnter={() => handleEnter(item.id)}
-                // isActive={item?.status?.id === ACTIVE_STATUS_ID}
-                onToggleActive={(checked) =>
-                  handleToggleActive(checked, item.id, item.status?.id)
-                }
-                isSection={true}
-                trans={trans}
-                
-              />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-center text-gray-500 py-10">No items to display</p>
-      )}
-
-      {pageCount > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setCurrentPage((prev) => Math.max(prev - 1, 0));
-                }}
-              />
-            </PaginationItem>
-            {visiblePages.map((page, i) => (
-              <PaginationItem key={i}>
-                {page === "start-ellipsis" || page === "end-ellipsis" ? (
-                  <PaginationEllipsis />
-                ) : (
-                  <PaginationLink
-                    href="#"
-                    isActive={page === currentPage}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setCurrentPage(page);
-                    }}
-                  >
-                    {page + 1}
-                  </PaginationLink>
-                )}
-              </PaginationItem>
+        {isLoading ? (
+          <p className="text-center text-gray-500 py-10">Loading...</p>
+        ) : error ? (
+          <p className="text-center text-gray-500 py-10">Error loading items</p>
+        ) : Array.isArray(currentItems) && currentItems.length ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+            {currentItems.map((item, index) => (
+              <div key={item.id} className="card bg-popover">
+                <CardHeader imageUrl={item.image} />
+                <CardContent
+                  sectionName={item.name}
+                  description={truncateDescription(item.description, 80)}
+                  isSection={false}
+                  trans={trans}
+                />
+                <CardFooter
+                  sectionName={item?.name}
+                  onViewEdit={() => handleNavigate(item.id)}
+                  // onDelete={() => handleDeleteitem(item.id)}
+                  onEnter={() => handleEnter(item.id)}
+                  // isActive={item?.status?.id === ACTIVE_STATUS_ID}
+                  onToggleActive={(checked) =>
+                    handleToggleActive(checked, item.id, item.status?.id)
+                  }
+                  isSection={true}
+                  trans={trans}
+                />
+              </div>
             ))}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setCurrentPage((prev) => Math.min(prev + 1, pageCount - 1));
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
-    </Card>
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 py-10">No items to display</p>
+        )}
+
+        {pageCount > 1 && (
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage((prev) => Math.max(prev - 1, 0));
+                  }}
+                />
+              </PaginationItem>
+              {visiblePages.map((page, i) => (
+                <PaginationItem key={i}>
+                  {page === "start-ellipsis" || page === "end-ellipsis" ? (
+                    <PaginationEllipsis />
+                  ) : (
+                    <PaginationLink
+                      href="#"
+                      isActive={page === currentPage}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCurrentPage(page);
+                      }}
+                    >
+                      {page + 1}
+                    </PaginationLink>
+                  )}
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage((prev) => Math.min(prev + 1, pageCount - 1));
+                  }}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
+      </Card>
+    </>
   );
 };
 

@@ -7,7 +7,7 @@ export const fetchAllMenu = async (token, apiBaseUrl) => {
       `${apiBaseUrl}/v1/call-center/menu/all?api_token=${token}`
     );
 
-    // console.log("response", response);
+    console.log("response", response);
     return response.data.response.data;
   } catch (error) {
     console.error("Error fetching menu:", error);

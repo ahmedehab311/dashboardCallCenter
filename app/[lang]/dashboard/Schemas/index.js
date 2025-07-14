@@ -26,6 +26,28 @@ export const restaurantField = {
       message: "Restaurant is required",
     }),
 };
+// fields/menuField.js
+export const menuField = {
+  menu: z
+    .object({
+      value: z.number(),
+      label: z.string(),
+    })
+    .nullable()
+    .refine((val) => val !== null, {
+      message: "menuField is required",
+    }),
+};
+// fields/menuField.js
+export const ParentSectionSelect = {
+  ParentSection: z
+    .object({
+      value: z.number(),
+      label: z.string(),
+    })
+    .nullable()
+    
+};
 
 // fields/imageField.js
 export const imageField = {

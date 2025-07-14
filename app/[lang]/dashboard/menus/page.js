@@ -37,7 +37,9 @@ import { BASE_URL } from "@/api/BaseUrl";
 // import Dash from "@/app/[lang]/dashboard/DashboardPageView";
 const Menu = ({ params: { lang } }) => {
   const router = useRouter();
-  const { apiBaseUrl, subdomain, token } = useSubdomin();
+  const { apiBaseUrl, subdomain } = useSubdomin();
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   const {
     data: Menus,
@@ -117,9 +119,7 @@ const Menu = ({ params: { lang } }) => {
     }));
   };
   const getStatusDefault = (menu) => {
-    // لو المستخدم غيّر السويتش، نستخدم القيمة اللي في localStatuses
-    if (menu.id in localStatuses) return localStatuses[menu.id];
-    // وإلا نرجع القيمة الأصلية من الـ API
+    if (menu.id in localStatusesDefault) return localStatusesDefault[menu.id];
     return !!menu.default;
   };
 
@@ -144,6 +144,8 @@ const Menu = ({ params: { lang } }) => {
           onFilterChange={(option) => setFilterOption(option)}
           onPageSizeChange={(value) => setPageSize(value)}
           pageSize={pageSize}
+          pageType="Menus"
+            pageTypeLabel="Menus"
           createButtonText={trans?.button?.section}
           // searchPlaceholder={trans?.sectionsItems.searchSections}
           createTargetName="Menu"
@@ -170,7 +172,7 @@ const Menu = ({ params: { lang } }) => {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <p className="text-center text-gray-500 py-10">
-            Error loading sections
+            Error loading menus
           </p>
         </div>
       ) : Array.isArray(currentItems) && currentItems.length ? (
@@ -207,15 +209,15 @@ const Menu = ({ params: { lang } }) => {
               <CardFooter
                 sectionName={menu?.name}
                 onViewEdit={() => handleViewEdit(menu.id)}
-                onDelete={() => handleDeleteSection(menu.id)}
+                onDelete={() => handleDelete(menu.id)}
                 onEnter={() => handleEnter(menu.id)}
-
                 // checked={getStatusDefault(menu)}
 
                 isActiveDefault={getStatusDefault(menu)}
-              onToggleDefaultActive={(checked) =>
-  handleToggleDefaultActive(checked, menu.id)
-}
+                onToggleDefaultActive={(checked) =>
+                  handleToggleDefaultActive(checked, menu.id)
+                }
+                isDefault={true}
                 isSection={true}
                 trans={trans}
                 isLoading={isLoadingStatus}
@@ -225,9 +227,7 @@ const Menu = ({ params: { lang } }) => {
         </div>
       ) : (
         <div className="flex items-center justify-center h-full">
-          <p className="text-center text-gray-500 py-10">
-            No sections to display
-          </p>
+          <p className="text-center text-gray-500 py-10">No menus to display</p>
         </div>
       )}
       {pageCount > 1 && currentItems && !isLoading && (

@@ -2,7 +2,9 @@ import {
   DashBoard,
   Admin,
   Branch,
-  CreateOrder
+  CreateOrder , Mendeley,
+  Cube,
+  Restaurant,
 } from "../components/icons/index";
 const getLocalizedLinks = (language) => {
   return {
@@ -28,21 +30,21 @@ const getLocalizedLinks = (language) => {
         },
         {
           title: "Menus",
-          icon: Branch,
+          icon: Restaurant,
           href: `/${language}/dashboard/menus`,
           isOpen: false,
           isHide: false,
         },
         {
           title: "Sections",
-          icon: Branch,
+          icon: Mendeley,
           href: `/${language}/dashboard/sections`,
           isOpen: false,
           isHide: false,
         },
         {
           title: "Items",
-          icon: Branch,
+          icon: Cube,
           href: `/${language}/dashboard/items`,
           isOpen: false,
           isHide: false,

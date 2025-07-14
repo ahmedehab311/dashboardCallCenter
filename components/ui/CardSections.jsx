@@ -201,6 +201,7 @@ const CardFooter = React.forwardRef(
       isActive,
       isActiveDefault,
       onToggleDefaultActive,
+      isDefault,
       onToggleActive,
       handleToggleActive,
       trans,
@@ -277,16 +278,20 @@ const CardFooter = React.forwardRef(
           <Tooltip>
             <TooltipTrigger asChild>
               <div>
-                <Switch
-                  checked={isActiveDefault}
-                  disabled={isLoading}
-                  onCheckedChange={(checked) => {
-                    console.log(`Switch value for ${sectionName}:`, checked);
-                    onToggleDefaultActive(checked);
-                  }}
-                  className="flex items-center mb-3"
-                  aria-label={isActiveDefault ? trans?.active : trans?.inactive}
-                />
+                {isDefault && (
+                  <Switch
+                    checked={isActiveDefault}
+                    disabled={isLoading}
+                    onCheckedChange={(checked) => {
+                      console.log(`Switch value for ${sectionName}:`, checked);
+                      onToggleDefaultActive(checked);
+                    }}
+                    className="flex items-center mb-3"
+                    aria-label={
+                      isActiveDefault ? trans?.active : trans?.inactive
+                    }
+                  />
+                )}
               </div>
             </TooltipTrigger>
             <TooltipContent>

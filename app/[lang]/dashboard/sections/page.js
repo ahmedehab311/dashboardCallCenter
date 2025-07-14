@@ -59,6 +59,7 @@ const Sections = ({ params: { lang } }) => {
   const itemsCount = filteredSections?.length;
   const [isLoadingStatus, setIsLoadingStauts] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
+  const [localStatuses, setLocalStatuses] = useState({});
   const language =
     typeof window !== "undefined" ? localStorage.getItem("language") : null;
   const itemsPerPage =
@@ -98,10 +99,18 @@ const Sections = ({ params: { lang } }) => {
     console.log("Delete clicked");
   };
 
-  const handleToggleActive = (checked) => {
-    console.log("Toggle active:", checked);
+  const handleToggleActive = (checked, sectionId) => {
+    setLocalStatuses((prev) => ({
+      ...prev,
+      [sectionId]: checked,
+    }));
   };
-
+  const getStatus = (section) => {
+    // لو المستخدم غيّر السويتش، نستخدم القيمة اللي في localStatuses
+    if (section.id in localStatuses) return localStatuses[section.id];
+    // وإلا نرجع القيمة الأصلية من الـ API
+    return !!section.status;
+  };
   const handleEnter = (sectionId) => {
     router.push(`/${lang}/dashboard/section/${sectionId}`);
   };
@@ -210,20 +219,12 @@ const Sections = ({ params: { lang } }) => {
           pageType="sections"
           createTargetName="Section"
           createTargetPath="section"
-          // itemsCount={itemsCount}
-          // filters={[
-          //   { value: "active", label: "Active" },
-          //   { value: "inactive", label: "Inactive" },
-          //   { value: "have_image", label: "Have Image" },
-          //   { value: "all", label: "All" },
-          // ]}
           filters={[
             { value: "active", label: trans?.sectionsItems?.active },
             { value: "inactive", label: trans?.sectionsItems?.inactive },
             { value: "have_image", label: trans?.sectionsItems?.haveImage },
             { value: "all", label: trans?.sectionsItems?.all },
           ]}
-          // handleSaveArrange={handleSaveArrange}
           trans={trans}
           // arrange={true}
           isLoading={isLoading}
@@ -263,9 +264,9 @@ const Sections = ({ params: { lang } }) => {
               <CardContent
                 sectionName={section?.name}
                 description={truncateDescription(section?.description, 80)}
-                isActive={section?.status?.id === ACTIVE_STATUS_ID}
+                isActive={getStatus(section)}
                 onToggleActive={(checked) =>
-                  handleToggleActive(checked, section.id, section.status?.id)
+                  handleToggleActive(checked, section.id)
                 }
                 isSection={true}
                 className="card-content"
@@ -281,6 +282,7 @@ const Sections = ({ params: { lang } }) => {
                 onToggleActive={(checked) =>
                   handleToggleActive(checked, section.id, section.status?.id)
                 }
+                isDefault={false}
                 isSection={true}
                 trans={trans}
                 isLoading={isLoadingStatus}

@@ -6,3 +6,6 @@ export { default as DefaultStatusFields } from "./DefaultStatusFields";
 export { default as ImageUploadField } from "./ImageUploadField";
 export { default as SubmitButton } from "./SubmitButton";
 export { default as EditAndViewButton } from "./EditAndViewButton";
+export { default as MenuField } from "./MenuField.jsx";
+export { default as ParentSectionSelect } from "./ParentSectionSelect";
+

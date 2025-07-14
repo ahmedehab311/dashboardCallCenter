@@ -82,6 +82,7 @@ function CreateMenu() {
           control={control}
           register={register}
           errors={errors}
+          
         />
 
         <div className="flex items-center gap-2">

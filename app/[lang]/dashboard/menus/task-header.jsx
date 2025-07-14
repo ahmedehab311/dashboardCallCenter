@@ -25,7 +25,8 @@ const TaskHeader = ({
   createTargetName = "Item",
   createTargetPath = "item",
   createButtonText,
-  pageType,
+  pageType = "",
+  pageTypeLabel = "",
   trans,
   itemsCount,
   handleSaveArrange,
@@ -34,16 +35,12 @@ const TaskHeader = ({
   pageSize,
   filters = [],
 }) => {
-  // console.log("trans from header sections", trans);
-  const pageSizePlaceholder =
-    pageType === "sections"
-      ? trans?.sectionsItems?.sectionsPerPage
-      : trans?.sectionsItems?.itemsPerPage;
   const pathname = usePathname();
   const dispatch = useDispatch();
   const [dialogType, setDialogType] = useState("sections");
   const [searchTerm, setSearchTerm] = useState("");
   const [localCreateButtonText, setLocalCreateButtonText] = useState("");
+  const [pageSizePlaceholder, setPageSizePlaceholder] = useState("");
 
   const { loading, error, success } = useSelector((state) => state.sections);
   const config = dialogConfig[dialogType];
@@ -54,21 +51,13 @@ const TaskHeader = ({
     onSearch(value);
   };
 
-  // useEffect(() => {
-  //   if (createButtonText === "section") {
-  //     setLocalCreateButtonText("Add Section");
-  //   } else {
-  //     setLocalCreateButtonText("Add Item");
-  //   }
-  // }, [createButtonText]);
+  useEffect(() => {
+    let label = pageTypeLabel || pageType;
 
-  // const createButtonLink = pathname.includes("sections")
-  //   ? `/${lang}/dashboard/create-section`
-  //   : `/${lang}/dashboard/create-item`;
+    setPageSizePlaceholder(`${label} per page`);
+  }, [pageTypeLabel, pageType]);
 
   const createButtonLink = `/${lang}/dashboard/create-${createTargetPath}`;
-  // console.log("trans?.button?.", trans?.button?.section);
-  // console.log("trans?.button?.item.", trans?.button?.item);
 
   useEffect(() => {
     if (trans?.add) {
@@ -77,11 +66,6 @@ const TaskHeader = ({
       setLocalCreateButtonText(`Add ${createTargetName}`);
     }
   }, [createTargetName, trans]);
-  // تحديد الرابط بناءً على createButtonText فقط
-  // const createButtonLink =
-  //   createButtonText === trans?.button?.section
-  //     ? `/${lang}/dashboard/create-section`
-  //     : `/${lang}/dashboard/create-item`;
 
   return (
     <div className="flex items-center flex-wrap px-4 my-1">
@@ -121,24 +105,24 @@ const TaskHeader = ({
         </div>
 
         {/* Page Size */}
-        {/* <div className="relative">
-            <Selected onValueChange={onPageSizeChange}>
-              <SelectTrigger className="min-w-[130px] whitespace-nowrap ">
-                <SelectValue placeholder={pageSizePlaceholder} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1</SelectItem>
-                <SelectItem value="3">3</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="25">25</SelectItem>
-                <SelectItem value="all">
-                  {trans?.sectionsItems?.all}{" "}
-                  {pageType === "items" ? `(${itemsCount})` : ""}
-                </SelectItem>
-              </SelectContent>
-            </Selected>
-          </div> */}
         <div className="relative">
+          <Selected onValueChange={onPageSizeChange}>
+            <SelectTrigger className="min-w-[130px] whitespace-nowrap ">
+              <SelectValue placeholder={pageSizePlaceholder} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">1</SelectItem>
+              <SelectItem value="3">3</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="25">25</SelectItem>
+              <SelectItem value="all">
+                {trans?.sectionsItems?.all}{" "}
+                {pageType === "items" ? `(${itemsCount})` : ""}
+              </SelectItem>
+            </SelectContent>
+          </Selected>
+        </div>
+        {/* <div className="relative">
           <Selected
             value={pageSize}
             onValueChange={(value) => {
@@ -158,7 +142,7 @@ const TaskHeader = ({
               </SelectItem>
             </SelectContent>
           </Selected>
-        </div>
+        </div> */}
 
         {/* Filter */}
         {filters.length > 0 && (

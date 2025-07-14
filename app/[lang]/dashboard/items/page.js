@@ -123,7 +123,7 @@ const Items = ({ params: { lang } }) => {
 
   useEffect(() => {
     applyFiltersAndSort();
-  }, [searchTerm, sortOption, filterOption, pageSize,allItems]);
+  }, [searchTerm, sortOption, filterOption, pageSize, allItems]);
   const ACTIVE_STATUS_ID = 2;
   const INACTIVE_STATUS_ID = 3;
 
@@ -267,7 +267,8 @@ const Items = ({ params: { lang } }) => {
           pageSize={pageSize}
           createButtonText={trans?.button?.item}
           // searchPlaceholder={trans?.sectionsItems.searchSections}
-          pageType="item"
+          pageType="items"
+          pageTypeLabel="items"
           createTargetName="Item"
           createTargetPath="item"
           // itemsCount={itemsCount}
@@ -298,9 +299,7 @@ const Items = ({ params: { lang } }) => {
         </div>
       ) : error ? (
         <div className="flex items-center justify-center h-full">
-          <p className="text-center text-gray-500 py-10">
-            Error loading sections
-          </p>
+          <p className="text-center text-gray-500 py-10">Error loading items</p>
         </div>
       ) : Array.isArray(currentItems) && currentItems.length ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
@@ -335,7 +334,6 @@ const Items = ({ params: { lang } }) => {
               <CardFooter
                 sectionName={item?.name}
                 onViewEdit={() => handleNavigate(item.id)}
-                
                 // onDelete={() => handleDeleteItem(item.id)}
                 onEnter={() => handleEnter(item.id)}
                 isActive={item?.status?.id === ACTIVE_STATUS_ID}
