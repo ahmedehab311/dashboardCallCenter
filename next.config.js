@@ -29,6 +29,14 @@ const nextConfig = {
   //     },
   //   ];
   // },
+async rewrites() {
+    return [
+      {
+        source: '/api-proxy/:path*',
+        destination: 'https://myres.me/happyjoes_test/api/:path*', // Rewrite to external API
+      },
+    ];
+  },
 
   reactStrictMode: true,
   swcMinify: true,

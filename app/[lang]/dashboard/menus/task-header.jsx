@@ -33,6 +33,7 @@ const TaskHeader = ({
   arrange,
   isLoading,
   pageSize,
+  isSettingLoading,
   filters = [],
 }) => {
   const pathname = usePathname();
@@ -199,7 +200,7 @@ const TaskHeader = ({
           </Button>
         </Link> */}
       <Link href={createButtonLink}>
-        <Button>
+        <Button disabled={isSettingLoading}>
           <Plus className="h-4 w-4 ltr:mr-1 rtl:ml-1" /> {localCreateButtonText}
         </Button>
       </Link>

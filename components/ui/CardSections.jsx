@@ -24,7 +24,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
+import { MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 const Card = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
@@ -140,6 +147,7 @@ const CardContent = React.forwardRef(
       deletedAt,
       isLoading,
       isActiveDefault,
+      isSettingLoading,
       ...props
     },
     ref
@@ -163,7 +171,7 @@ const CardContent = React.forwardRef(
                 <div>
                   <Switch
                     checked={isActive}
-                    disabled={isLoading}
+                    disabled={isLoading || isSettingLoading}
                     onCheckedChange={(checked) => {
                       console.log(`Switch value for ${sectionName}:`, checked);
                       onToggleActive(checked);
@@ -173,9 +181,11 @@ const CardContent = React.forwardRef(
                   />
                 </div>
               </TooltipTrigger>
-              <TooltipContent>
-                <p>Status </p>
-              </TooltipContent>
+              {!isSettingLoading && (
+                <TooltipContent>
+                  <p>Status </p>
+                </TooltipContent>
+              )}
             </Tooltip>
           </TooltipProvider>
         </div>
@@ -195,15 +205,19 @@ const CardFooter = React.forwardRef(
       sectionItems,
       onViewEdit,
       onDelete,
+      onRestore,
       onEnter,
       className,
       isSection,
       isActive,
       isActiveDefault,
       onToggleDefaultActive,
+      isDefaultForMenu,
       isDefault,
+      deletedAt,
       onToggleActive,
       handleToggleActive,
+      isSettingLoading,
       trans,
       isLoading,
       ...props
@@ -212,11 +226,30 @@ const CardFooter = React.forwardRef(
   ) => (
     <div ref={ref} className={cn("p-4 space-y-3", className)} {...props}>
       <div className="flex items-center justify-between">
-        <TooltipProvider>
-          <div className="flex items-center gap-4 mb-3">
-            {/* زر الحذف مع Tooltip و AlertDialog */}
-            <AlertDialog>
-              <Tooltip>
+        <div className="flex justify-end items-end">
+          {isDefault && (
+            <span className="inline-block bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full text-center">
+              Default
+            </span>
+          )}
+
+          {deletedAt ? (
+            <div className="flex justify-start items-start">
+              <span className="inline-block  bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded-full text-center">
+                Deleted
+              </span>
+            </div>
+          ) : (
+            <span></span>
+          )}
+        </div>
+
+        <div className=" flex justify-center items-center gap-1">
+          <TooltipProvider>
+            <div className="flex items-center gap-4">
+              {/* زر الحذف مع Tooltip و AlertDialog */}
+              <AlertDialog>
+                {/* <Tooltip>
                 <TooltipTrigger asChild>
                   <AlertDialogTrigger asChild>
                     <button className="flex items-center text-red-500 gap-[2px]">
@@ -227,84 +260,105 @@ const CardFooter = React.forwardRef(
                 <TooltipContent>
                   <p>{trans?.delete}</p>
                 </TooltipContent>
-              </Tooltip>
+              </Tooltip> */}
 
-              {/* محتوى الـ Dialog التحذيري */}
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    your account and remove your data from our servers.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel
-                    type="button"
-                    variant="outline"
-                    color="info"
-                  >
-                    Cancel
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    className="bg-destructive hover:bg-destructive/80"
-                    onClick={onDelete}
-                  >
-                    Ok
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                {/* محتوى الـ Dialog التحذيري */}
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Are you absolutely sure?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete
+                      your account and remove your data from our servers.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel
+                      type="button"
+                      variant="outline"
+                      color="info"
+                    >
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive hover:bg-destructive/80"
+                      onClick={onDelete}
+                    >
+                      Ok
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
 
-            {/* زر التعديل مع Tooltip */}
-            {isSection && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={onViewEdit}
-                    className="flex items-center text-blue-500"
-                  >
-                    <FiEdit className="mr-1 text-xl" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{trans?.viewEdit}</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-          </div>
-        </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div>
-                {isDefault && (
-                  <Switch
-                    checked={isActiveDefault}
-                    disabled={isLoading}
-                    onCheckedChange={(checked) => {
-                      console.log(`Switch value for ${sectionName}:`, checked);
-                      onToggleDefaultActive(checked);
-                    }}
-                    className="flex items-center mb-3"
-                    aria-label={
-                      isActiveDefault ? trans?.active : trans?.inactive
-                    }
-                  />
-                )}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Default </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+              {/* زر التعديل مع Tooltip */}
+              {isSection && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={onViewEdit}
+                      className="flex items-center text-blue-500"
+                      disabled={isSettingLoading}
+                    >
+                      <FiEdit className="mr-1 text-xl" />
+                    </button>
+                  </TooltipTrigger>
+                  {!isSettingLoading && (
+                    <TooltipContent>
+                      <p>{trans?.viewEdit}</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              )}
+            </div>
+          </TooltipProvider>
+          <DropdownMenu className="">
+            <DropdownMenuTrigger asChild>
+              <Button
+                disabled={isSettingLoading}
+                size="icon"
+                className="group h-6 w-6 bg-transparent hover:bg-transparent  text-default-800 border border-default-200"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="w-[196px]"
+              align="end"
+              side="bottom"
+              avoidCollisions
+            >
+              {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
+              {!isDefault && !deletedAt && (
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={isActiveDefault}
+                >
+                  Set as default
+                </DropdownMenuItem>
+              )}
+              {!deletedAt ? (
+                <DropdownMenuItem className="cursor-pointer" onClick={onDelete}>
+                  Delete
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={onRestore}
+                >
+                  Restore
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <Button
         onClick={() => (isSection ? onEnter(sectionItems) : onViewEdit())}
         className="w-full"
         title="View"
+        disabled={isSettingLoading}
       >
         {isSection ? `${trans?.view}` : `${trans?.viewEdit}`}
       </Button>

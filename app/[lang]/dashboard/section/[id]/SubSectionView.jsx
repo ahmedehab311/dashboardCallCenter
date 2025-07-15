@@ -103,7 +103,7 @@ const pathname =  usePathname()
   return (
     <Card className="gap-6 p-4 mb-4">
       <TaskHeader
-        onSearch={(term) => setSearchTerm(term)}
+       onSearch={(term) => setSearchTerm(term)}
         onPageSizeChange={(value) => setPageSize(value)}
         pageSize={pageSize}
         createButtonText={trans?.button?.item}
@@ -120,7 +120,7 @@ const pathname =  usePathname()
         trans={trans}
         isLoading={isLoading}
         itemsCount={filteredSubSection.length}
-      />
+      /> 
 
       {isLoading ? (
         <p className="text-center text-gray-500 py-10">Loading...</p>
