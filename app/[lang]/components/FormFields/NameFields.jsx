@@ -35,7 +35,7 @@ export default function NameFields({
             {...register("arName")}
             className="w-full"
             maxLength={maxLength}
-                    disabled={isEditing}
+            disabled={isEditing}
           />
           {errors.arName && (
             <span className="text-red-500 text-sm mt-1">

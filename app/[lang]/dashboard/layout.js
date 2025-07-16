@@ -13,6 +13,7 @@ const Layout = ({ children }) => {
   const { currentLang } = useLanguage();
   const [trans, setTrans] = useState(null);
 
+
   useEffect(() => {
     const loadDictionary = async () => {
       const dictionary = await getDictionary(currentLang);
@@ -28,11 +29,11 @@ const Layout = ({ children }) => {
   return (
     <SessionProvider>
       <BreadcrumbHistoryProvider>
-      <DashBoardLayoutProvider trans={trans}>
-        <DynamicBreadcrumbs />
-        {/* <BreadcrumbDemo /> */}
-        {children}
-      </DashBoardLayoutProvider>
+        <DashBoardLayoutProvider trans={trans}>
+          <DynamicBreadcrumbs />
+          {/* <BreadcrumbDemo /> */}
+          {children}
+        </DashBoardLayoutProvider>
       </BreadcrumbHistoryProvider>
     </SessionProvider>
   );

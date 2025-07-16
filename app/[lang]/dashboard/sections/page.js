@@ -84,7 +84,6 @@ const Sections = ({ params: { lang } }) => {
 
     setFilteredSections(updatedSections);
   }, [sections, filterOption]);
- 
 
   const pageCount = Math.ceil(filteredSections?.length / itemsPerPage);
   const offset = currentPage * itemsPerPage;
@@ -156,17 +155,7 @@ const Sections = ({ params: { lang } }) => {
       </div>
 
       {/* Check for loading state first */}
-      {isLoading ? (
-        <div className="flex items-center justify-center h-full">
-          <p className="text-center text-gray-500 py-10">Loading...</p>
-        </div>
-      ) : error ? (
-        <div className="flex items-center justify-center h-full">
-          <p className="text-center text-gray-500 py-10">
-            Error loading sections
-          </p>
-        </div>
-      ) : Array.isArray(currentItems) && currentItems.length ? (
+      {Array.isArray(currentItems) && currentItems.length && (
         <CardGridRenderer
           currentItems={currentItems}
           isLoading={isLoading}
@@ -177,15 +166,10 @@ const Sections = ({ params: { lang } }) => {
           // handleDragEnd={handleDragEnd}
           localStatuses={localStatuses}
           setLocalStatuses={setLocalStatuses}
-           trans={trans}
-            isLoadingStatus={isLoadingStatus}
+          trans={trans}
+          isLoadingStatus={isLoadingStatus}
+          isDefaultForMenu={false}
         />
-      ) : (
-        <div className="flex items-center justify-center h-full">
-          <p className="text-center text-gray-500 py-10">
-            No sections to display
-          </p>
-        </div>
       )}
       {pageCount > 1 && currentItems && !isLoading && (
         <Pagination>

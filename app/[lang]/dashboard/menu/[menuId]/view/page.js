@@ -2,9 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSubdomin } from "@/provider/SubdomainContext";
 import Card from "@/components/ui/card-snippet";
-import makeAnimated from "react-select/animated";
 import { selectStyles } from "@/lib/utils";
-import { useTheme } from "next-themes";
 import { menuSchema } from "../../../create-menu/menuSchema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,26 +19,23 @@ import {
   EditAndViewButton,
 } from "@/app/[lang]/components/FormFields";
 import { useParams } from "next/navigation";
-import img from "./1664289141.jpeg";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { BASE_URL } from "@/api/BaseUrl";
-import { fetchAllMenu, useMenus } from "../../../menus/apisMenu";
+import { useMenus } from "../../../menus/apisMenu";
 
 function ViewAndEditMenu() {
   const { menuId: id } = useParams();
-  const { apiBaseUrl, subdomain, token } = useSubdomin();
+  const { apiBaseUrl, subdomain } = useSubdomin();
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
   const {
     data: Menus,
     isLoading,
     error,
     refetch,
   } = useMenus(token, apiBaseUrl);
-
   const queryClient = useQueryClient();
-  // const menus = queryClient.getQueryData(["MenusList"]);
-
   const currentMenu = Menus?.find((menu) => menu.id === Number(id));
-  // const currentMenu = menus?.find((menu) => menu.id === Number(menuId));
 
   const { theme, color } = useThemeColor();
   const { restaurantOptions } = useRestaurantFetch();
@@ -81,8 +76,7 @@ function ViewAndEditMenu() {
         setImagePreview(`${BASE_URL()}/${subdomain}/${currentMenu.image}`);
       }
     }
-  }, [setValue, currentMenu]);
-  // console.log("currentMenu.default", currentMenu.default);
+  }, [setValue, currentMenu, subdomain]);
 
   const handleRemoveImage = () => {
     setImagePreview(null);

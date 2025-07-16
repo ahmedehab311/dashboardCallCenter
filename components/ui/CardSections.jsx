@@ -227,7 +227,7 @@ const CardFooter = React.forwardRef(
     <div ref={ref} className={cn("p-4 space-y-3", className)} {...props}>
       <div className="flex items-center justify-between">
         <div className="flex justify-end items-end">
-          {isDefault && (
+          {isDefault && isDefaultForMenu && (
             <span className="inline-block bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full text-center">
               Default
             </span>
@@ -247,22 +247,7 @@ const CardFooter = React.forwardRef(
         <div className=" flex justify-center items-center gap-1">
           <TooltipProvider>
             <div className="flex items-center gap-4">
-              {/* زر الحذف مع Tooltip و AlertDialog */}
               <AlertDialog>
-                {/* <Tooltip>
-                <TooltipTrigger asChild>
-                  <AlertDialogTrigger asChild>
-                    <button className="flex items-center text-red-500 gap-[2px]">
-                      <FiTrash2 className="text-xl" />
-                    </button>
-                  </AlertDialogTrigger>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{trans?.delete}</p>
-                </TooltipContent>
-              </Tooltip> */}
-
-                {/* محتوى الـ Dialog التحذيري */}
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>
@@ -312,45 +297,50 @@ const CardFooter = React.forwardRef(
               )}
             </div>
           </TooltipProvider>
-          <DropdownMenu className="">
-            <DropdownMenuTrigger asChild>
-              <Button
-                disabled={isSettingLoading}
-                size="icon"
-                className="group h-6 w-6 bg-transparent hover:bg-transparent  text-default-800 border border-default-200"
+          {isDefaultForMenu && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  disabled={isSettingLoading}
+                  size="icon"
+                  className="group h-6 w-6 bg-transparent hover:bg-transparent  text-default-800 border border-default-200"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-[196px]"
+                align="end"
+                side="bottom"
+                avoidCollisions
               >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="w-[196px]"
-              align="end"
-              side="bottom"
-              avoidCollisions
-            >
-              {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
-              {!isDefault && !deletedAt && (
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={isActiveDefault}
-                >
-                  Set as default
-                </DropdownMenuItem>
-              )}
-              {!deletedAt ? (
-                <DropdownMenuItem className="cursor-pointer" onClick={onDelete}>
-                  Delete
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={onRestore}
-                >
-                  Restore
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
+                {!isDefault && !deletedAt && (
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={isActiveDefault}
+                  >
+                    Set as default
+                  </DropdownMenuItem>
+                )}
+                {!deletedAt ? (
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={onDelete}
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={onRestore}
+                  >
+                    Restore
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
 

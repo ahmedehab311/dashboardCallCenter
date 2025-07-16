@@ -43,5 +43,6 @@ export const useReorderableList = (list, setList) => {
     handleDragOver,
     handleDrop,
     handleDragEnd,
+    setDraggedIndex
   };
 };

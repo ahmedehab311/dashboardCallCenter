@@ -78,22 +78,27 @@ import AuthProvider from "@/provider/auth.provider";
 import { LanguageProvider } from "@/provider/LanguageContext";
 import DirectionProvider from "@/provider/direction.provider";
 import { SubdominProvider } from "@/provider/SubdomainContext";
+import { TokenProvider } from "@/provider/TokenContext";
 import SubdomainDisplay from "@/hooks/SubdomainDisplay";
 import { getDictionary } from "../dictionaries";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { setLanguage } from "@/store/slices/languageSlice";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import { usePathname } from 'next/navigation';  
+import { usePathname } from "next/navigation";
 const inter = Inter({ subsets: ["latin"] });
 const queryClient = new QueryClient();
 
 export default function RootLayout({ children, params: { lang } }) {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
   return (
     <QueryClientProvider client={queryClient}>
-      <SubdominProvider>
-        <SubdomainDisplay />
-        <LayoutContent lang={lang}>{children}</LayoutContent>
-      </SubdominProvider>
+      <TokenProvider>
+        <SubdominProvider>
+          <SubdomainDisplay />
+          <LayoutContent lang={lang}>{children}</LayoutContent>
+        </SubdominProvider>
+      </TokenProvider>
     </QueryClientProvider>
   );
 }
@@ -138,7 +143,7 @@ function LayoutContentComponent({ lang, children }) {
   useEffect(() => {
     // لو خرج من صفحة create-order
     if (pathname !== `/${lang}/dashboard/create-order`) {
-      localStorage.removeItem('order');
+      localStorage.removeItem("order");
     }
   }, [pathname]);
 

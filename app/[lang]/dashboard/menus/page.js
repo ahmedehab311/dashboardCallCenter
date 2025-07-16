@@ -1,17 +1,8 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/CardSections";
-import Image from "next/image";
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/CardSections";
 import { useRouter } from "next/navigation";
 import "./index.css";
-import { useSelector, useDispatch } from "react-redux";
-// import { fetchSections, deleteSection } from "@/store/slices/sectionsSlice";
-// import { updateStatus, deleteItem } from "@/api/apiService";
 import {
   Pagination,
   PaginationContent,
@@ -22,7 +13,6 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import TaskHeader from "./task-header.jsx";
-import { getDictionary } from "@/app/dictionaries.js";
 import "../items/main.css";
 import {
   deleteItem,
@@ -30,23 +20,20 @@ import {
   setAsDefaultMenu,
   useMenus,
 } from "./apisMenu";
-// import { saveArrangement } from "./apiSections.jsx";
-import ReactPaginate from "react-paginate";
 import useTranslate from "@/hooks/useTranslate";
-import useApplyFiltersAndSort from "../../components/hooks/useApplyFiltersAndSort";
 import { useReorderableList } from "@/hooks/useReorderableList";
-import { usePagination } from "@/hooks/usePagination";
-import { useQuery } from "@tanstack/react-query";
 import { useSubdomin } from "@/provider/SubdomainContext";
 import { BASE_URL } from "@/api/BaseUrl";
 import toast from "react-hot-toast";
-// import Dash from "@/app/[lang]/dashboard/DashboardPageView";
+import CardGridRenderer from "../../components/CardGridRenderer";
+import { useToken } from "@/provider/TokenContext";
+// import { TokenProvider } from "@/context/TokenContext";
 const Menu = ({ params: { lang } }) => {
   const router = useRouter();
+  const { token } = useToken();
   const { apiBaseUrl, subdomain } = useSubdomin();
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
+  const [filteredMenus, setFilteredMenus] = useState();
+  const [pageSize, setPageSize] = useState("10");
   const {
     data: Menus,
     isLoading,
@@ -60,69 +47,93 @@ const Menu = ({ params: { lang } }) => {
   // }
 
   const { trans } = useTranslate(lang);
-  const {
-    filteredMenu,
-    searchTerm,
-    setSearchTerm,
-    sortOption,
-    setSortOption,
-    filterOption,
-    setFilterOption,
-    pageSize,
-    setPageSize,
-  } = useApplyFiltersAndSort(Menus);
+  // const {
+  //   filteredMenu,
+  //   searchTerm,
+  //   setSearchTerm,
+  //   sortOption,
+  //   setSortOption,
+  //   filterOption,
+  //   setFilterOption,
+  //   pageSize,
+  //   setPageSize,
+  // } = useApplyFiltersAndSort(Menus);
   const itemsPerPage =
-    pageSize === "all" ? filteredMenu.length : parseInt(pageSize);
-
+    pageSize === "all" ? filteredMenus.length : parseInt(pageSize);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOption, setSortOption] = useState("");
+  const [filterOption, setFilterOption] = useState("");
   const [arrangement, setArrangement] = useState([]);
   // const [draggedIndex, setDraggedIndex] = useState(null);
-  const itemsCount = filteredMenu?.length;
+  const itemsCount = filteredMenus?.length;
   const [isLoadingStatus, setIsLoadingStauts] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [localStatuses, setLocalStatuses] = useState({});
   const [isSettingLoading, setIsSettingDefaultLoading] = useState(false);
-  const truncateDescription = (description, maxLength = 50) => {
-    // console.log("Description received:", description);
-    if (!description) return "";
-    return description.length > maxLength
-      ? description.slice(0, maxLength) + "..."
-      : description;
-  };
+
   const {
     draggedIndex,
     handleDragStart,
     handleDragOver,
     handleDrop,
     handleDragEnd,
-  } = useReorderableList(filteredMenu);
-  const { offset, currentItems, pageCount, getVisiblePages } = usePagination(
-    filteredMenu,
-    itemsPerPage,
-    currentPage
-  );
+    setDraggedIndex,
+  } = useReorderableList(filteredMenus);
+  // const { offset, currentItems, pageCount, getVisiblePages } = usePagination(
+  //   filteredMenu,
+  //   itemsPerPage,
+  //   currentPage
+  // );
+  const applyFiltersAndSort = () => {
+    // let updatedSections = [...Menus];
+    if (!Array.isArray(Menus)) return;
 
-  const handleToggleActive = (checked, menuId) => {
-    setLocalStatuses((prev) => ({
-      ...prev,
-      [menuId]: checked,
-    }));
+    let updatedSections = [...Menus];
+
+    // search
+    if (searchTerm) {
+      updatedSections = updatedSections.filter(
+        (section) =>
+          section.name_en?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
+          section?.description_en
+            ?.toLowerCase()
+            ?.includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // filter
+    if (filterOption === "active") {
+      updatedSections = updatedSections.filter(
+        (section) => section?.status  === true
+      );
+    } else if (filterOption === "inactive") {
+      updatedSections = updatedSections.filter(
+        (section) => section?.status === false
+      );
+    } else if (filterOption === "have_image") {
+      updatedSections = updatedSections.filter((section) => section.image);
+    }
+
+    // arang
+    if (sortOption === "alphabetical") {
+      updatedSections.sort((a, b) => a.name_en.localeCompare(b.name_en));
+    } else if (sortOption === "recent") {
+      updatedSections.sort((a, b) => b.id - a.id);
+    } else if (sortOption === "old") {
+      updatedSections.sort((a, b) => a.id - b.id);
+    }
+    // pagenation
+    // if (pageSize !== "all") {
+    //   const size = parseInt(pageSize, 10);
+    //   updatedSections = updatedSections.slice(0, size);
+    // }
+
+    setFilteredMenus(updatedSections);
   };
-  const getStatus = (menu) => {
-    // لو المستخدم غيّر السويتش، نستخدم القيمة اللي في localStatuses
-    if (menu.id in localStatuses) return localStatuses[menu.id];
-    // وإلا نرجع القيمة الأصلية من الـ API
-    return !!menu.status;
-  };
-  const handleToggleDefaultActive = (checked, menuId) => {
-    setLocalStatusesDefault((prev) => ({
-      ...prev,
-      [menuId]: checked,
-    }));
-  };
-  const getStatusDefault = (menu) => {
-    if (menu.id in localStatusesDefault) return localStatusesDefault[menu.id];
-    return !!menu.default;
-  };
+
+  useEffect(() => {
+    applyFiltersAndSort();
+  }, [searchTerm, sortOption, filterOption, pageSize, Menus]);
 
   const handleEnter = () => {
     router.push(`/${lang}/dashboard/sections`);
@@ -196,10 +207,45 @@ const Menu = ({ params: { lang } }) => {
   const handleViewEdit = (menuId) => {
     router.push(`/${lang}/dashboard/menu/${menuId}/view`);
   };
+  const pageCount = Math.ceil(filteredMenus?.length / itemsPerPage);
+  const offset = currentPage * itemsPerPage;
+  const currentItems = filteredMenus?.slice(offset, offset + itemsPerPage);
+
+  const getVisiblePages = (currentPage, pageCount) => {
+    const pages = [];
+
+    if (pageCount <= 5) {
+      return Array.from({ length: pageCount }, (_, i) => i);
+    }
+
+    pages.push(0); // always show first page
+
+    if (currentPage > 2) {
+      pages.push("start-ellipsis"); // ...
+    }
+
+    if (currentPage > 1 && currentPage < pageCount - 2) {
+      pages.push(currentPage - 1);
+      pages.push(currentPage);
+      pages.push(currentPage + 1);
+    } else if (currentPage <= 1) {
+      pages.push(1);
+      pages.push(2);
+    } else if (currentPage >= pageCount - 2) {
+      pages.push(pageCount - 3);
+      pages.push(pageCount - 2);
+    }
+
+    if (currentPage < pageCount - 3) {
+      pages.push("end-ellipsis"); // ...
+    }
+
+    pages.push(pageCount - 1); // always show last page
+
+    return pages;
+  };
   const visiblePages = getVisiblePages(currentPage, pageCount);
-  if (!filteredMenu) {
-    return <div>Loading...</div>;
-  }
+
   return (
     <Card className="gap-6 p-4">
       <div>
@@ -229,76 +275,29 @@ const Menu = ({ params: { lang } }) => {
           isSettingLoading={isSettingLoading}
         />
       </div>
+      <CardGridRenderer
+        labelLoading="menu"
+        currentItems={currentItems}
+        isLoading={isLoading}
+        error={error}
+        localStatuses={localStatuses}
+        setLocalStatuses={setLocalStatuses}
+        trans={trans}
+        isDefaultForMenu={true}
+        isLoadingStatus={isLoadingStatus}
+        handleDefault={handleDefault}
+        handleRestore={handleRestore}
+        handleEnter={handleEnter}
+        handleViewEdit={handleViewEdit}
+        handleDelete={handleDelete}
+        isSettingLoading={isSettingLoading}
+        subdomain={subdomain}
+        offset={offset}
+        setDraggedIndex={setDraggedIndex}
+        filteredSections={filteredMenus}
+        setFilteredSections={setFilteredMenus}
+      />
 
-      {/* Check for loading state first */}
-      {isLoading ? (
-        <div className="flex items-center justify-center h-full">
-          <p className="text-center text-gray-500 py-10">Loading...</p>
-        </div>
-      ) : error ? (
-        <div className="flex items-center justify-center h-full">
-          <p className="text-center text-gray-500 py-10">Error loading menus</p>
-        </div>
-      ) : Array.isArray(currentItems) && currentItems.length ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
-          {currentItems.map((menu, index) => {
-            let deletedAt = menu.deleted_at;
-            let isDefault = menu.default;
-            return (
-              <div
-                key={menu.id}
-                className={`card bg-popover ${
-                  draggedIndex === index ? "opacity-50" : ""
-                }`}
-              >
-                <CardHeader
-                  imageUrl={`${BASE_URL()}/${subdomain}/${menu.image}`}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
-                  onDrop={(e) => handleDrop(e, index)}
-                  onDragEnd={handleDragEnd}
-                />
-
-                <CardContent
-                  sectionName={menu?.name_en}
-                  description={truncateDescription(menu?.description_en, 80)}
-                  isActive={getStatus(menu)}
-                  onToggleActive={(checked) =>
-                    handleToggleActive(checked, menu.id)
-                  }
-                  isSection={true}
-                  className="card-content"
-                  trans={trans}
-                  deletedAt={menu?.actions?.deletedAt}
-                  isLoading={isLoadingStatus}
-                  isSettingLoading={isSettingLoading}
-                />
-                <CardFooter
-                  sectionName={menu?.name}
-                  onViewEdit={() => handleViewEdit(menu.id)}
-                  onDelete={() => handleDelete(menu.id)}
-                  onRestore={() => handleRestore(menu.id)}
-                  onEnter={() => handleEnter(menu.id)}
-                  // checked={getStatusDefault(menu)}
-                  isActiveDefault={() => handleDefault(menu.id)}
-                  isDefaultForMenu={true}
-                  isSection={true}
-                  trans={trans}
-                  isLoading={isLoadingStatus}
-                  isDefault={isDefault}
-                  deletedAt={deletedAt}
-                  isSettingLoading={isSettingLoading}
-                />
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="flex items-center justify-center h-full">
-          <p className="text-center text-gray-500 py-10">No menus to display</p>
-        </div>
-      )}
       {pageCount > 1 && currentItems && !isLoading && (
         <Pagination>
           <PaginationContent>
