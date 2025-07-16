@@ -10,7 +10,6 @@ export const sections = [
         name_en: "Chicken Ranch sub",
         description_en: "Chicken Ranch sub",
         image: "",
-        
       },
       {
         id: "2",
@@ -53,7 +52,7 @@ export const sections = [
     description_en: "Pasta",
     image: "",
     subSection: [
-       {
+      {
         id: "1",
         name_en: "Beef Pasta sub",
         description_en: "Margarita sub",
@@ -66,7 +65,6 @@ export const sections = [
         description_en: "Margarita sub",
         image: "",
       },
-
     ],
     items: [
       {
@@ -116,3 +114,27 @@ export const sections = [
     image: "",
   },
 ];
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+// import { apiBaseUrl } from "next-auth/client/_utils";
+export const fetchAllSections = async (token, apiBaseUrl, name) => {
+  try {
+    const response = await axios.get(
+      `${apiBaseUrl}/v1/call-center/${name}?api_token=${token}`
+    );
+
+    // console.log("response", response);
+    return response.data.response.data;
+  } catch (error) {
+    console.error("Error fetching menu:", error);
+    throw error;
+  }
+};
+
+export const useSections = (token, apiBaseUrl, name) =>
+  useQuery({
+    queryKey: ["SectionList", name],
+    queryFn: () => fetchAllSections(token, apiBaseUrl, name),
+
+    enabled: !!token,
+  });

@@ -3,7 +3,7 @@ import { Controller } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 export default function ParentSectionSelect({
   errors,
-  menuOptions,
+  sectionsOptions,
   control,
   selectStyles,
 }) {
@@ -12,15 +12,15 @@ export default function ParentSectionSelect({
       <Label className="lg:min-w-[160px]">Parent section:</Label>
       <div className="flex flex-col w-full">
         <Controller
-          name="Menu"
+          name="Section"
           control={control}
           render={({ field }) => (
             <Select
               {...field}
-              options={menuOptions}
+              options={sectionsOptions}
               placeholder="Select section"
-              className="w-[50%]"
-              isDisabled={menuOptions?.length === 1}
+              className="w-[50%] z-40"
+              isDisabled={sectionsOptions?.length === 1}
               styles={selectStyles}
             />
           )}

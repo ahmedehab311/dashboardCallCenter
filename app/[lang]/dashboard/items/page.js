@@ -27,7 +27,7 @@ import "@/app/[lang]/dashboard/items/main.css";
 // import { saveArrangement } from "./apiSections.jsx";
 import ReactPaginate from "react-paginate";
 // import Dash from "@/app/[lang]/dashboard/DashboardPageView";
-import { sections } from "../sections/sectionArray";
+import { sections } from "../sections/apisSection";
 const Items = ({ params: { lang } }) => {
   const router = useRouter();
   const dispatch = useDispatch();

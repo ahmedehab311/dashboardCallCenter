@@ -27,64 +27,156 @@ import "@/app/[lang]/dashboard/items/main.css";
 // import { saveArrangement } from "./apiSections.jsx";
 import ReactPaginate from "react-paginate";
 // import Dash from "@/app/[lang]/dashboard/DashboardPageView";
-import { sections } from "./sectionArray";
+// import { sections } from "./apisSection";
 import useTranslate from "@/hooks/useTranslate";
 import useApplyFiltersAndSort from "../../components/hooks/useApplyFiltersAndSort";
 import CardGridRenderer from "../../components/CardGridRenderer";
+import { deleteItem, restoreItem } from "../menus/apisMenu";
+import { useSubdomin } from "@/provider/SubdomainContext";
+import { useToken } from "@/provider/TokenContext";
+import { useSections } from "./apisSection";
 const Sections = ({ params: { lang } }) => {
   const router = useRouter();
   const dispatch = useDispatch();
+  const { token } = useToken();
+  const { apiBaseUrl, subdomain } = useSubdomin();
   const { trans } = useTranslate(lang);
   const {
-    applyFiltersAndSort,
-    filteredMenu,
-    setFilteredMenu,
-    searchTerm,
-    setSearchTerm,
-    sortOption,
-    setSortOption,
-    filterOption,
-    setFilterOption,
-    pageSize,
-    setPageSize,
-  } = useApplyFiltersAndSort(sections);
+    data: sections,
+    isLoading,
+    error,
+    refetch,
+  } = useSections(token, apiBaseUrl,"sections");
+  // const {
+  //   applyFiltersAndSort,
+  //   filteredMenu,
+  //   setFilteredMenu,
+  //   searchTerm,
+  //   setSearchTerm,
+  //   sortOption,
+  //   setSortOption,
+  //   filterOption,
+  //   setFilterOption,
+  //   pageSize,
+  //   setPageSize,
+  // } = useApplyFiltersAndSort(sections);
+
   const [filteredSections, setFilteredSections] = useState([]);
-  // const [searchTerm, setSearchTerm] = useState("");
-  // const [sortOption, setSortOption] = useState("");
-  // const [arrangement, setArrangement] = useState([]);
-  // const [filterOption, setFilterOption] = useState("");
-  // const [pageSize, setPageSize] = useState("10");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOption, setSortOption] = useState("");
+  const [arrangement, setArrangement] = useState([]);
+  const [filterOption, setFilterOption] = useState("");
+  const [pageSize, setPageSize] = useState("10");
   const [draggedIndex, setDraggedIndex] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [isSettingLoading, setIsSettingDefaultLoading] = useState(false);
   const itemsCount = filteredSections?.length;
   const [isLoadingStatus, setIsLoadingStauts] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [localStatuses, setLocalStatuses] = useState({});
-  const language =
-    typeof window !== "undefined" ? localStorage.getItem("language") : null;
+
   const itemsPerPage =
     pageSize === "all" ? filteredSections.length : parseInt(pageSize);
 
-  const ACTIVE_STATUS_ID = 2;
-  const INACTIVE_STATUS_ID = 3;
+  const applyFiltersAndSort = () => {
+    // let updatedSections = [...Menus];
+    if (!Array.isArray(sections)) return;
 
-  useEffect(() => {
-    let updatedSections = sections;
+    let updatedSections = [...sections];
 
-    if (filterOption === "active") {
+    // search
+    if (searchTerm) {
       updatedSections = updatedSections.filter(
-        (section) => section?.status?.id === ACTIVE_STATUS_ID
-      );
-    } else if (filterOption === "inactive") {
-      updatedSections = updatedSections.filter(
-        (section) => section?.status?.id === INACTIVE_STATUS_ID
+        (section) =>
+          section.name_en?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
+          section?.description_en
+            ?.toLowerCase()
+            ?.includes(searchTerm.toLowerCase())
       );
     }
 
-    setFilteredSections(updatedSections);
-  }, [sections, filterOption]);
+    // filter
+    if (filterOption === "active") {
+      updatedSections = updatedSections.filter(
+        (section) => section?.status === true
+      );
+    } else if (filterOption === "inactive") {
+      updatedSections = updatedSections.filter(
+        (section) => section?.status === false
+      );
+    } else if (filterOption === "have_image") {
+      updatedSections = updatedSections.filter((section) => section.image);
+    }
 
+    // arang
+    if (sortOption === "alphabetical") {
+      updatedSections.sort((a, b) => a.name_en.localeCompare(b.name_en));
+    } else if (sortOption === "recent") {
+      updatedSections.sort((a, b) => b.id - a.id);
+    } else if (sortOption === "old") {
+      updatedSections.sort((a, b) => a.id - b.id);
+    }
+    // pagenation
+    // if (pageSize !== "all") {
+    //   const size = parseInt(pageSize, 10);
+    //   updatedSections = updatedSections.slice(0, size);
+    // }
+
+    setFilteredSections(updatedSections);
+  };
+
+  useEffect(() => {
+    applyFiltersAndSort();
+  }, [searchTerm, sortOption, filterOption, pageSize, sections]);
+
+  const handleEnter = () => {
+    router.push(`/${lang}/dashboard/items`);
+  };
+  const handleViewEdit = (sectionId) => {
+    router.push(`/${lang}/dashboard/section/${sectionId}/view`);
+  };
+  const handleDelete = async (id) => {
+    try {
+      setIsSettingDefaultLoading(true);
+      const res = await deleteItem(token, apiBaseUrl, id, "section");
+      if (res.messages?.[0]?.includes("so you can't delete")) {
+        toast.error(res.messages[0]);
+        return;
+      }
+      if (
+        res?.responseStatus &&
+        Array.isArray(res.messages) &&
+        res.messages.length > 0
+      ) {
+        refetch();
+        toast.success(res.messages[0]);
+      }
+    } catch (error) {
+      toast.error("An error occurred while deleting the menu.");
+      console.error("Error default menu:", error);
+    } finally {
+      setIsSettingDefaultLoading(false);
+    }
+  };
+  const handleRestore = async (id) => {
+    try {
+      setIsSettingDefaultLoading(true);
+      const res = await restoreItem(token, apiBaseUrl, id, "section");
+
+      if (
+        res?.responseStatus &&
+        Array.isArray(res.messages) &&
+        res.messages.length > 0
+      ) {
+        refetch();
+        toast.success(res.messages[0]);
+      }
+    } catch (error) {
+      toast.error("An error occurred while restoring the menu.");
+      console.error("Error default menu:", error);
+    } finally {
+      setIsSettingDefaultLoading(false);
+    }
+  };
   const pageCount = Math.ceil(filteredSections?.length / itemsPerPage);
   const offset = currentPage * itemsPerPage;
   const currentItems = filteredSections?.slice(offset, offset + itemsPerPage);
@@ -155,22 +247,29 @@ const Sections = ({ params: { lang } }) => {
       </div>
 
       {/* Check for loading state first */}
-      {Array.isArray(currentItems) && currentItems.length && (
-        <CardGridRenderer
-          currentItems={currentItems}
-          isLoading={isLoading}
-          error={error}
-          // draggedIndex={draggedIndex}
-          // handleDragOver={handleDragOver}
-          // handleDrop={handleDrop}
-          // handleDragEnd={handleDragEnd}
-          localStatuses={localStatuses}
-          setLocalStatuses={setLocalStatuses}
-          trans={trans}
-          isLoadingStatus={isLoadingStatus}
-          isDefaultForMenu={false}
-        />
-      )}
+
+      <CardGridRenderer
+        currentItems={currentItems}
+        isLoading={isLoading}
+        error={error}
+        localStatuses={localStatuses}
+        setLocalStatuses={setLocalStatuses}
+        trans={trans}
+        isLoadingStatus={isLoadingStatus}
+        isDefaultForMenu={false}
+        labelLoading="section"
+        handleRestore={handleRestore}
+        handleEnter={handleEnter}
+        handleViewEdit={handleViewEdit}
+        handleDelete={handleDelete}
+        isSettingLoading={isSettingLoading}
+        subdomain={subdomain}
+        offset={offset}
+        setDraggedIndex={setDraggedIndex}
+        filteredSections={filteredSections}
+        setFilteredSections={setFilteredSections}
+      />
+
       {pageCount > 1 && currentItems && !isLoading && (
         <Pagination>
           <PaginationContent>

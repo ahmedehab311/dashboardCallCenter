@@ -1,7 +1,14 @@
 import Select from "react-select";
 import { Controller } from "react-hook-form";
 import { Label } from "@/components/ui/label";
-export default function MenuField({ errors, menuOptions, control, selectStyles }) {
+export default function MenuField({
+  errors,
+  menuOptions,
+  control,
+  selectStyles,
+}) {
+  console.log("menuOptions", menuOptions);
+
   return (
     <div className="col-span-2 flex flex-col lg:items-center lg:flex-row lg:gap-0 gap-2 mb-2">
       <Label className="lg:min-w-[160px]">Menu:</Label>
@@ -14,7 +21,7 @@ export default function MenuField({ errors, menuOptions, control, selectStyles }
               {...field}
               options={menuOptions}
               placeholder="Select Menu"
-              className="w-[50%]"
+              className="w-[50%] z-50"
               isDisabled={menuOptions?.length === 1}
               styles={selectStyles}
             />

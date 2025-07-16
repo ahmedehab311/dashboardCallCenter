@@ -139,7 +139,7 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { sections } from "@/app/[lang]/dashboard/sections/sectionArray";
+import { sections } from "@/app/[lang]/dashboard/sections/apisSection";
 import { useSubdomin } from "./SubdomainContext";
 import { useMenus } from "@/app/[lang]/dashboard/menus/apisMenu";
 

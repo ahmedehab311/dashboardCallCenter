@@ -27,6 +27,7 @@ import { BASE_URL } from "@/api/BaseUrl";
 import toast from "react-hot-toast";
 import CardGridRenderer from "../../components/CardGridRenderer";
 import { useToken } from "@/provider/TokenContext";
+import { fetchAllSections, useSections } from "../sections/apisSection";
 // import { TokenProvider } from "@/context/TokenContext";
 const Menu = ({ params: { lang } }) => {
   const router = useRouter();
@@ -39,7 +40,7 @@ const Menu = ({ params: { lang } }) => {
     isLoading,
     error,
     refetch,
-  } = useMenus(token, apiBaseUrl);
+  } = useSections(token && apiBaseUrl ? token : null, apiBaseUrl,"menus");
   // if (process.env.NODE_ENV === "development") {
   //   console.log("apiBaseUrl", apiBaseUrl);
   //   console.log("Menus", Menus);
@@ -47,17 +48,7 @@ const Menu = ({ params: { lang } }) => {
   // }
 
   const { trans } = useTranslate(lang);
-  // const {
-  //   filteredMenu,
-  //   searchTerm,
-  //   setSearchTerm,
-  //   sortOption,
-  //   setSortOption,
-  //   filterOption,
-  //   setFilterOption,
-  //   pageSize,
-  //   setPageSize,
-  // } = useApplyFiltersAndSort(Menus);
+ 
   const itemsPerPage =
     pageSize === "all" ? filteredMenus.length : parseInt(pageSize);
   const [searchTerm, setSearchTerm] = useState("");

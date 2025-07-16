@@ -297,50 +297,46 @@ const CardFooter = React.forwardRef(
               )}
             </div>
           </TooltipProvider>
-          {isDefaultForMenu && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  disabled={isSettingLoading}
-                  size="icon"
-                  className="group h-6 w-6 bg-transparent hover:bg-transparent  text-default-800 border border-default-200"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-[196px]"
-                align="end"
-                side="bottom"
-                avoidCollisions
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                disabled={isSettingLoading}
+                size="icon"
+                className="group h-6 w-6 bg-transparent hover:bg-transparent  text-default-800 border border-default-200"
               >
-                {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
-                {!isDefault && !deletedAt && (
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={isActiveDefault}
-                  >
-                    Set as default
-                  </DropdownMenuItem>
-                )}
-                {!deletedAt ? (
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={onDelete}
-                  >
-                    Delete
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={onRestore}
-                  >
-                    Restore
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="w-[196px]"
+              align="end"
+              side="bottom"
+              avoidCollisions
+            >
+              {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
+              {!isDefault && !deletedAt && isDefaultForMenu && (
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={isActiveDefault}
+                >
+                  Set as default
+                </DropdownMenuItem>
+              )}
+              {!deletedAt ? (
+                <DropdownMenuItem className="cursor-pointer" onClick={onDelete}>
+                  Delete
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={onRestore}
+                >
+                  Restore
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

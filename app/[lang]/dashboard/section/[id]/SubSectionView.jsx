@@ -15,7 +15,7 @@ import { getDictionary } from "@/app/dictionaries.js";
 import "@/app/[lang]/dashboard/items/main.css";
 // import { saveArrangement } from "./apiSections.jsx";
 import ReactPaginate from "react-paginate";
-import { sections } from "../../sections/sectionArray";
+import { sections } from "../../sections/apisSection";
 import {
   Pagination,
   PaginationContent,
