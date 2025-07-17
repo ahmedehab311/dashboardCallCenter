@@ -1,33 +1,33 @@
 "use client";
-
-import "@/app/[lang]/dashboard/menus/index.css";
+import { useParams } from "next/navigation";
 import "@/app/[lang]/dashboard/items/main.css";
-import { useSections } from "@/app/[lang]/dashboard/sections/apisSection";
+import useTranslate from "@/hooks/useTranslate";
 import { useSubdomin } from "@/provider/SubdomainContext";
 import { useToken } from "@/provider/TokenContext";
-import ItemsList from "@/app/[lang]/components/ItemsList";
-const Items = ({ params: { lang } }) => {
+import { useSections } from "../apisSection";
+import SectionList from "@/app/[lang]/components/SectionList";
+export default function SectionsForMenu({ params: { lang } }) {
+  const { id } = useParams();
   const { token } = useToken();
   const { apiBaseUrl, subdomain } = useSubdomin();
+  const { trans } = useTranslate(lang);
   const {
-    data: Sections,
+    data: sections,
     isLoading,
     error,
     refetch,
-  } = useSections(token && apiBaseUrl ? token : null, apiBaseUrl, "items");
+  } = useSections(token, apiBaseUrl, "sections", id);
   return (
-    <ItemsList
+    <SectionList
       lang={lang}
-      Sections={Sections}
+      sections={sections}
       isLoading={isLoading}
       error={error}
       refetch={refetch}
+      trans={trans}
       subdomain={subdomain}
       token={token}
       apiBaseUrl={apiBaseUrl}
-      subSections={false}
     />
   );
-};
-
-export default Items;
+}

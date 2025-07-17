@@ -1,8 +1,17 @@
 "use client";
-import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/CardSections";
+import { useState, useEffect, useMemo } from "react";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/CardSections";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import "./index.css";
+import "@/app/[lang]/dashboard/menus/index.css";
+import { useSelector, useDispatch } from "react-redux";
+// import { fetchSections, deleteSection } from "@/store/slices/sectionsSlice";
+// import { updateStatus, deleteItem } from "@/api/apiService";
 import {
   Pagination,
   PaginationContent,
@@ -12,72 +21,57 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import TaskHeader from "./task-header.jsx";
-import "../items/main.css";
-import { setAsDefaultMenu } from "./apisMenu";
+import TaskHeader from "@/app/[lang]/dashboard/menus/task-header.jsx";
+import { getDictionary } from "@/app/dictionaries.js";
+import "@/app/[lang]/dashboard/items/main.css";
+// import { saveArrangement } from "./apiSections.jsx";
+import ReactPaginate from "react-paginate";
+// import Dash from "@/app/[lang]/dashboard/DashboardPageView";
+// import { sections } from "./apisSection";
+// import useTranslate from "@/hooks/useTranslate";
+// import useApplyFiltersAndSort from "./components/hooks/useApplyFiltersAndSort";
+import CardGridRenderer from "./CardGridRenderer";
 import {
   deleteItem,
   restoreItem,
 } from "@/app/[lang]/dashboard/sections/apisSection";
-import useTranslate from "@/hooks/useTranslate";
-import { useReorderableList } from "@/hooks/useReorderableList";
 import { useSubdomin } from "@/provider/SubdomainContext";
-import toast from "react-hot-toast";
-import CardGridRenderer from "../../components/CardGridRenderer";
 import { useToken } from "@/provider/TokenContext";
-import { fetchAllSections, useSections } from "../sections/apisSection";
-// import { TokenProvider } from "@/context/TokenContext";
-const Menu = ({ params: { lang } }) => {
+import { useSections } from "@/app/[lang]/dashboard/sections/apisSection";
+import toast from "react-hot-toast";
+function SectionList({
+  lang,
+  sections,
+  isLoading,
+  error,
+  refetch,
+  trans,
+  subdomain,
+  token,
+  apiBaseUrl,
+}) {
   const router = useRouter();
-  const { token } = useToken();
-  const { apiBaseUrl, subdomain } = useSubdomin();
-  const [filteredMenus, setFilteredMenus] = useState();
-  const [pageSize, setPageSize] = useState("10");
-  const {
-    data: Menus,
-    isLoading,
-    error,
-    refetch,
-  } = useSections(token && apiBaseUrl ? token : null, apiBaseUrl, "menus");
-  // if (process.env.NODE_ENV === "development") {
-  //   console.log("apiBaseUrl", apiBaseUrl);
-  //   console.log("Menus", Menus);
-  //   console.log("token", token);
-  // }
-
-  const { trans } = useTranslate(lang);
-
-  const itemsPerPage =
-    pageSize === "all" ? filteredMenus.length : parseInt(pageSize);
+  const [filteredSections, setFilteredSections] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState("");
-  const [filterOption, setFilterOption] = useState("");
   const [arrangement, setArrangement] = useState([]);
-  // const [draggedIndex, setDraggedIndex] = useState(null);
-  const itemsCount = filteredMenus?.length;
+  const [filterOption, setFilterOption] = useState("");
+  const [pageSize, setPageSize] = useState("10");
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [isSettingLoading, setIsSettingDefaultLoading] = useState(false);
+  const itemsCount = filteredSections?.length;
   const [isLoadingStatus, setIsLoadingStauts] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [localStatuses, setLocalStatuses] = useState({});
-  const [isSettingLoading, setIsSettingDefaultLoading] = useState(false);
 
-  const {
-    draggedIndex,
-    handleDragStart,
-    handleDragOver,
-    handleDrop,
-    handleDragEnd,
-    setDraggedIndex,
-  } = useReorderableList(filteredMenus);
-  // const { offset, currentItems, pageCount, getVisiblePages } = usePagination(
-  //   filteredMenu,
-  //   itemsPerPage,
-  //   currentPage
-  // );
+  const itemsPerPage =
+    pageSize === "all" ? filteredSections.length : parseInt(pageSize);
+
   const applyFiltersAndSort = () => {
     // let updatedSections = [...Menus];
-    if (!Array.isArray(Menus)) return;
+    if (!Array.isArray(sections)) return;
 
-    let updatedSections = [...Menus];
+    let updatedSections = [...sections];
 
     // search
     if (searchTerm) {
@@ -117,21 +111,23 @@ const Menu = ({ params: { lang } }) => {
     //   updatedSections = updatedSections.slice(0, size);
     // }
 
-    setFilteredMenus(updatedSections);
+    setFilteredSections(updatedSections);
   };
 
   useEffect(() => {
     applyFiltersAndSort();
-  }, [searchTerm, sortOption, filterOption, pageSize, Menus]);
+  }, [searchTerm, sortOption, filterOption, pageSize, sections]);
 
-  const handleEnter = (menuId) => {
-    router.push(`/${lang}/dashboard/sections/${menuId}`);
+  const handleEnter = (sectionId) => {
+    router.push(`/${lang}/dashboard/section/${sectionId}`);
   };
-
+  const handleViewEdit = (sectionId) => {
+    router.push(`/${lang}/dashboard/section/${sectionId}/view`);
+  };
   const handleDelete = async (id) => {
     try {
       setIsSettingDefaultLoading(true);
-      const res = await deleteItem(token, apiBaseUrl, id, "menu");
+      const res = await deleteItem(token, apiBaseUrl, id, "section");
       if (res.messages?.[0]?.includes("so you can't delete")) {
         toast.error(res.messages[0]);
         return;
@@ -145,8 +141,8 @@ const Menu = ({ params: { lang } }) => {
         toast.success(res.messages[0]);
       }
     } catch (error) {
-      toast.error("An error occurred while deleting the menu.");
-      console.error("Error default menu:", error);
+      toast.error("An error occurred while deleting the section.");
+      console.error("Error default section:", error);
     } finally {
       setIsSettingDefaultLoading(false);
     }
@@ -154,7 +150,7 @@ const Menu = ({ params: { lang } }) => {
   const handleRestore = async (id) => {
     try {
       setIsSettingDefaultLoading(true);
-      const res = await restoreItem(token, apiBaseUrl, id, "menu");
+      const res = await restoreItem(token, apiBaseUrl, id, "section");
 
       if (
         res?.responseStatus &&
@@ -171,34 +167,9 @@ const Menu = ({ params: { lang } }) => {
       setIsSettingDefaultLoading(false);
     }
   };
-  const handleDefault = async (id) => {
-    try {
-      setIsSettingDefaultLoading(true);
-      const res = await setAsDefaultMenu(token, apiBaseUrl, id);
-
-      if (
-        res?.responseStatus &&
-        Array.isArray(res.messages) &&
-        res.messages.length > 0
-      ) {
-        refetch();
-        toast.success(res.messages[0]);
-      }
-    } catch (error) {
-      toast.success("An error occurred while setting the menu as default.");
-      console.error("Error default menu:", error);
-    } finally {
-      setIsSettingDefaultLoading(false);
-    }
-  };
-
-  //  edit & view
-  const handleViewEdit = (menuId) => {
-    router.push(`/${lang}/dashboard/menu/${menuId}/view`);
-  };
-  const pageCount = Math.ceil(filteredMenus?.length / itemsPerPage);
+  const pageCount = Math.ceil(filteredSections?.length / itemsPerPage);
   const offset = currentPage * itemsPerPage;
-  const currentItems = filteredMenus?.slice(offset, offset + itemsPerPage);
+  const currentItems = filteredSections?.slice(offset, offset + itemsPerPage);
 
   const getVisiblePages = (currentPage, pageCount) => {
     const pages = [];
@@ -233,8 +204,11 @@ const Menu = ({ params: { lang } }) => {
 
     return pages;
   };
-  const visiblePages = getVisiblePages(currentPage, pageCount);
 
+  const visiblePages = getVisiblePages(currentPage, pageCount);
+  if (!filteredSections) {
+    return <div>Loading...</div>;
+  }
   return (
     <Card className="gap-6 p-4">
       <div>
@@ -244,37 +218,36 @@ const Menu = ({ params: { lang } }) => {
           onFilterChange={(option) => setFilterOption(option)}
           onPageSizeChange={(value) => setPageSize(value)}
           pageSize={pageSize}
-          pageType="Menus"
-          pageTypeLabel="Menus"
           createButtonText={trans?.button?.section}
           // searchPlaceholder={trans?.sectionsItems.searchSections}
-          createTargetName="Menu"
-          createTargetPath="menu"
+          pageType="sections"
+          createTargetName="Section"
+          createTargetPath="section"
           filters={[
             { value: "active", label: trans?.sectionsItems?.active },
             { value: "inactive", label: trans?.sectionsItems?.inactive },
             { value: "have_image", label: trans?.sectionsItems?.haveImage },
             { value: "all", label: trans?.sectionsItems?.all },
           ]}
-          // handleSaveArrange={handleSaveArrange}
           trans={trans}
           // arrange={true}
           isLoading={isLoading}
           itemsCount={itemsCount}
-          isSettingLoading={isSettingLoading}
         />
       </div>
+
+      {/* Check for loading state first */}
+
       <CardGridRenderer
-        labelLoading="menu"
         currentItems={currentItems}
         isLoading={isLoading}
         error={error}
         localStatuses={localStatuses}
         setLocalStatuses={setLocalStatuses}
         trans={trans}
-        isDefaultForMenu={true}
         isLoadingStatus={isLoadingStatus}
-        handleDefault={handleDefault}
+        isDefaultForMenu={false}
+        labelLoading="section"
         handleRestore={handleRestore}
         handleEnter={handleEnter}
         handleViewEdit={handleViewEdit}
@@ -283,8 +256,8 @@ const Menu = ({ params: { lang } }) => {
         subdomain={subdomain}
         offset={offset}
         setDraggedIndex={setDraggedIndex}
-        filteredSections={filteredMenus}
-        setFilteredSections={setFilteredMenus}
+        filteredSections={filteredSections}
+        setFilteredSections={setFilteredSections}
       />
 
       {pageCount > 1 && currentItems && !isLoading && (
@@ -333,6 +306,6 @@ const Menu = ({ params: { lang } }) => {
       )}
     </Card>
   );
-};
+}
 
-export default Menu;
+export default SectionList;

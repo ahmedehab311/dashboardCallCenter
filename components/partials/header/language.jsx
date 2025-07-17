@@ -17,7 +17,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useThemeStore } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
 import { setLanguage } from "@/store/slices/languageSlice";
-import { fetchSettings } from "@/store/slices/systemSlice";
+// import { fetchSettings } from "@/store/slices/systemSlice";
 import { BASE_URL } from "@/api/BaseUrl";
 import Cookies from "js-cookie";
 // const Language = () => {

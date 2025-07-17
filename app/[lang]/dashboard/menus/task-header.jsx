@@ -43,7 +43,7 @@ const TaskHeader = ({
   const [localCreateButtonText, setLocalCreateButtonText] = useState("");
   const [pageSizePlaceholder, setPageSizePlaceholder] = useState("");
 
-  const { loading, error, success } = useSelector((state) => state.sections);
+  // const { loading, error, success } = useSelector((state) => state.sections);
   const config = dialogConfig[dialogType];
   const lang = localStorage.getItem("language") || Cookies.get("language");
   const handleSearch = (e) => {
@@ -204,8 +204,8 @@ const TaskHeader = ({
           <Plus className="h-4 w-4 ltr:mr-1 rtl:ml-1" /> {localCreateButtonText}
         </Button>
       </Link>
-      {error && <p className="text-red-500">Error: {error}</p>}
-      {success && <p className="text-green-500">Section added successfully!</p>}
+      {/* {error && <p className="text-red-500">Error: {error}</p>}
+      {success && <p className="text-green-500">Section added successfully!</p>} */}
     </div>
   );
 };

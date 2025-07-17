@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchSettings } from "@/store/slices/systemSlice";
+// import { fetchSettings } from "@/store/slices/systemSlice";
 import LayoutLoader from "@/components/layout-loader";
 import Cookies from "js-cookie";
 

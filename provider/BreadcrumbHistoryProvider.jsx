@@ -139,51 +139,56 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { sections } from "@/app/[lang]/dashboard/sections/apisSection";
+import { useSections } from "@/app/[lang]/dashboard/sections/apisSection";
 import { useSubdomin } from "./SubdomainContext";
-import { useMenus } from "@/app/[lang]/dashboard/menus/apisMenu";
+import { useToken } from "./TokenContext";
 
 const BreadcrumbContext = createContext();
 
 export const BreadcrumbHistoryProvider = ({ children }) => {
-  const { apiBaseUrl, token } = useSubdomin(); // بتجيب التوكن واللينك
-  const {
-    data: Menus,
-    isLoading,
-    error,
-    refetch,
-  } = useMenus(token, apiBaseUrl);
+  const { apiBaseUrl } = useSubdomin();
+  const { token } = useToken();
+  // const { data: Menus, isLoading } = useSections(
+  //   token && apiBaseUrl ? token : null,
+  //   apiBaseUrl,
+  //   "menus"
+  // );
+  const Menus = [
+    {
+      id: 1,
+      name_en: "Happyjoes",
+    },
+    {
+      id: 3,
+      name_en: "Another Menu",
+    },
+  ];
+  const { data: Sections } = useSections(
+    token && apiBaseUrl ? token : null,
+    apiBaseUrl,
+    "sections"
+  );
+  const { data: Items } = useSections(
+    token && apiBaseUrl ? token : null,
+    apiBaseUrl,
+    "items"
+  );
   const pathname = usePathname();
   const [breadcrumbs, setBreadcrumbs] = useState([]);
 
-  // useEffect(() => {
-  //   if (!pathname) return;
-
-  //   setBreadcrumbs((prev) => {
-  //     const existingIndex = prev.findIndex((b) => b.path === pathname);
-  //     if (existingIndex !== -1) {
-  //       // رجعت لواحد قديم → امسح اللي بعده
-  //       return prev.slice(0, existingIndex + 1);
-  //     }
-
-  //     const label = getSmartLabel(pathname, Menus);
-  //     return [...prev, { path: pathname, label }];
-  //   });
-  // }, [pathname]);
   useEffect(() => {
-  if (!pathname || isLoading || !Menus?.length) return;
+    if (!pathname || !Menus?.length) return;
 
-  setBreadcrumbs((prev) => {
-    const existingIndex = prev.findIndex((b) => b.path === pathname);
-    if (existingIndex !== -1) {
-      return prev.slice(0, existingIndex + 1);
-    }
+    setBreadcrumbs((prev) => {
+      const existingIndex = prev.findIndex((b) => b.path === pathname);
+      if (existingIndex !== -1) {
+        return prev.slice(0, existingIndex + 1);
+      }
 
-    const label = getSmartLabel(pathname, Menus);
-    return [...prev, { path: pathname, label }];
-  });
-}, [pathname, Menus, isLoading]);
-
+      const label = getSmartLabel(pathname, Menus, Sections, Items);
+      return [...prev, { path: pathname, label }];
+    });
+  }, [pathname, Menus, Sections, Items]);
 
   return (
     <BreadcrumbContext.Provider value={{ breadcrumbs }}>
@@ -194,7 +199,7 @@ export const BreadcrumbHistoryProvider = ({ children }) => {
 
 export const useBreadcrumbHistory = () => useContext(BreadcrumbContext);
 
-const getSmartLabel = (pathname, Menus) => {
+const getSmartLabel = (pathname, Menus, Sections, Items) => {
   const parts = pathname.split("/").filter(Boolean);
 
   //  تجاهل اللغة مثل "en" أو "ar"
@@ -210,40 +215,36 @@ const getSmartLabel = (pathname, Menus) => {
     const id = prev;
     const type = beforePrev;
 
-    if (type === "menu") {
+    if (type === "menu" && Menus?.length) {
       const found = Menus?.find((m) => m.id === Number(id));
       return found ? `${found.name_en} View` : `Menu ${id} View`;
     }
-    if (type === "section") {
-      const found = sections?.find((m) => m.id === Number(id));
-      return found ? `${found.name} View` : `Section ${id} View`;
+    if (type === "section" && Sections?.length) {
+      const found = Sections?.find((m) => m.id === Number(id));
+      console.log("found section", found);
+      return found ? `${found.name_en} View` : `Section ${id} View`;
     }
 
-    if (type === "item") {
-      for (const section of sections) {
-        const item = section.items?.find((i) => i.id === id);
-        if (item) return `${item.name} View`;
-      }
-      return `Item ${id} View`;
+    if (type === "item" && Items?.length) {
+      const found = Items?.find((i) => i.id === Number(id));
+      console.log("found Items", found);
+      return found ? `${found.name_en} View` : `item ${id} View`;
     }
   }
 
-  if (prev === "menu") {
+  if (prev === "menu" && Menus?.length) {
     const found = Menus?.find((m) => m.id === Number(last));
     return found?.name_en || `Menu ${last}`;
   }
 
-  if (prev === "section") {
-    const found = sections.find((s) => s.id === last);
-    return found?.name || `Section ${last}`;
+  if (prev === "section" && Sections?.length) {
+    const found = Sections?.find((s) => s.id === Number(last));
+    return found?.name_en || `Section ${last}`;
   }
 
-  if (prev === "item") {
-    for (const section of sections) {
-      const item = section.items?.find((i) => i.id === last);
-      if (item) return item.name;
-    }
-    return `Item ${last}`;
+  if (prev === "item" && Items?.length) {
+    const item = Items?.find((i) => i.id === Number(last));
+    return item?.name_en || `item ${last}`;
   }
 
   return formatLabel(last);

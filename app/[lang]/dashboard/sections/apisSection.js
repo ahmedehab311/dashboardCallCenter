@@ -1,127 +1,11 @@
-export const sections = [
-  {
-    id: "1",
-    name_en: "Pizza",
-    description_en: "Pizza",
-    image: "",
-    subSection: [
-      {
-        id: "1",
-        name_en: "Chicken Ranch sub",
-        description_en: "Chicken Ranch sub",
-        image: "",
-      },
-      {
-        id: "2",
-        name_en: "Chicken Combo sub",
-        description_en: "Chicken Combo sub",
-        image: "",
-      },
-    ],
-    items: [
-      {
-        id: "1",
-        name_en: "Margarita",
-        description_en: "Margarita",
-        image: "",
-        Condiments: [],
-      },
-      {
-        id: "2",
-        name_en: "Vegetarian",
-        description_en: "Vegetarian",
-        image: "",
-      },
-      {
-        id: "3",
-        name_en: "Cheese",
-        description_en: "Cheese",
-        image: "",
-      },
-      {
-        id: "4",
-        name_en: "Chicken",
-        description_en: "Chicken",
-        image: "",
-      },
-    ],
-  },
-  {
-    id: "2",
-    name_en: "Pasta",
-    description_en: "Pasta",
-    image: "",
-    subSection: [
-      {
-        id: "1",
-        name_en: "Beef Pasta sub",
-        description_en: "Margarita sub",
-        image: "",
-      },
-
-      {
-        id: "2",
-        name_en: "Chicken Pasta sub",
-        description_en: "Margarita sub",
-        image: "",
-      },
-    ],
-    items: [
-      {
-        id: "1",
-        name_en: "Beef Pasta",
-        description_en: "Margarita",
-        image: "",
-      },
-
-      {
-        id: "2",
-        name_en: "Chicken Pasta",
-        description_en: "Margarita",
-        image: "",
-      },
-
-      {
-        id: "3",
-        name_en: "Ranch Pasta",
-        description_en: "Margarita",
-        image: "",
-      },
-    ],
-  },
-  {
-    id: "3",
-    name_en: "Sandwiches",
-    description_en: "Sandwiches",
-    image: "",
-  },
-  {
-    id: "4",
-    name_en: "Salad",
-    description_en: "Salad",
-    image: "",
-  },
-  {
-    id: "5",
-    name_en: "Water",
-    description_en: "Water",
-    image: "",
-  },
-  {
-    id: "6",
-    name_en: "Appetizers",
-    description_en: "Appetizers",
-    image: "",
-  },
-];
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-// import { apiBaseUrl } from "next-auth/client/_utils";
-export const fetchAllSections = async (token, apiBaseUrl, name) => {
+export const fetchAllSections = async (token, apiBaseUrl, name, id) => {
   try {
-    const response = await axios.get(
-      `${apiBaseUrl}/v1/call-center/${name}?api_token=${token}`
-    );
+    const url = id
+      ? `${apiBaseUrl}/v1/call-center/${name}/${id}?api_token=${token}`
+      : `${apiBaseUrl}/v1/call-center/${name}?api_token=${token}`;
+    const response = await axios.get(url);
 
     // console.log("response", response);
     return response.data.response.data;
@@ -131,10 +15,45 @@ export const fetchAllSections = async (token, apiBaseUrl, name) => {
   }
 };
 
-export const useSections = (token, apiBaseUrl, name) =>
+export const useSections = (token, apiBaseUrl, name, id) =>
   useQuery({
     queryKey: ["SectionList", name],
-    queryFn: () => fetchAllSections(token, apiBaseUrl, name),
-
-    enabled: !!token,
+    queryFn: () => fetchAllSections(token, apiBaseUrl, name, id),
+    enabled: !!token && !!name,
   });
+export const deleteItem = async (token, apiBaseUrl, id, name) => {
+  try {
+    // for problem cross origin
+    const isDev = process.env.NODE_ENV === "development";
+
+    const baseUrl = isDev ? `/api-proxy` : `${apiBaseUrl}`;
+
+    const response = await axios.delete(
+      `${baseUrl}/v1/call-center/${name}/${id}?api_token=${token}`
+    );
+
+    // console.log("response", response);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching menu:", error);
+    throw error;
+  }
+};
+
+export const restoreItem = async (token, apiBaseUrl, id, name) => {
+  try {
+    // for problem cross origin
+    const isDev = process.env.NODE_ENV === "development";
+
+    const baseUrl = isDev ? `/api-proxy` : `${apiBaseUrl}`;
+    const response = await axios.patch(
+      `${baseUrl}/v1//call-center/${name}/${id}/restore?api_token=${token}`
+    );
+
+    // console.log("response", response);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching menu:", error);
+    throw error;
+  }
+};
