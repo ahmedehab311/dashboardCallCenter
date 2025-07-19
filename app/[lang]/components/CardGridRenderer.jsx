@@ -22,6 +22,7 @@ function CardGridRenderer({
   handleViewEdit,
   handleDelete,
   handleEnter,
+  handlechangeStatus,
   labelLoading,
   isDefaultForMenu,
   offset,
@@ -37,12 +38,12 @@ function CardGridRenderer({
       : description;
   };
 
-  const handleToggleActive = (checked, sectionId) => {
-    setLocalStatuses((prev) => ({
-      ...prev,
-      [sectionId]: checked,
-    }));
-  };
+  // const handleToggleActive = (checked, sectionId) => {
+  //   setLocalStatuses((prev) => ({
+  //     ...prev,
+  //     [sectionId]: checked,
+  //   }));
+  // };
   const getStatus = (section) => {
     // لو المستخدم غيّر السويتش، نستخدم القيمة اللي في localStatuses
     if (section.id in localStatuses) return localStatuses[section.id];
@@ -95,8 +96,6 @@ function CardGridRenderer({
     setDraggedIndex(null);
   };
 
-
-
   return (
     <div>
       {isLoading ? (
@@ -136,9 +135,7 @@ function CardGridRenderer({
                   sectionName={section?.name_en}
                   description={truncateDescription(section?.description_en, 80)}
                   isActive={getStatus(section)}
-                  onToggleActive={(checked) =>
-                    handleToggleActive(checked, section.id)
-                  }
+                  onChangeStatus={() => handlechangeStatus(section.id)}
                   isSection={true}
                   className="card-content"
                   trans={trans}

@@ -32,6 +32,7 @@ import ReactPaginate from "react-paginate";
 // import useApplyFiltersAndSort from "./components/hooks/useApplyFiltersAndSort";
 import CardGridRenderer from "./CardGridRenderer";
 import {
+  changeItemStatus,
   deleteItem,
   restoreItem,
 } from "@/app/[lang]/dashboard/sections/apisSection";
@@ -167,6 +168,26 @@ function SectionList({
       setIsSettingDefaultLoading(false);
     }
   };
+  const handlechangeStatus = async (id) => {
+    try {
+      setIsSettingDefaultLoading(true);
+      const res = await changeItemStatus(token, apiBaseUrl, id, "section");
+
+      if (
+        res?.responseStatus &&
+        Array.isArray(res.messages) &&
+        res.messages.length > 0
+      ) {
+        refetch();
+        toast.success(res.messages[0]);
+      }
+    } catch (error) {
+      toast.error("An error occurred while changing status the section.");
+      console.error("Error changing status section:", error);
+    } finally {
+      setIsSettingDefaultLoading(false);
+    }
+  };
   const pageCount = Math.ceil(filteredSections?.length / itemsPerPage);
   const offset = currentPage * itemsPerPage;
   const currentItems = filteredSections?.slice(offset, offset + itemsPerPage);
@@ -252,6 +273,7 @@ function SectionList({
         handleEnter={handleEnter}
         handleViewEdit={handleViewEdit}
         handleDelete={handleDelete}
+        handlechangeStatus={handlechangeStatus}
         isSettingLoading={isSettingLoading}
         subdomain={subdomain}
         offset={offset}

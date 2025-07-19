@@ -147,6 +147,7 @@ const CardContent = React.forwardRef(
       deletedAt,
       isLoading,
       isActiveDefault,
+      onChangeStatus,
       isSettingLoading,
       ...props
     },
@@ -174,7 +175,7 @@ const CardContent = React.forwardRef(
                     disabled={isLoading || isSettingLoading}
                     onCheckedChange={(checked) => {
                       console.log(`Switch value for ${sectionName}:`, checked);
-                      onToggleActive(checked);
+                      onChangeStatus(checked);
                     }}
                     className="flex items-center mb-3"
                     aria-label={isActive ? trans?.active : trans?.inactive}
@@ -216,6 +217,7 @@ const CardFooter = React.forwardRef(
       isDefault,
       deletedAt,
       onToggleActive,
+
       handleToggleActive,
       isSettingLoading,
       trans,

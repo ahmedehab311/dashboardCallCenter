@@ -15,12 +15,15 @@ export const fetchAllSections = async (token, apiBaseUrl, name, id) => {
   }
 };
 
+
+
 export const useSections = (token, apiBaseUrl, name, id) =>
   useQuery({
     queryKey: ["SectionList", name],
     queryFn: () => fetchAllSections(token, apiBaseUrl, name, id),
     enabled: !!token && !!name,
   });
+
 export const deleteItem = async (token, apiBaseUrl, id, name) => {
   try {
     // for problem cross origin
@@ -51,6 +54,23 @@ export const restoreItem = async (token, apiBaseUrl, id, name) => {
     );
 
     // console.log("response", response);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching menu:", error);
+    throw error;
+  }
+};
+export const changeItemStatus = async (token, apiBaseUrl, id, name) => {
+  try {
+    // for problem cross origin
+    const isDev = process.env.NODE_ENV === "development";
+
+    const baseUrl = isDev ? `/api-proxy` : `${apiBaseUrl}`;
+    const response = await axios.patch(
+      `${baseUrl}/v1//call-center/${name}/${id}/status?api_token=${token}`
+    );
+
+    console.log("response", response);
     return response.data;
   } catch (error) {
     console.error("Error fetching menu:", error);

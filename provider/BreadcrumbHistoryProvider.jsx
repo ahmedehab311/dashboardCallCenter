@@ -148,21 +148,11 @@ const BreadcrumbContext = createContext();
 export const BreadcrumbHistoryProvider = ({ children }) => {
   const { apiBaseUrl } = useSubdomin();
   const { token } = useToken();
-  // const { data: Menus, isLoading } = useSections(
-  //   token && apiBaseUrl ? token : null,
-  //   apiBaseUrl,
-  //   "menus"
-  // );
-  const Menus = [
-    {
-      id: 1,
-      name_en: "Happyjoes",
-    },
-    {
-      id: 3,
-      name_en: "Another Menu",
-    },
-  ];
+  const { data: Menus, isLoading } = useSections(
+    token && apiBaseUrl ? token : null,
+    apiBaseUrl,
+    "menus"
+  );
   const { data: Sections } = useSections(
     token && apiBaseUrl ? token : null,
     apiBaseUrl,
@@ -177,7 +167,7 @@ export const BreadcrumbHistoryProvider = ({ children }) => {
   const [breadcrumbs, setBreadcrumbs] = useState([]);
 
   useEffect(() => {
-    if (!pathname || !Menus?.length) return;
+    if (!pathname || isLoading || !Menus?.length) return;
 
     setBreadcrumbs((prev) => {
       const existingIndex = prev.findIndex((b) => b.path === pathname);
@@ -188,7 +178,7 @@ export const BreadcrumbHistoryProvider = ({ children }) => {
       const label = getSmartLabel(pathname, Menus, Sections, Items);
       return [...prev, { path: pathname, label }];
     });
-  }, [pathname, Menus, Sections, Items]);
+  }, [pathname, Menus, isLoading, Sections, Items]);
 
   return (
     <BreadcrumbContext.Provider value={{ breadcrumbs }}>

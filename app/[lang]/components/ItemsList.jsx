@@ -23,6 +23,7 @@ import CardGridRenderer from "@/app/[lang]/components/CardGridRenderer";
 import useTranslate from "@/hooks/useTranslate";
 // import { deleteItem, restoreItem } from "@//menus/apisMenu";
 import {
+  changeItemStatus,
   deleteItem,
   restoreItem,
 } from "@/app/[lang]/dashboard/sections/apisSection";
@@ -36,7 +37,8 @@ export default function ItemsList({
   refetch,
   subdomain,
   token,
-  apiBaseUrl,subSections
+  apiBaseUrl,
+  subSections,
 }) {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -109,11 +111,11 @@ export default function ItemsList({
     applyFiltersAndSort();
   }, [searchTerm, sortOption, filterOption, pageSize, Sections]);
 
-  const handleEnter = (sectionId) => {
-    router.push(`/${lang}/dashboard/section/${sectionId}`);
+  const handleEnter = (itemId) => {
+    router.push(`/${lang}/dashboard/sizes/${itemId}`);
   };
-  const handleViewEdit = (sectionId) => {
-    router.push(`/${lang}/dashboard/section/${sectionId}/view`);
+  const handleViewEdit = (itemId) => {
+    router.push(`/${lang}/dashboard/item/${itemId}/view`);
   };
   const handleDelete = async (id) => {
     try {
@@ -133,7 +135,7 @@ export default function ItemsList({
       }
     } catch (error) {
       toast.error("An error occurred while deleting the item.");
-      console.error("Error default section:", error);
+      console.error("Error default item:", error);
     } finally {
       setIsSettingDefaultLoading(false);
     }
@@ -158,7 +160,26 @@ export default function ItemsList({
       setIsSettingDefaultLoading(false);
     }
   };
+  const handlechangeStatus = async (id) => {
+    try {
+      setIsSettingDefaultLoading(true);
+      const res = await changeItemStatus(token, apiBaseUrl, id, "item");
 
+      if (
+        res?.responseStatus &&
+        Array.isArray(res.messages) &&
+        res.messages.length > 0
+      ) {
+        refetch();
+        toast.success(res.messages[0]);
+      }
+    } catch (error) {
+      toast.error("An error occurred while changing status the item.");
+      console.error("Error changing status item:", error);
+    } finally {
+      setIsSettingDefaultLoading(false);
+    }
+  };
   //  edit & view
   const handleNavigate = (itemId) => {
     router.push(`/${lang}/dashboard/item/${itemId}/view`);
@@ -228,6 +249,7 @@ export default function ItemsList({
             handleEnter={handleEnter}
             handleViewEdit={handleViewEdit}
             handleDelete={handleDelete}
+            handlechangeStatus={handlechangeStatus}
             isSettingLoading={isSettingLoading}
             subdomain={subdomain}
             offset={offset}

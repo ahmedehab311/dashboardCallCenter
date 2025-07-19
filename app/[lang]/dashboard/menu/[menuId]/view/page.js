@@ -19,13 +19,13 @@ import {
   EditAndViewButton,
 } from "@/app/[lang]/components/FormFields";
 import { useParams } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import { BASE_URL } from "@/api/BaseUrl";
-import { useMenus } from "../../../menus/apisMenu";
+import { useSections } from "../../../sections/apisSection";
 
 function ViewAndEditMenu() {
-  const { menuId: id } = useParams();
+  const { menuId } = useParams();
   const { apiBaseUrl, subdomain } = useSubdomin();
+
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
   const {
@@ -33,9 +33,8 @@ function ViewAndEditMenu() {
     isLoading,
     error,
     refetch,
-  } = useMenus(token, apiBaseUrl);
-  const queryClient = useQueryClient();
-  const currentMenu = Menus?.find((menu) => menu.id === Number(id));
+  } = useSections(token, apiBaseUrl, "menu", menuId);
+
 
   const { theme, color } = useThemeColor();
   const { restaurantOptions } = useRestaurantFetch();
@@ -55,7 +54,7 @@ function ViewAndEditMenu() {
   } = useForm({
     resolver: zodResolver(menuSchema),
     defaultValues: {
-      ...currentMenu,
+      ...Menus,
     },
   });
   useEffect(() => {
@@ -64,19 +63,19 @@ function ViewAndEditMenu() {
     }
   }, [restaurantOptions, setValue]);
   useEffect(() => {
-    if (currentMenu) {
-      setValue("enName", currentMenu.name_en);
-      setValue("arName", currentMenu.name_ar);
-      setValue("enDesc", currentMenu.description_en);
-      setValue("arDesc", currentMenu.description_ar);
-      setValue("restaurant", currentMenu.restaurant_id);
-      setValue("status", currentMenu.status ? 1 : 2);
-      setValue("default", currentMenu.default ? 1 : 2);
-      if (currentMenu.image) {
-        setImagePreview(`${BASE_URL()}/${subdomain}/${currentMenu.image}`);
+    if (Menus) {
+      setValue("enName", Menus.name_en);
+      setValue("arName", Menus.name_ar);
+      setValue("enDesc", Menus.description_en);
+      setValue("arDesc", Menus.description_ar);
+      setValue("restaurant", Menus.restaurant_id);
+      setValue("status", Menus.status ? 1 : 2);
+      setValue("default", Menus.default ? 1 : 2);
+      if (Menus.image) {
+        setImagePreview(`${BASE_URL()}/${subdomain}/${Menus.image}`);
       }
     }
-  }, [setValue, currentMenu, subdomain]);
+  }, [setValue, Menus, subdomain]);
 
   const handleRemoveImage = () => {
     setImagePreview(null);

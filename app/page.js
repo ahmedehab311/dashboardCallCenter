@@ -10,18 +10,13 @@ import Cookies from "js-cookie";
 export default function HomePage() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { defaultSystemLanguage, domin } = useSelector(
-    (state) => state.settings
-  );
 
   const [accessToken, setAccessToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-  
-
     const token = Cookies.get("token");
-    const currentLanguage = Cookies.get("language") 
+    const currentLanguage = Cookies.get("language");
 
     if (token) {
       setAccessToken(token);
@@ -54,12 +49,11 @@ export default function HomePage() {
           <h1>Coming Soon</h1>
           <button
             onClick={() => {
-              const currentLanguage =
-                "en";
+              const currentLanguage = "en";
               router.push(`/${currentLanguage}/login`);
             }}
             style={{
-              marginLeft:"20px",
+              marginLeft: "20px",
               padding: "10px 20px",
               backgroundColor: "#0070f3",
               color: "white",

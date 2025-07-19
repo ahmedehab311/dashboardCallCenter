@@ -16,6 +16,7 @@ import TaskHeader from "./task-header.jsx";
 import "../items/main.css";
 import { setAsDefaultMenu } from "./apisMenu";
 import {
+  changeItemStatus,
   deleteItem,
   restoreItem,
 } from "@/app/[lang]/dashboard/sections/apisSection";
@@ -171,6 +172,26 @@ const Menu = ({ params: { lang } }) => {
       setIsSettingDefaultLoading(false);
     }
   };
+  const handlechangeStatus = async (id) => {
+    try {
+      setIsSettingDefaultLoading(true);
+      const res = await changeItemStatus(token, apiBaseUrl, id, "menu");
+
+      if (
+        res?.responseStatus &&
+        Array.isArray(res.messages) &&
+        res.messages.length > 0
+      ) {
+        refetch();
+        toast.success(res.messages[0]);
+      }
+    } catch (error) {
+      toast.error("An error occurred while changing status the menu.");
+      console.error("Error changing status menu:", error);
+    } finally {
+      setIsSettingDefaultLoading(false);
+    }
+  };
   const handleDefault = async (id) => {
     try {
       setIsSettingDefaultLoading(true);
@@ -279,6 +300,7 @@ const Menu = ({ params: { lang } }) => {
         handleEnter={handleEnter}
         handleViewEdit={handleViewEdit}
         handleDelete={handleDelete}
+        handlechangeStatus={handlechangeStatus}
         isSettingLoading={isSettingLoading}
         subdomain={subdomain}
         offset={offset}
