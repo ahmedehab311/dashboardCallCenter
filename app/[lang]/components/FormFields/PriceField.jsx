@@ -9,17 +9,16 @@ export default function PriceField({ PriceLists, prices }) {
 
         return (
           <div key={list.id} className="flex flex-row gap-2 w-full">
-          
             <Input
               type="text"
               value={list.name_en}
               readOnly
-              className="border p-2 text-sm rounded w-full"
+              // className="border p-2 text-sm rounded w-full"
             />
             <Input
               type="number"
               value={parseFloat(price).toFixed(2)}
-              className="border p-2 text-sm rounded w-32 text-right"
+              className="text-right"
             />
           </div>
         );
