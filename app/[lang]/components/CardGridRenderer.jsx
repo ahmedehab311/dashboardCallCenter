@@ -6,6 +6,7 @@ import {
   CardFooter,
 } from "@/components/ui/CardSections";
 import { usePagination } from "@/hooks/usePagination";
+import { saveArrangement } from "../dashboard/sections/apisSection";
 function CardGridRenderer({
   currentItems,
   isLoading,
@@ -29,6 +30,8 @@ function CardGridRenderer({
   setDraggedIndex,
   filteredSections,
   setFilteredSections,
+  isInternalLoading,
+  setIsInternalLoading,
 }) {
   const truncateDescription = (description, maxLength = 50) => {
     // console.log("Description received:", description);
@@ -50,7 +53,6 @@ function CardGridRenderer({
     // وإلا نرجع القيمة الأصلية من الـ API
     return !!section.status;
   };
-
 
   const handleDragStart = (e, localIndex) => {
     const actualIndex = offset + localIndex; //  index الحقيقي من filteredSections
@@ -97,23 +99,21 @@ function CardGridRenderer({
     setDraggedIndex(null);
   };
 
- 
-
   return (
     <div>
-      {isLoading ? (
+      {isLoading || isInternalLoading ? (
         <div className="flex items-center justify-center h-full">
-          <p className="text-center text-gray-500 py-10">
+          <p className="text-center text-gray-500 py-10 capitalize">
             Loading {labelLoading}...
           </p>
         </div>
       ) : error ? (
         <div className="flex items-center justify-center h-full">
-          <p className="text-center text-gray-500 py-10">
+          <p className="text-center text-gray-500 py-10 capitalize">
             Error loading {labelLoading}
           </p>
         </div>
-      ) : Array.isArray(filteredSections) && filteredSections.length ? (
+      ) : filteredSections.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
           {filteredSections.map((section, index) => {
             let deletedAt = section?.deleted_at;
@@ -129,7 +129,7 @@ function CardGridRenderer({
                   imageUrl={`${BASE_URL()}/${subdomain}/${section.image}`}
                   draggable
                   onDragStart={(e) => handleDragStart(e, section.id)}
-                  onDragOver={(e) => e.preventDefault()}
+                  onDragOver={(e) => handleDragOver(e, index)}
                   onDrop={(e) => handleDrop(e, section.id)}
                   onDragEnd={handleDragEnd}
                 />
@@ -168,7 +168,7 @@ function CardGridRenderer({
         </div>
       ) : (
         <div className="flex items-center justify-center h-full">
-          <p className="text-center text-gray-500 py-10">
+          <p className="text-center text-gray-500 py-10 capitalize">
             No {labelLoading} found
           </p>
         </div>

@@ -9,6 +9,7 @@ export default function PriceField({ PriceLists, prices }) {
 
         return (
           <div key={list.id} className="flex flex-row gap-2 w-full">
+          
             <Input
               type="text"
               value={list.name_en}

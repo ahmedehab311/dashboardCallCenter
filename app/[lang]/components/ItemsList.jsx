@@ -26,6 +26,7 @@ import {
   changeItemStatus,
   deleteItem,
   restoreItem,
+  saveArrangement,
 } from "@/app/[lang]/dashboard/sections/apisSection";
 import toast from "react-hot-toast";
 import SubSectionView from "../dashboard/section/[id]/SubSectionView";
@@ -38,7 +39,8 @@ export default function ItemsList({
   subdomain,
   token,
   apiBaseUrl,
-  subSections,
+  subSections,isInternalLoading,
+  setIsInternalLoading
 }) {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -121,7 +123,10 @@ export default function ItemsList({
     try {
       setIsSettingDefaultLoading(true);
       const res = await deleteItem(token, apiBaseUrl, id, "item");
-      if (res.messages?.[0]?.includes("so you can't delete") ||res.messages?.[0]?.includes("is deleted")  ) {
+      if (
+        res.messages?.[0]?.includes("so you can't delete") ||
+        res.messages?.[0]?.includes("is deleted")
+      ) {
         toast.error(res.messages[0]);
         return;
       }
@@ -184,9 +189,33 @@ export default function ItemsList({
       setIsSettingDefaultLoading(false);
     }
   };
-  //  edit & view
-  const handleNavigate = (itemId) => {
-    router.push(`/${lang}/dashboard/item/${itemId}/view`);
+  const handleSaveArrange = async () => {
+    const ids = filteredItem.map((sections) => sections.id);
+    const arrangement = filteredItem.map((_, index) => index + 1);
+    // console.log("ids from api", ids);
+    // console.log("arrangement from api", arrangement);
+
+    const body = {
+      ids: ids,
+      arrangement: arrangement,
+    };
+    try {
+      setIsSettingDefaultLoading(true);
+      const res = await saveArrangement(token, apiBaseUrl, "items", body);
+      // console.log("respone data :", result);
+      if (
+        res?.responseStatus &&
+        Array.isArray(res.messages) &&
+        res.messages.length > 0
+      ) {
+        refetch();
+        toast.success(res.messages[0]);
+      }
+    } catch (error) {
+      toast.error("An error occurred while arrange the items.");
+      console.error("error save arrangment", error);
+    }
+    setIsSettingDefaultLoading(false);
   };
   const offset = currentPage * itemsPerPage;
   const currentItems = filteredItem.slice(offset, offset + itemsPerPage);
@@ -217,7 +246,7 @@ export default function ItemsList({
       {subSections && (
         <SubSectionView lang={lang} filteredSubSection={filteredSubSection} />
       )}
-      <Card className="gap-6 p-4">
+      <Card className="gap-6 p-4 mt-3">
         <TaskHeader
           onSearch={(term) => setSearchTerm(term)}
           onPageSizeChange={(value) => setPageSize(value)}
@@ -233,35 +262,37 @@ export default function ItemsList({
             { value: "have_image", label: trans?.sectionsItems?.haveImage },
             { value: "all", label: trans?.sectionsItems?.all },
           ]}
+          handleSaveArrange={handleSaveArrange}
+          arrange={true}
           trans={trans}
           isLoading={isLoading}
           itemsCount={filteredItem.length}
         />
 
-        {
-          <CardGridRenderer
-            currentItems={currentItems}
-            isLoading={isLoading}
-            error={error}
-            localStatuses={localStatuses}
-            setLocalStatuses={setLocalStatuses}
-            trans={trans}
-            isLoadingStatus={isLoadingStatus}
-            isDefaultForMenu={false}
-            labelLoading="item"
-            handleRestore={handleRestore}
-            handleEnter={handleEnter}
-            handleViewEdit={handleViewEdit}
-            handleDelete={handleDelete}
-            handlechangeStatus={handlechangeStatus}
-            isSettingLoading={isSettingLoading}
-            subdomain={subdomain}
-            offset={offset}
-            setDraggedIndex={setDraggedIndex}
-            filteredSections={filteredItem}
-            setFilteredSections={setFilteredItem}
-          />
-        }
+        <CardGridRenderer
+          currentItems={currentItems}
+          isLoading={isLoading}
+          error={error}
+          localStatuses={localStatuses}
+          setLocalStatuses={setLocalStatuses}
+          trans={trans}
+          isLoadingStatus={isLoadingStatus}
+          isDefaultForMenu={false}
+          labelLoading="items"
+          handleRestore={handleRestore}
+          handleEnter={handleEnter}
+          handleViewEdit={handleViewEdit}
+          handleDelete={handleDelete}
+          handlechangeStatus={handlechangeStatus}
+          isSettingLoading={isSettingLoading}
+          subdomain={subdomain}
+          offset={offset}
+          setDraggedIndex={setDraggedIndex}
+          filteredSections={filteredItem}
+          setFilteredSections={setFilteredItem}
+              isInternalLoading={isInternalLoading}
+      setIsInternalLoading={setIsInternalLoading}
+        />
 
         {pageCount > 1 && (
           <Pagination>

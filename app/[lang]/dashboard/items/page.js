@@ -7,7 +7,7 @@ import { useSubdomin } from "@/provider/SubdomainContext";
 import { useToken } from "@/provider/TokenContext";
 import ItemsList from "@/app/[lang]/components/ItemsList";
 const Items = ({ params: { lang } }) => {
-   const token = localStorage.getItem("token") || Cookies.get("token");
+  const token = localStorage.getItem("token") || Cookies.get("token");
   const { apiBaseUrl, subdomain } = useSubdomin();
   const {
     data: Sections,
@@ -15,6 +15,7 @@ const Items = ({ params: { lang } }) => {
     error,
     refetch,
   } = useSections(token && apiBaseUrl ? token : null, apiBaseUrl, "items");
+  const [isInternalLoading, setIsInternalLoading] = useState(false);
   return (
     <ItemsList
       lang={lang}
@@ -26,6 +27,8 @@ const Items = ({ params: { lang } }) => {
       token={token}
       apiBaseUrl={apiBaseUrl}
       subSections={false}
+      isInternalLoading={isInternalLoading}
+      setIsInternalLoading={setIsInternalLoading}
     />
   );
 };

@@ -75,6 +75,23 @@ export const AssignItemToSection = async (token, apiBaseUrl, Itemid, body) => {
     throw error;
   }
 };
+export const saveArrangement = async (token, apiBaseUrl,name, body) => {
+  try {
+    // for problem cross origin
+    const isDev = process.env.NODE_ENV === "development";
+
+    const baseUrl = isDev ? `/api-proxy` : `${apiBaseUrl}`;
+    const response = await axios.patch(
+      `${baseUrl}/v1//call-center/${name}/rearrange?api_token=${token}`,
+      body
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching menu:", error);
+    throw error;
+  }
+};
 export const changeItemStatus = async (token, apiBaseUrl, id, name) => {
   try {
     // for problem cross origin

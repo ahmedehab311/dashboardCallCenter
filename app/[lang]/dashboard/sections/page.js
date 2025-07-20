@@ -3,7 +3,7 @@ import "@/app/[lang]/dashboard/items/main.css";
 import useTranslate from "@/hooks/useTranslate";
 import { useSubdomin } from "@/provider/SubdomainContext";
 import { useToken } from "@/provider/TokenContext";
-import { useSections } from "./apisSection";
+import { saveArrangement, useSections } from "./apisSection";
 import SectionList from "../../components/SectionList";
 const Sections = ({ params: { lang } }) => {
   const token = localStorage.getItem("token") || Cookies.get("token");
@@ -15,20 +15,7 @@ const Sections = ({ params: { lang } }) => {
     error,
     refetch,
   } = useSections(token, apiBaseUrl, "sections");
- const handleSaveArrange = async () => {
-    const ids = filteredSections.map((sections) => sections.id);
-    const arrangement = filteredSections.map((_, index) => index + 1);
-    // console.log("ids from api", ids);
-    // console.log("arrangement from api", arrangement);
-    try {
-      // setIsLoading(true);
-      const result = await saveArrangement("sections", ids, arrangement);
-      // console.log("respone data :", result);
-    } catch (error) {
-      console.error("error save arrangment", error);
-    }
-    // setIsLoading(false);
-  };
+
   return (
     <SectionList
       lang={lang}

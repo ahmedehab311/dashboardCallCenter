@@ -35,6 +35,7 @@ import {
   changeItemStatus,
   deleteItem,
   restoreItem,
+  saveArrangement,
 } from "@/app/[lang]/dashboard/sections/apisSection";
 import { useSubdomin } from "@/provider/SubdomainContext";
 import { useToken } from "@/provider/TokenContext";
@@ -192,6 +193,35 @@ function SectionList({
       setIsSettingDefaultLoading(false);
     }
   };
+
+  const handleSaveArrange = async () => {
+    const ids = filteredSections.map((sections) => sections.id);
+    const arrangement = filteredSections.map((_, index) => index + 1);
+    // console.log("ids from api", ids);
+    // console.log("arrangement from api", arrangement);
+
+    const body = {
+      ids: ids,
+      arrangement: arrangement,
+    };
+    try {
+      setIsSettingDefaultLoading(true);
+      const res = await saveArrangement(token, apiBaseUrl, "sections", body);
+      // console.log("respone data :", result);
+      if (
+        res?.responseStatus &&
+        Array.isArray(res.messages) &&
+        res.messages.length > 0
+      ) {
+        refetch();
+        toast.success(res.messages[0]);
+      }
+    } catch (error) {
+      toast.error("An error occurred while arrange the items.");
+      console.error("error save arrangment", error);
+    }
+    setIsSettingDefaultLoading(false);
+  };
   const pageCount = Math.ceil(filteredSections?.length / itemsPerPage);
   const offset = currentPage * itemsPerPage;
   const currentItems = filteredSections?.slice(offset, offset + itemsPerPage);
@@ -255,7 +285,8 @@ function SectionList({
             { value: "all", label: trans?.sectionsItems?.all },
           ]}
           trans={trans}
-          // arrange={true}
+          handleSaveArrange={handleSaveArrange}
+          arrange={true}
           isLoading={isLoading}
           itemsCount={itemsCount}
         />
@@ -272,7 +303,7 @@ function SectionList({
         trans={trans}
         isLoadingStatus={isLoadingStatus}
         isDefaultForMenu={false}
-        labelLoading="section"
+        labelLoading="sections"
         handleRestore={handleRestore}
         handleEnter={handleEnter}
         handleViewEdit={handleViewEdit}

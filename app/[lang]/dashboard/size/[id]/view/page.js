@@ -26,15 +26,24 @@ import PriceField from "@/app/[lang]/components/FormFields/PriceField";
 
 export default function SiseForItem({ params: { lang } }) {
   const { id } = useParams();
-   const token = localStorage.getItem("token") || Cookies.get("token");
+  const token = localStorage.getItem("token") || Cookies.get("token");
   const { menuId } = useParams();
   const { apiBaseUrl, subdomain } = useSubdomin();
   const {
-    data: Menus,
+    data: PriceLists,
+    isLoadingPriceLists,
+    errorPriceLists,
+    refetchPriceLists,
+  } = useSections(token, apiBaseUrl, "price-lists");
+  console.log("PriceLists", PriceLists);
+  const {
+    data: Size,
     isLoading,
     error,
     refetch,
   } = useSections(token, apiBaseUrl, "size", id);
+  console.log("Size", Size);
+
   const {
     data: Restaurant,
     isLoadingRestaurant,
@@ -66,7 +75,7 @@ export default function SiseForItem({ params: { lang } }) {
   } = useForm({
     resolver: zodResolver(menuSchema),
     defaultValues: {
-      ...Menus,
+      ...Size,
     },
   });
   useEffect(() => {
@@ -75,19 +84,19 @@ export default function SiseForItem({ params: { lang } }) {
     }
   }, [restaurantOptions, setValue]);
   useEffect(() => {
-    if (Menus) {
-      setValue("enName", Menus.name_en);
-      setValue("arName", Menus.name_ar);
-      setValue("enDesc", Menus.description_en);
-      setValue("arDesc", Menus.description_ar);
-      setValue("restaurant", Menus.restaurant_id);
-      setValue("status", Menus.status ? 1 : 2);
-      setValue("default", Menus.default ? 1 : 2);
-      if (Menus.image) {
-        setImagePreview(`${BASE_URL()}/${subdomain}/${Menus.image}`);
+    if (Size) {
+      setValue("enName", Size.name_en);
+      setValue("arName", Size.name_ar);
+      setValue("enDesc", Size.description_en);
+      setValue("arDesc", Size.description_ar);
+      setValue("restaurant", Size.restaurant_id);
+      setValue("status", Size.status ? 1 : 2);
+      setValue("default", Size.default ? 1 : 2);
+      if (Size.image) {
+        setImagePreview(`${BASE_URL()}/${subdomain}/${Size.image}`);
       }
     }
-  }, [setValue, Menus, subdomain]);
+  }, [setValue, Size, subdomain]);
 
   const handleRemoveImage = () => {
     setImagePreview(null);
@@ -103,7 +112,7 @@ export default function SiseForItem({ params: { lang } }) {
     setIsEditing((prev) => !prev);
   };
   return (
-   <Card>
+    <Card>
       <EditAndViewButton
         label="edit"
         isEditing={isEditing}
@@ -134,12 +143,9 @@ export default function SiseForItem({ params: { lang } }) {
           errors={errors}
           isEditing={isEditing}
         />
-  {/* <div className="mb-3">
-            <PriceField
-              PriceLists={PriceLists}
-              prices={Item?.sizes[0]?.prices}
-            />
-          </div> */}
+        <div className="mb-3">
+          <PriceField PriceLists={PriceLists} prices={Size?.prices} />
+        </div>
         <div className="flex items-center gap-2">
           <StatusFields
             control={control}

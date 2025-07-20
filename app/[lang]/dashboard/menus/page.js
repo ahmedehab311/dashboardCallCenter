@@ -291,7 +291,7 @@ const Menu = ({ params: { lang } }) => {
         />
       </div>
       <CardGridRenderer
-        labelLoading="menu"
+        labelLoading="menus"
         currentItems={currentItems}
         isLoading={isLoading}
         error={error}

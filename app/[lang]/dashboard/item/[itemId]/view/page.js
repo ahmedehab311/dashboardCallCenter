@@ -31,13 +31,7 @@ function ViewAndEditItem() {
   const { apiBaseUrl, subdomain } = useSubdomin();
   // const { token } = useToken();
   const token = localStorage.getItem("token") || Cookies.get("token");
-  const {
-    data: PriceLists,
-    isLoadingPriceLists,
-    errorPriceLists,
-    refetchPriceLists,
-  } = useSections(token, apiBaseUrl, "price-lists");
-  console.log("PriceLists", PriceLists);
+
   const {
     data: AllSections,
     isLoadingAllSections,
