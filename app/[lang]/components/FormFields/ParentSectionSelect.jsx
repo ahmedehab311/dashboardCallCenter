@@ -6,13 +6,14 @@ export default function ParentSectionSelect({
   sectionsOptions,
   control,
   selectStyles,
+  onChangeSection,
 }) {
   return (
     <div className="col-span-2 flex flex-col lg:items-center lg:flex-row lg:gap-0 gap-2 mb-2">
       <Label className="lg:min-w-[160px]">Parent section:</Label>
       <div className="flex flex-col w-full">
         <Controller
-          name="Section"
+          name="section"
           control={control}
           render={({ field }) => (
             <Select
@@ -22,6 +23,9 @@ export default function ParentSectionSelect({
               className="w-[50%] z-40"
               isDisabled={sectionsOptions?.length === 1}
               styles={selectStyles}
+              onChange={(selected) =>
+                onChangeSection?.(selected, field.onChange)
+              }
             />
           )}
         />

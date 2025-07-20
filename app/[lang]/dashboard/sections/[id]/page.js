@@ -8,7 +8,8 @@ import { useSections } from "../apisSection";
 import SectionList from "@/app/[lang]/components/SectionList";
 export default function SectionsForMenu({ params: { lang } }) {
   const { id } = useParams();
-  const { token } = useToken();
+  // const { token } = useToken();
+  const token = localStorage.getItem("token") || Cookies.get("token");
   const { apiBaseUrl, subdomain } = useSubdomin();
   const { trans } = useTranslate(lang);
   const {
@@ -28,6 +29,7 @@ export default function SectionsForMenu({ params: { lang } }) {
       subdomain={subdomain}
       token={token}
       apiBaseUrl={apiBaseUrl}
+      navigate="section"
     />
   );
 }

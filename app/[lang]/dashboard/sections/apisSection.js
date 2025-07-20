@@ -15,8 +15,6 @@ export const fetchAllSections = async (token, apiBaseUrl, name, id) => {
   }
 };
 
-
-
 export const useSections = (token, apiBaseUrl, name, id) =>
   useQuery({
     queryKey: ["SectionList", name],
@@ -54,6 +52,23 @@ export const restoreItem = async (token, apiBaseUrl, id, name) => {
     );
 
     // console.log("response", response);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching menu:", error);
+    throw error;
+  }
+};
+export const AssignItemToSection = async (token, apiBaseUrl, Itemid, body) => {
+  try {
+    // for problem cross origin
+    const isDev = process.env.NODE_ENV === "development";
+
+    const baseUrl = isDev ? `/api-proxy` : `${apiBaseUrl}`;
+    const response = await axios.patch(
+      `${baseUrl}/v1//call-center/item/${Itemid}/section?api_token=${token}`,
+      body
+    );
+
     return response.data;
   } catch (error) {
     console.error("Error fetching menu:", error);

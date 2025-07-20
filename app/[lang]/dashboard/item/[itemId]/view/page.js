@@ -7,7 +7,6 @@ import { selectStyles } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import useRestaurantFetch from "../../../[orderType]/apICallCenter/hooksFetch/useRestaurantFetch";
 import {
   NameFields,
   DescriptionFields,
@@ -20,15 +19,18 @@ import {
 } from "@/app/[lang]/components/FormFields";
 import { useParams } from "next/navigation";
 import { BASE_URL } from "@/api/BaseUrl";
-import { useSections } from "../../../sections/apisSection";
-import { useToken } from "@/provider/TokenContext";
+import {
+  AssignItemToSection,
+  useSections,
+} from "../../../sections/apisSection";
 import { itemSchema } from "../../../create-item/itemSchema";
 import PriceField from "@/app/[lang]/components/FormFields/priceField";
-
+import toast from "react-hot-toast";
 function ViewAndEditItem() {
   const { itemId } = useParams();
   const { apiBaseUrl, subdomain } = useSubdomin();
-  const { token } = useToken();
+  // const { token } = useToken();
+  const token = localStorage.getItem("token") || Cookies.get("token");
   const {
     data: PriceLists,
     isLoadingPriceLists,
@@ -103,12 +105,41 @@ function ViewAndEditItem() {
       setValue("enDesc", Item.description_en);
       setValue("arDesc", Item.description_ar);
       setValue("status", Item.status ? 1 : 2);
+      setValue("offer", Item.offer ? 1 : 2);
+      if (Item.section) {
+        setValue("section", {
+          value: Item.section.id,
+          label: Item.section.name_en,
+        });
+      }
       if (Item.image) {
         setImagePreview(`${BASE_URL()}/${subdomain}/${Item.image}`);
       }
     }
   }, [setValue, Item, subdomain]);
-
+  const handleSectionChange = async (selctedOption, fieldOnchange) => {
+    const newSectionId = selctedOption.value;
+    const currentSectionId = Item.section.id;
+    fieldOnchange(selctedOption);
+    if (newSectionId !== currentSectionId) {
+      try {
+        const res = await AssignItemToSection(token, apiBaseUrl, itemId, {
+          sectionId: newSectionId,
+        });
+        if (
+          res?.responseStatus &&
+          Array.isArray(res.messages) &&
+          res.messages.length > 0
+        ) {
+          refetch();
+          toast.success(res.messages[0]);
+        }
+      } catch (error) {
+        toast.error("Failed to assign item to section");
+        console.error(error);
+      }
+    }
+  };
   const handleRemoveImage = () => {
     setImagePreview(null);
     setValue("image", null);
@@ -116,6 +147,7 @@ function ViewAndEditItem() {
       fileInputRef.current.value = "";
     }
   };
+
   const onSubmit = (data) => {
     console.log(data);
   };
@@ -156,17 +188,14 @@ function ViewAndEditItem() {
             selectStyles={selectStyles(theme, color)}
             control={control}
             errors={errors}
+            onChangeSection={handleSectionChange}
           />
 
-          <div className="mb-3">
-            <PriceField
-              PriceLists={PriceLists}
-              prices={Item?.sizes[0]?.prices}
-            />
-          </div>
           <div className="flex items-center gap-2">
             <StatusFields control={control} register={register} name="status" />
+            <StatusFields control={control} register={register} name="offer" />
           </div>
+
           <ImageUploadField
             errors={errors}
             control={control}

@@ -30,7 +30,8 @@ import { fetchAllSections, useSections } from "../sections/apisSection";
 // import { TokenProvider } from "@/context/TokenContext";
 const Menu = ({ params: { lang } }) => {
   const router = useRouter();
-  const { token } = useToken();
+  // const { token } = useToken();
+    const token = localStorage.getItem("token") || Cookies.get("token");
   const { apiBaseUrl, subdomain } = useSubdomin();
   const [filteredMenus, setFilteredMenus] = useState();
   const [pageSize, setPageSize] = useState("10");
@@ -134,6 +135,10 @@ const Menu = ({ params: { lang } }) => {
       setIsSettingDefaultLoading(true);
       const res = await deleteItem(token, apiBaseUrl, id, "menu");
       if (res.messages?.[0]?.includes("so you can't delete")) {
+        toast.error(res.messages[0]);
+        return;
+      }
+      if (res.messages?.[0]?.includes("is deleted")) {
         toast.error(res.messages[0]);
         return;
       }

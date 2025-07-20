@@ -121,10 +121,14 @@ export default function ItemsList({
     try {
       setIsSettingDefaultLoading(true);
       const res = await deleteItem(token, apiBaseUrl, id, "item");
-      if (res.messages?.[0]?.includes("so you can't delete")) {
+      if (res.messages?.[0]?.includes("so you can't delete") ||res.messages?.[0]?.includes("is deleted")  ) {
         toast.error(res.messages[0]);
         return;
       }
+      // if (res.messages?.[0]?.includes("is deleted")) {
+      //   toast.error(res.messages[0]);
+      //   return;
+      // }
       if (
         res?.responseStatus &&
         Array.isArray(res.messages) &&

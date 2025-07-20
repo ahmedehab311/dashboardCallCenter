@@ -1,13 +1,14 @@
 "use client";
 import SectionList from "@/app/[lang]/components/SectionList";
 import { useParams } from "next/navigation";
-import { useSections } from "../../sections/apisSection";
 import { useSubdomin } from "@/provider/SubdomainContext";
 import useTranslate from "@/hooks/useTranslate";
 import { useToken } from "@/provider/TokenContext";
+import { useSections } from "../../sections/apisSection";
 export default function SizeForItem({ params: { lang } }) {
   const { id } = useParams();
-  const { token } = useToken();
+  // const { token } = useToken();
+  const token = localStorage.getItem("token") || Cookies.get("token");
   const { apiBaseUrl, subdomain } = useSubdomin();
   const { trans } = useTranslate(lang);
   const {
@@ -16,6 +17,8 @@ export default function SizeForItem({ params: { lang } }) {
     error,
     refetch,
   } = useSections(token, apiBaseUrl, "sizes", id);
+  console.log("Sizes", Sizes);
+
   return (
     <SectionList
       lang={lang}
@@ -27,6 +30,7 @@ export default function SizeForItem({ params: { lang } }) {
       subdomain={subdomain}
       token={token}
       apiBaseUrl={apiBaseUrl}
+      navigate="size"
     />
   );
 }

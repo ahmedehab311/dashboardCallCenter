@@ -51,6 +51,7 @@ function CardGridRenderer({
     return !!section.status;
   };
 
+
   const handleDragStart = (e, localIndex) => {
     const actualIndex = offset + localIndex; //  index الحقيقي من filteredSections
     setDraggedIndex(actualIndex);
@@ -84,7 +85,7 @@ function CardGridRenderer({
     // console.log("Updated Arrangement:", arrangement);
 
     // تعريف الـ ids بناءً على العناصر
-    const ids = reorderedSections.map((section) => section.id);
+    const ids = reorderedSections.map((section) => section.id); // هنا نحصل على الـ ids من العناصر المعدلة
 
     // إظهار الـ IDs في الترتيب الجديد
     const updatedIds = arrangement.map((index) => ids[index - 1]);
@@ -95,6 +96,8 @@ function CardGridRenderer({
   const handleDragEnd = () => {
     setDraggedIndex(null);
   };
+
+ 
 
   return (
     <div>
@@ -110,9 +113,9 @@ function CardGridRenderer({
             Error loading {labelLoading}
           </p>
         </div>
-      ) : Array.isArray(currentItems) && currentItems.length ? (
+      ) : Array.isArray(filteredSections) && filteredSections.length ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
-          {currentItems.map((section, index) => {
+          {filteredSections.map((section, index) => {
             let deletedAt = section?.deleted_at;
             let isDefault = section?.default;
             return (
@@ -125,9 +128,9 @@ function CardGridRenderer({
                 <CardHeader
                   imageUrl={`${BASE_URL()}/${subdomain}/${section.image}`}
                   draggable
-                  onDragStart={(e) => handleDragStart(e, index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
-                  onDrop={(e) => handleDrop(e, index)}
+                  onDragStart={(e) => handleDragStart(e, section.id)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => handleDrop(e, section.id)}
                   onDragEnd={handleDragEnd}
                 />
 

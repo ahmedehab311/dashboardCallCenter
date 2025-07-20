@@ -27,7 +27,7 @@ import PriceField from "@/app/[lang]/components/FormFields/priceField";
 function ViewAndEditSection() {
   const { id: id } = useParams();
   const { apiBaseUrl, subdomain } = useSubdomin();
-  const { token } = useToken();
+   const token = localStorage.getItem("token") || Cookies.get("token");
  
 
   const {

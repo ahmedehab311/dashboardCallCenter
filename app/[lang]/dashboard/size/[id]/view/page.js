@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useSubdomin } from "@/provider/SubdomainContext";
+import { useToken } from "@/provider/TokenContext";
 import Card from "@/components/ui/card-snippet";
 import { selectStyles } from "@/lib/utils";
 import { menuSchema } from "../../../create-menu/menuSchema";
@@ -21,19 +22,19 @@ import {
 import { useParams } from "next/navigation";
 import { BASE_URL } from "@/api/BaseUrl";
 import { useSections } from "../../../sections/apisSection";
+import PriceField from "@/app/[lang]/components/FormFields/PriceField";
 
-function ViewAndEditMenu() {
+export default function SiseForItem({ params: { lang } }) {
+  const { id } = useParams();
+   const token = localStorage.getItem("token") || Cookies.get("token");
   const { menuId } = useParams();
   const { apiBaseUrl, subdomain } = useSubdomin();
-
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
   const {
     data: Menus,
     isLoading,
     error,
     refetch,
-  } = useSections(token, apiBaseUrl, "menu", menuId);
+  } = useSections(token, apiBaseUrl, "size", id);
   const {
     data: Restaurant,
     isLoadingRestaurant,
@@ -102,7 +103,7 @@ function ViewAndEditMenu() {
     setIsEditing((prev) => !prev);
   };
   return (
-    <Card>
+   <Card>
       <EditAndViewButton
         label="edit"
         isEditing={isEditing}
@@ -133,7 +134,12 @@ function ViewAndEditMenu() {
           errors={errors}
           isEditing={isEditing}
         />
-
+  {/* <div className="mb-3">
+            <PriceField
+              PriceLists={PriceLists}
+              prices={Item?.sizes[0]?.prices}
+            />
+          </div> */}
         <div className="flex items-center gap-2">
           <StatusFields
             control={control}
@@ -163,5 +169,3 @@ function ViewAndEditMenu() {
     </Card>
   );
 }
-
-export default ViewAndEditMenu;

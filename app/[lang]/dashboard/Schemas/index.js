@@ -61,3 +61,6 @@ export const statusFields = {
   status: z.union([z.literal(1), z.literal(2)]).default(1),
   default: z.union([z.literal(1), z.literal(2)]).default(1),
 };
+export const offerStatusFields = {
+  offer: z.union([z.literal(1), z.literal(2)]).default(1),
+};

@@ -50,6 +50,7 @@ function SectionList({
   subdomain,
   token,
   apiBaseUrl,
+  navigate,
 }) {
   const router = useRouter();
   const [filteredSections, setFilteredSections] = useState([]);
@@ -123,7 +124,7 @@ function SectionList({
     router.push(`/${lang}/dashboard/section/${sectionId}`);
   };
   const handleViewEdit = (sectionId) => {
-    router.push(`/${lang}/dashboard/section/${sectionId}/view`);
+    router.push(`/${lang}/dashboard/${navigate}/${sectionId}/view`);
   };
   const handleDelete = async (id) => {
     try {
@@ -172,7 +173,10 @@ function SectionList({
     try {
       setIsSettingDefaultLoading(true);
       const res = await changeItemStatus(token, apiBaseUrl, id, "section");
-
+      if (res.messages?.[0]?.includes("is deleted")) {
+        toast.error(res.messages[0]);
+        return;
+      }
       if (
         res?.responseStatus &&
         Array.isArray(res.messages) &&
