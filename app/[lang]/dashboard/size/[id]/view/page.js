@@ -5,7 +5,7 @@ import { useToken } from "@/provider/TokenContext";
 import Card from "@/components/ui/card-snippet";
 import { selectStyles } from "@/lib/utils";
 import { menuSchema } from "../../../create-menu/menuSchema";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import useRestaurantFetch from "../../../[orderType]/apICallCenter/hooksFetch/useRestaurantFetch";
@@ -23,7 +23,8 @@ import { useParams } from "next/navigation";
 import { BASE_URL } from "@/api/BaseUrl";
 import { useSections } from "../../../sections/apisSection";
 import PriceField from "@/app/[lang]/components/FormFields/PriceField";
-
+import { Label } from "@/components/ui/label";
+import Select from "react-select";
 export default function SiseForItem({ params: { lang } }) {
   const { id } = useParams();
   const token = localStorage.getItem("token") || Cookies.get("token");
@@ -43,6 +44,12 @@ export default function SiseForItem({ params: { lang } }) {
     refetch,
   } = useSections(token, apiBaseUrl, "size", id);
   console.log("Size", Size);
+  const {
+    data: AllItem,
+    isLoadingAllItem,
+    errorAllItem,
+    refetchAllItem,
+  } = useSections(token, apiBaseUrl, "items");
 
   const {
     data: Restaurant,
@@ -62,6 +69,13 @@ export default function SiseForItem({ params: { lang } }) {
       ? Restaurant.map((res) => ({
           value: res.id,
           label: res.name_en,
+        }))
+      : [];
+  const AllItemOptions =
+    Array.isArray(AllItem) && AllItem.length > 0
+      ? AllItem.map((item) => ({
+          value: item.id,
+          label: item.name_en,
         }))
       : [];
   const {
@@ -143,6 +157,32 @@ export default function SiseForItem({ params: { lang } }) {
           errors={errors}
           isEditing={isEditing}
         />
+        <div className="col-span-2 flex flex-col lg:items-center lg:flex-row lg:gap-0 gap-2 mb-2">
+              <Label className="lg:min-w-[160px]">Items:</Label>
+              <div className="flex flex-col w-full">
+                <Controller
+                  name="item"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={AllItemOptions}
+                      placeholder="Select Restaurant"
+                      className="w-[50%]"
+                      isDisabled={AllItemOptions?.length === 1}
+                      styles={selectStyles}
+                      disabled={isEditing}
+                    />
+                  )}
+                />
+        
+                {errors.restaurant && (
+                  <span className="text-red-500 text-sm mt-1">
+                    {errors.restaurant.message}
+                  </span>
+                )}
+              </div>
+            </div>
         <div className="mb-3">
           <PriceField PriceLists={PriceLists} prices={Size?.prices} />
         </div>
@@ -151,12 +191,6 @@ export default function SiseForItem({ params: { lang } }) {
             control={control}
             register={register}
             name="status"
-            isEditing={isEditing}
-          />
-          <DefaultStatusFields
-            control={control}
-            register={register}
-            name="default"
             isEditing={isEditing}
           />
         </div>
