@@ -217,11 +217,11 @@ const CardFooter = React.forwardRef(
       isDefault,
       deletedAt,
       onToggleActive,
-
       handleToggleActive,
       isSettingLoading,
       trans,
       isLoading,
+      navigate,
       ...props
     },
     ref
@@ -341,15 +341,16 @@ const CardFooter = React.forwardRef(
           </DropdownMenu>
         </div>
       </div>
-
-      <Button
-        onClick={() => (isSection ? onEnter(sectionItems) : onViewEdit())}
-        className="w-full"
-        title="View"
-        disabled={isSettingLoading}
-      >
-        {isSection ? `${trans?.view}` : `${trans?.viewEdit}`}
-      </Button>
+      {navigate !== "size" && (
+        <Button
+          onClick={() => (isSection ? onEnter(sectionItems) : onViewEdit())}
+          className="w-full"
+          title="View"
+          disabled={isSettingLoading}
+        >
+          {isSection ? `${trans?.view}` : `${trans?.viewEdit}`}
+        </Button>
+      )}
     </div>
   )
 );

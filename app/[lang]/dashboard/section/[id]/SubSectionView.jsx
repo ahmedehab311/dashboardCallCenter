@@ -31,6 +31,7 @@ const SubSectionView = ({ lang, filteredSubSection }) => {
       token={token}
       apiBaseUrl={apiBaseUrl}
       navigate="section"
+      pageType="sections"
     />
   );
 };

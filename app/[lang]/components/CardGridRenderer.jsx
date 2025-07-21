@@ -12,7 +12,6 @@ function CardGridRenderer({
   isLoading,
   error,
   draggedIndex,
-  setLocalStatuses,
   localStatuses,
   trans,
   isLoadingStatus,
@@ -30,8 +29,7 @@ function CardGridRenderer({
   setDraggedIndex,
   filteredSections,
   setFilteredSections,
-  isInternalLoading,
-  setIsInternalLoading,
+  isInternalLoading,navigate
 }) {
   const truncateDescription = (description, maxLength = 50) => {
     // console.log("Description received:", description);
@@ -113,9 +111,9 @@ function CardGridRenderer({
             Error loading {labelLoading}
           </p>
         </div>
-      ) : filteredSections.length > 0 ? (
+      ) : Array.isArray(currentItems) && currentItems.length ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
-          {filteredSections.map((section, index) => {
+          {currentItems.map((section, index) => {
             let deletedAt = section?.deleted_at;
             let isDefault = section?.default;
             return (
@@ -161,6 +159,7 @@ function CardGridRenderer({
                   isDefault={isDefault}
                   deletedAt={deletedAt}
                   isSettingLoading={isSettingLoading}
+                  navigate={navigate}
                 />
               </div>
             );

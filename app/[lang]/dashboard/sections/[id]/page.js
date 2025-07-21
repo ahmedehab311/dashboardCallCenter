@@ -30,6 +30,7 @@ export default function SectionsForMenu({ params: { lang } }) {
       token={token}
       apiBaseUrl={apiBaseUrl}
       navigate="section"
+      pageType="sections"
     />
   );
 }

@@ -28,6 +28,8 @@ const Sections = ({ params: { lang } }) => {
       token={token}
       apiBaseUrl={apiBaseUrl}
       navigate="section"
+ 
+      pageType="sections"
     />
   );
 };

@@ -1,20 +1,16 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useSubdomin } from "@/provider/SubdomainContext";
-import { useToken } from "@/provider/TokenContext";
 import Card from "@/components/ui/card-snippet";
 import { selectStyles } from "@/lib/utils";
-import { menuSchema } from "../../../create-menu/menuSchema";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import useRestaurantFetch from "../../../[orderType]/apICallCenter/hooksFetch/useRestaurantFetch";
 import {
   NameFields,
   DescriptionFields,
   RestaurantField,
   StatusFields,
-  DefaultStatusFields,
   ImageUploadField,
   SubmitButton,
   EditAndViewButton,
@@ -23,8 +19,10 @@ import { useParams } from "next/navigation";
 import { BASE_URL } from "@/api/BaseUrl";
 import { useSections } from "../../../sections/apisSection";
 import PriceField from "@/app/[lang]/components/FormFields/PriceField";
-import { Label } from "@/components/ui/label";
-import Select from "react-select";
+
+import { sizeShcema } from "../../sizeSchema";
+import ItemForSizeSelect from "@/app/[lang]/components/FormFields/ItemForSizeSelect";
+import MenuItemId from "@/app/[lang]/components/FormFields/MenuItemId";
 export default function SiseForItem({ params: { lang } }) {
   const { id } = useParams();
   const token = localStorage.getItem("token") || Cookies.get("token");
@@ -87,7 +85,7 @@ export default function SiseForItem({ params: { lang } }) {
     watch,
     ...rest
   } = useForm({
-    resolver: zodResolver(menuSchema),
+    resolver: zodResolver(sizeShcema),
     defaultValues: {
       ...Size,
     },
@@ -101,13 +99,16 @@ export default function SiseForItem({ params: { lang } }) {
     if (Size) {
       setValue("enName", Size.name_en);
       setValue("arName", Size.name_ar);
-      setValue("enDesc", Size.description_en);
-      setValue("arDesc", Size.description_ar);
-      setValue("restaurant", Size.restaurant_id);
+      setValue("menuItemId", Size.menu_item_id);
       setValue("status", Size.status ? 1 : 2);
-      setValue("default", Size.default ? 1 : 2);
       if (Size.image) {
         setImagePreview(`${BASE_URL()}/${subdomain}/${Size.image}`);
+      }
+      if (Size.item) {
+        setValue("item", {
+          value: Size.item.id,
+          label: Size.item.name_en,
+        });
       }
     }
   }, [setValue, Size, subdomain]);
@@ -141,51 +142,20 @@ export default function SiseForItem({ params: { lang } }) {
           maxLength={20}
           isEditing={isEditing}
         />
-        <DescriptionFields
-          register={register}
-          errors={errors}
-          labelEn="description En"
-          labelAr="description AR"
-          // maxLength={20}
-          isEditing={isEditing}
-        />
-        <RestaurantField
-          restaurantOptions={restaurantOptions}
-          selectStyles={selectStyles(theme, color)}
+
+        <ItemForSizeSelect
           control={control}
+          AllItemOptions={AllItemOptions}
+          selectStyles={selectStyles(theme, color)}
+          isEditing={isEditing}
           register={register}
           errors={errors}
-          isEditing={isEditing}
         />
-        <div className="col-span-2 flex flex-col lg:items-center lg:flex-row lg:gap-0 gap-2 mb-2">
-              <Label className="lg:min-w-[160px]">Items:</Label>
-              <div className="flex flex-col w-full">
-                <Controller
-                  name="item"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      options={AllItemOptions}
-                      placeholder="Select Restaurant"
-                      className="w-[50%]"
-                      isDisabled={AllItemOptions?.length === 1}
-                      styles={selectStyles}
-                      disabled={isEditing}
-                    />
-                  )}
-                />
-        
-                {errors.restaurant && (
-                  <span className="text-red-500 text-sm mt-1">
-                    {errors.restaurant.message}
-                  </span>
-                )}
-              </div>
-            </div>
         <div className="mb-3">
           <PriceField PriceLists={PriceLists} prices={Size?.prices} />
         </div>
+        <MenuItemId register={register} errors={errors} isEditing={isEditing} />
+
         <div className="flex items-center gap-2">
           <StatusFields
             control={control}

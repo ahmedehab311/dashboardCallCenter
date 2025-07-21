@@ -166,18 +166,75 @@ export const BreadcrumbHistoryProvider = ({ children }) => {
   const pathname = usePathname();
   const [breadcrumbs, setBreadcrumbs] = useState([]);
 
-  useEffect(() => {
-    if (!pathname || isLoading || !Menus?.length) return;
+  // useEffect(() => {
+  //   if (!pathname || isLoading || !Menus?.length) return;
 
-    setBreadcrumbs((prev) => {
-      const existingIndex = prev.findIndex((b) => b.path === pathname);
-      if (existingIndex !== -1) {
-        return prev.slice(0, existingIndex + 1);
+  //   setBreadcrumbs((prev) => {
+  //     const existingIndex = prev.findIndex((b) => b.path === pathname);
+  //     if (existingIndex !== -1) {
+  //       return prev.slice(0, existingIndex + 1);
+  //     }
+
+  //     const label = getSmartLabel(pathname, Menus, Sections, Items);
+  //     return [...prev, { path: pathname, label }];
+  //   });
+  // }, [pathname, Menus, isLoading, Sections, Items]);
+  useEffect(() => {
+    const loadSizeViewLabel = async () => {
+      const parts = pathname.split("/").filter(Boolean);
+      const langCodes = ["en", "ar", "fr"];
+      const cleanedParts = langCodes.includes(parts[0])
+        ? parts.slice(1)
+        : parts;
+
+      const last = cleanedParts.at(-1);
+      const prev = cleanedParts.at(-2);
+      const beforePrev = cleanedParts.at(-3);
+
+      // ✅ لو الصفحة هي /dashboard/size/:id/view
+      if (last === "view" && beforePrev === "size") {
+        const sizeId = prev;
+
+        try {
+          const res = await fetch(
+            `${apiBaseUrl}/v1/call-center/size/${sizeId}?api_token=${token}`
+          );
+
+          const result = await res.json();
+
+          const data = result.response.data;
+          const name = data?.name_en || `Size ${sizeId} View`;
+
+          console.log("data", data);
+          console.log("name", name);
+          setBreadcrumbs((prev) => {
+            const existingIndex = prev.findIndex((b) => b.path === pathname);
+            if (existingIndex !== -1) {
+              return prev.slice(0, existingIndex + 1);
+            }
+            return [...prev, { path: pathname, label: `${name} View` }];
+          });
+        } catch (e) {
+          console.error("Error fetching size:", e);
+        }
+        return;
       }
 
-      const label = getSmartLabel(pathname, Menus, Sections, Items);
-      return [...prev, { path: pathname, label }];
-    });
+      // باقي logic الـ breadcrumbs العادي
+      if (!pathname || isLoading || !Menus?.length) return;
+
+      setBreadcrumbs((prev) => {
+        const existingIndex = prev.findIndex((b) => b.path === pathname);
+        if (existingIndex !== -1) {
+          return prev.slice(0, existingIndex + 1);
+        }
+
+        const label = getSmartLabel(pathname, Menus, Sections, Items);
+        return [...prev, { path: pathname, label }];
+      });
+    };
+
+    loadSizeViewLabel();
   }, [pathname, Menus, isLoading, Sections, Items]);
 
   return (
@@ -201,6 +258,26 @@ const getSmartLabel = (pathname, Menus, Sections, Items) => {
   const beforePrev = cleanedParts[cleanedParts.length - 3];
 
   //  باقي الكود بنفس الطريقة لكن استبدل `parts` بـ `cleanedParts`
+  if (
+    cleanedParts.length >= 3 &&
+    cleanedParts[0] === "dashboard" &&
+    cleanedParts[1] === "sections" &&
+    Menus?.length
+  ) {
+    const id = Number(cleanedParts[2]);
+    const found = Menus.find((m) => m.id === id);
+    return found?.name_en || `Menu ${id}`;
+  }
+  if (
+    cleanedParts.length >= 3 &&
+    cleanedParts[0] === "dashboard" &&
+    cleanedParts[1] === "sizes" &&
+    Items?.length
+  ) {
+    const id = Number(cleanedParts[2]);
+    const found = Items.find((m) => m.id === id);
+    return found?.name_en || `Item ${id}`;
+  }
   if (last === "view") {
     const id = prev;
     const type = beforePrev;
@@ -211,13 +288,13 @@ const getSmartLabel = (pathname, Menus, Sections, Items) => {
     }
     if (type === "section" && Sections?.length) {
       const found = Sections?.find((m) => m.id === Number(id));
-      console.log("found section", found);
+      // console.log("found section", found);
       return found ? `${found.name_en} View` : `Section ${id} View`;
     }
 
     if (type === "item" && Items?.length) {
       const found = Items?.find((i) => i.id === Number(id));
-      console.log("found Items", found);
+      // console.log("found Items", found);
       return found ? `${found.name_en} View` : `item ${id} View`;
     }
   }

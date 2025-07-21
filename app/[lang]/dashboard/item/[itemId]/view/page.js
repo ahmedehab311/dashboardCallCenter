@@ -71,6 +71,8 @@ function ViewAndEditItem() {
   const selectedMenu = menuOptions?.find(
     (menu) => menu.value === Item?.menu_id
   );
+  console.log("menuOptions", menuOptions);
+
   const fileInputRef = useRef(null);
   const [isEditing, setIsEditing] = useState(true);
   const [trans, setTrans] = useState(null);
@@ -86,12 +88,27 @@ function ViewAndEditItem() {
     reset,
     ...rest
   } = useForm({
+    mode: "onSubmit",
     resolver: zodResolver(itemSchema),
     defaultValues: {
       ...Item,
-      Menu: selectedMenu || null,
+      // menu: selectedMenu || null,
     },
   });
+  //   const {
+  //   register,
+  //   handleSubmit,
+  //   control,
+  //   formState: { errors },
+  //   setValue,
+  //   watch,
+  //   reset,
+  //   ...rest
+  // } = useForm({
+  //   mode: "onSubmit",
+  //   resolver: zodResolver(itemSchema),
+  // });
+
   useEffect(() => {
     if (Item) {
       setValue("enName", Item.name_en);
@@ -106,11 +123,43 @@ function ViewAndEditItem() {
           label: Item.section.name_en,
         });
       }
+      if (Item.section.menu) {
+        setValue("menu", {
+          value: Item.section.menu.id,
+          label: Item.section.menu.name_en,
+        });
+      }
       if (Item.image) {
         setImagePreview(`${BASE_URL()}/${subdomain}/${Item.image}`);
       }
     }
   }, [setValue, Item, subdomain]);
+  // console.log("Item", Item);
+
+  //   useEffect(() => {
+  //   if (Item) {
+  //     reset({
+  //       enName: Item.name_en,
+  //       arName: Item.name_ar,
+  //       enDesc: Item.description_en,
+  //       arDesc: Item.description_ar,
+  //       status: Item.status ? 1 : 2,
+  //       offer: Item.offer ? 1 : 2,
+  //       section: Item.section
+  //         ? {
+  //             value: Item.section.id,
+  //             label: Item.section.name_en,
+  //           }
+  //         : null,
+  //       Menu: selectedMenu || null,
+  //     });
+
+  //     if (Item.image) {
+  //       setImagePreview(`${BASE_URL()}/${subdomain}/${Item.image}`);
+  //     }
+  //   }
+  // }, [Item, selectedMenu, subdomain, reset]);
+
   const handleSectionChange = async (selctedOption, fieldOnchange) => {
     const newSectionId = selctedOption.value;
     const currentSectionId = Item.section.id;
@@ -152,6 +201,11 @@ function ViewAndEditItem() {
     <>
       <Card>
         <form onSubmit={handleSubmit(onSubmit)}>
+          <EditAndViewButton
+            label="edit"
+            isEditing={isEditing}
+            onEditChange={onEditChange}
+          />
           <div className="flex items-center gap-2 w-full">
             <NameFields
               register={register}
@@ -159,6 +213,7 @@ function ViewAndEditItem() {
               labelEn="Name En"
               labelAr="Name AR"
               maxLength={20}
+              isEditing={isEditing}
             />
           </div>
           <DescriptionFields
@@ -166,7 +221,7 @@ function ViewAndEditItem() {
             errors={errors}
             labelEn="description En"
             labelAr="description AR"
-            // maxLength={20}
+            // maxLength={20} isEditing={isEditing}
           />
 
           <MenuField
@@ -175,6 +230,7 @@ function ViewAndEditItem() {
             control={control}
             errors={errors}
             selectedMenu={selectedMenu}
+            isEditing={isEditing}
           />
 
           <ParentSectionSelect
@@ -183,11 +239,22 @@ function ViewAndEditItem() {
             control={control}
             errors={errors}
             onChangeSection={handleSectionChange}
+            isEditing={isEditing}
           />
 
           <div className="flex items-center gap-2">
-            <StatusFields control={control} register={register} name="status" />
-            <StatusFields control={control} register={register} name="offer" />
+            <StatusFields
+              control={control}
+              register={register}
+              isEditing={isEditing}
+              name="status"
+            />
+            <StatusFields
+              control={control}
+              register={register}
+              isEditing={isEditing}
+              name="offer"
+            />
           </div>
 
           <ImageUploadField
@@ -197,8 +264,11 @@ function ViewAndEditItem() {
             handleRemoveImage={handleRemoveImage}
             imagePreview={imagePreview}
             setImagePreview={setImagePreview}
+            isEditing={isEditing}
           />
-          <SubmitButton label="Add section" />
+          {!isEditing && (
+            <SubmitButton label="Add section" isEditing={isEditing} />
+          )}
         </form>
       </Card>
     </>

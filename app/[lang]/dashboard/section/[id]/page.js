@@ -7,7 +7,7 @@ import { useSubdomin } from "@/provider/SubdomainContext";
 import { useToken } from "@/provider/TokenContext";
 import ItemsList from "@/app/[lang]/components/ItemsList";
 const ItemsForSection = ({ params: { lang } }) => {
-   const token = localStorage.getItem("token") || Cookies.get("token");
+  const token = localStorage.getItem("token") || Cookies.get("token");
   const { apiBaseUrl, subdomain } = useSubdomin();
   const { id } = useParams();
   const {
@@ -29,6 +29,8 @@ const ItemsForSection = ({ params: { lang } }) => {
         token={token}
         apiBaseUrl={apiBaseUrl}
         subSections={true}
+        navigate="item"
+        pageType="items"
       />
     </>
   );

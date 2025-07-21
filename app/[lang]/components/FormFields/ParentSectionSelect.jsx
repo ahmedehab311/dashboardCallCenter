@@ -6,7 +6,7 @@ export default function ParentSectionSelect({
   sectionsOptions,
   control,
   selectStyles,
-  onChangeSection,
+  onChangeSection,isEditing
 }) {
   return (
     <div className="col-span-2 flex flex-col lg:items-center lg:flex-row lg:gap-0 gap-2 mb-2">
@@ -21,7 +21,7 @@ export default function ParentSectionSelect({
               options={sectionsOptions}
               placeholder="Select section"
               className="w-[50%] z-40"
-              isDisabled={sectionsOptions?.length === 1}
+              isDisabled={sectionsOptions?.length === 1 || isEditing}
               styles={selectStyles}
               onChange={(selected) =>
                 onChangeSection?.(selected, field.onChange)

@@ -22,7 +22,7 @@ const TaskHeader = ({
   onPageSizeChange,
   onFilterChange,
   searchPlaceholder = "Search",
-  createTargetName = "Item",
+
   createTargetPath = "item",
   createButtonText,
   pageType = "",
@@ -62,11 +62,11 @@ const TaskHeader = ({
 
   useEffect(() => {
     if (trans?.add) {
-      setLocalCreateButtonText(`${trans.add} ${createTargetName}`);
+      setLocalCreateButtonText(`${trans.add} ${createTargetPath}`);
     } else {
-      setLocalCreateButtonText(`Add ${createTargetName}`);
+      setLocalCreateButtonText(`Add ${createTargetPath}`);
     }
-  }, [createTargetName, trans]);
+  }, [createTargetPath, trans]);
 
   return (
     <div className="flex items-center flex-wrap px-4 my-1">

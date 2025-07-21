@@ -1,11 +1,11 @@
 import { z } from "zod";
 
 export const nameFields = {
-  enName: z
-    .string()
-    .min(3, "English name is required")
-    .max(19, "Maximum 15 characters allowed"),
-  arName: z.string().max(19, "Maximum 15 characters allowed").optional(),
+  enName: z.string().min(3, "English name is required"),
+  arName: z.string().optional(),
+};
+export const menuItemIdields = {
+  menuItemId: z.string().optional(),
 };
 
 // fields/descFields.js
@@ -33,10 +33,7 @@ export const menuField = {
       value: z.number(),
       label: z.string(),
     })
-    .nullable()
-    .refine((val) => val !== null, {
-      message: "menuField is required",
-    }),
+    .optional(),
 };
 // fields/menuField.js
 export const ParentSectionSelect = {
@@ -45,15 +42,20 @@ export const ParentSectionSelect = {
       value: z.number(),
       label: z.string(),
     })
-    .nullable()
-    
+    .optional(),
+};
+export const itemForSizeSelect = {
+  ParentSection: z
+    .object({
+      value: z.number(),
+      label: z.string(),
+    })
+    .nullable(),
 };
 
 // fields/imageField.js
 export const imageField = {
-  image: z.any().refine((file) => file instanceof File, {
-    message: "Image is required",
-  }),
+  image: z.union([z.instanceof(File), z.string()]).optional(),
 };
 
 // fields/statusField.js

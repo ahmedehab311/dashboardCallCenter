@@ -11,7 +11,7 @@ function DescriptionFields({
   return (
     <>
       <div className="col-span-2 flex flex-col lg:items-center lg:flex-row lg:gap-0 gap-2 mb-2">
-        <Label className="lg:min-w-[160px]">{labelEn}:</Label>
+        <Label className="lg:min-w-[160px] capitalize">{labelEn}:</Label>
         <div className="flex flex-col w-full">
           <Textarea
             {...register("enDesc")}
@@ -27,7 +27,7 @@ function DescriptionFields({
       </div>
 
       <div className="col-span-2 flex flex-col lg:items-center lg:flex-row lg:gap-0 gap-2 mb-2">
-        <Label className="lg:min-w-[160px]">{labelAr}:</Label>
+        <Label className="lg:min-w-[160px] capitalize">{labelAr}:</Label>
         <Textarea
           {...register("arDesc")}
           className="w-[50%]"

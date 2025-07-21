@@ -27,20 +27,27 @@ import {
   deleteItem,
   restoreItem,
   saveArrangement,
+  useSections,
 } from "@/app/[lang]/dashboard/sections/apisSection";
 import toast from "react-hot-toast";
 import SubSectionView from "../dashboard/section/[id]/SubSectionView";
+import PaginationAllItems from "./Pagination";
 export default function ItemsList({
   lang,
   Sections,
   isLoading,
+  id,
   error,
   refetch,
   subdomain,
   token,
   apiBaseUrl,
-  subSections,isInternalLoading,
-  setIsInternalLoading
+  subSections,
+  isInternalLoading,
+  setIsInternalLoading,
+  navigate,
+
+  pageType,
 }) {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -108,7 +115,11 @@ export default function ItemsList({
 
     setFilteredItem(updatedSections);
   };
-
+  useEffect(() => {
+    if (token && apiBaseUrl && id) {
+      refetch();
+    }
+  }, [token, apiBaseUrl, id]);
   useEffect(() => {
     applyFiltersAndSort();
   }, [searchTerm, sortOption, filterOption, pageSize, Sections]);
@@ -122,7 +133,7 @@ export default function ItemsList({
   const handleDelete = async (id) => {
     try {
       setIsSettingDefaultLoading(true);
-      const res = await deleteItem(token, apiBaseUrl, id, "item");
+      const res = await deleteItem(token, apiBaseUrl, id, navigate);
       if (
         res.messages?.[0]?.includes("so you can't delete") ||
         res.messages?.[0]?.includes("is deleted")
@@ -152,7 +163,7 @@ export default function ItemsList({
   const handleRestore = async (id) => {
     try {
       setIsSettingDefaultLoading(true);
-      const res = await restoreItem(token, apiBaseUrl, id, "item");
+      const res = await restoreItem(token, apiBaseUrl, id, navigate);
 
       if (
         res?.responseStatus &&
@@ -172,7 +183,7 @@ export default function ItemsList({
   const handlechangeStatus = async (id) => {
     try {
       setIsSettingDefaultLoading(true);
-      const res = await changeItemStatus(token, apiBaseUrl, id, "item");
+      const res = await changeItemStatus(token, apiBaseUrl, id, navigate);
 
       if (
         res?.responseStatus &&
@@ -201,7 +212,7 @@ export default function ItemsList({
     };
     try {
       setIsSettingDefaultLoading(true);
-      const res = await saveArrangement(token, apiBaseUrl, "items", body);
+      const res = await saveArrangement(token, apiBaseUrl, pageType, body);
       // console.log("respone data :", result);
       if (
         res?.responseStatus &&
@@ -252,10 +263,8 @@ export default function ItemsList({
           onPageSizeChange={(value) => setPageSize(value)}
           pageSize={pageSize}
           createButtonText={trans?.button?.item}
-          pageType="items"
-          pageTypeLabel="items"
-          createTargetName="Item"
-          createTargetPath="item"
+          pageType={pageType}
+          createTargetPath={navigate}
           filters={[
             { value: "active", label: trans?.sectionsItems?.active },
             { value: "inactive", label: trans?.sectionsItems?.inactive },
@@ -290,52 +299,18 @@ export default function ItemsList({
           setDraggedIndex={setDraggedIndex}
           filteredSections={filteredItem}
           setFilteredSections={setFilteredItem}
-              isInternalLoading={isInternalLoading}
-      setIsInternalLoading={setIsInternalLoading}
+          isInternalLoading={isInternalLoading}
+          setIsInternalLoading={setIsInternalLoading}
         />
 
-        {pageCount > 1 && (
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCurrentPage((prev) => Math.max(prev - 1, 0));
-                  }}
-                />
-              </PaginationItem>
-              {visiblePages.map((page, i) => (
-                <PaginationItem key={i}>
-                  {page === "start-ellipsis" || page === "end-ellipsis" ? (
-                    <PaginationEllipsis />
-                  ) : (
-                    <PaginationLink
-                      href="#"
-                      isActive={page === currentPage}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentPage(page);
-                      }}
-                    >
-                      {page + 1}
-                    </PaginationLink>
-                  )}
-                </PaginationItem>
-              ))}
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCurrentPage((prev) => Math.min(prev + 1, pageCount - 1));
-                  }}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
+        <PaginationAllItems
+        currentItems={currentItems}
+        isLoading={isLoading}
+        pageCount={pageCount}
+        offset={offset}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+      />
       </Card>
     </>
   );

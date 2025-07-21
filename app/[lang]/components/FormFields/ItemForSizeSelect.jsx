@@ -1,39 +1,42 @@
-import Select from "react-select";
 import { Controller } from "react-hook-form";
 import { Label } from "@/components/ui/label";
-export default function MenuField({
-  errors,
-  menuOptions,
+import Select from "react-select";
+function ItemForSizeSelect({
   control,
+  AllItemOptions,
   selectStyles,
   isEditing,
+  errors,
+  register,
 }) {
   return (
     <div className="col-span-2 flex flex-col lg:items-center lg:flex-row lg:gap-0 gap-2 mb-2">
-      <Label className="lg:min-w-[160px]">Menu:</Label>
+      <Label className="lg:min-w-[160px] capitalize">Item:</Label>
       <div className="flex flex-col w-full">
         <Controller
-          name="menu"
+          name="item"
           control={control}
           render={({ field }) => (
             <Select
               {...field}
-              options={menuOptions}
-              placeholder="Select Menu"
-              className="w-[50%] z-50"
-              isDisabled={menuOptions?.length === 1 || isEditing}
+              options={AllItemOptions}
+              placeholder="Select Restaurant"
+              className="w-[50%]"
+              isDisabled={AllItemOptions?.length === 1}
               styles={selectStyles}
+              disabled={isEditing}
             />
           )}
         />
 
-        {errors.menu && (
+        {errors.item && (
           <span className="text-red-500 text-sm mt-1">
-            {errors.menu.message}
+            {errors.item.message}
           </span>
         )}
       </div>
     </div>
   );
 }
-// export default MenuField;
+
+export default ItemForSizeSelect;

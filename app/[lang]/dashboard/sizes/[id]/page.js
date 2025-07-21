@@ -31,6 +31,8 @@ export default function SizeForItem({ params: { lang } }) {
       token={token}
       apiBaseUrl={apiBaseUrl}
       navigate="size"
+      pageType="sizes"
+         
     />
   );
 }

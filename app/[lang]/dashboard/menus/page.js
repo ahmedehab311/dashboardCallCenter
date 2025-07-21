@@ -270,7 +270,7 @@ const Menu = ({ params: { lang } }) => {
           onFilterChange={(option) => setFilterOption(option)}
           onPageSizeChange={(value) => setPageSize(value)}
           pageSize={pageSize}
-          pageType="Menus"
+          pageType="menus"
           pageTypeLabel="Menus"
           createButtonText={trans?.button?.section}
           // searchPlaceholder={trans?.sectionsItems.searchSections}
@@ -312,6 +312,7 @@ const Menu = ({ params: { lang } }) => {
         setDraggedIndex={setDraggedIndex}
         filteredSections={filteredMenus}
         setFilteredSections={setFilteredMenus}
+         
       />
 
       {pageCount > 1 && currentItems && !isLoading && (

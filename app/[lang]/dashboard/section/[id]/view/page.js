@@ -27,8 +27,7 @@ import PriceField from "@/app/[lang]/components/FormFields/priceField";
 function ViewAndEditSection() {
   const { id: id } = useParams();
   const { apiBaseUrl, subdomain } = useSubdomin();
-   const token = localStorage.getItem("token") || Cookies.get("token");
- 
+  const token = localStorage.getItem("token") || Cookies.get("token");
 
   const {
     data: AllSections,
@@ -121,6 +120,12 @@ function ViewAndEditSection() {
       if (Section.image) {
         setImagePreview(`${BASE_URL()}/${subdomain}/${Section.image}`);
       }
+      if (Section.menu) {
+        setValue("menu", {
+          value: Section.menu.id,
+          label: Section.menu.name_en,
+        });
+      }
     }
   }, [setValue, Section, subdomain]);
 
@@ -140,6 +145,11 @@ function ViewAndEditSection() {
   return (
     <Card>
       <form onSubmit={handleSubmit(onSubmit)}>
+        <EditAndViewButton
+          label="edit"
+          isEditing={isEditing}
+          onEditChange={onEditChange}
+        />
         <div className="flex items-center gap-2 w-full">
           <NameFields
             register={register}
@@ -147,6 +157,7 @@ function ViewAndEditSection() {
             labelEn="Name En"
             labelAr="Name AR"
             maxLength={20}
+            isEditing={isEditing}
           />
         </div>
         <DescriptionFields
@@ -155,6 +166,7 @@ function ViewAndEditSection() {
           labelEn="description En"
           labelAr="description AR"
           // maxLength={20}
+          isEditing={isEditing}
         />
 
         <MenuField
@@ -163,6 +175,7 @@ function ViewAndEditSection() {
           control={control}
           errors={errors}
           selectedMenu={selectedMenu}
+          isEditing={isEditing}
         />
 
         <ParentSectionSelect
@@ -170,12 +183,19 @@ function ViewAndEditSection() {
           selectStyles={selectStyles(theme, color)}
           control={control}
           errors={errors}
+          isEditing={isEditing}
         />
         <div className="flex items-center gap-2">
-          <StatusFields control={control} register={register} name="status" />
+          <StatusFields
+            isEditing={isEditing}
+            control={control}
+            register={register}
+            name="status"
+          />
         </div>
         <ImageUploadField
           errors={errors}
+          isEditing={isEditing}
           control={control}
           fileInputRef={fileInputRef}
           handleRemoveImage={handleRemoveImage}
@@ -183,9 +203,9 @@ function ViewAndEditSection() {
           setImagePreview={setImagePreview}
         />
 
-     
-
-        <SubmitButton label="Add section" />
+        {!isEditing && (
+          <SubmitButton label="Add section" isEditing={isEditing} />
+        )}
       </form>
     </Card>
   );

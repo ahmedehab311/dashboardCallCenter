@@ -13,12 +13,12 @@ export default function NameFields({
   return (
     <div className="flex items-center gap-2 w-full">
       <div className="col-span-2 flex flex-col lg:flex-row lg:items-start gap-2 mb-2">
-        <Label className="lg:min-w-[160px]">{labelEn}:</Label>
+        <Label className="lg:min-w-[160px] capitalize">{labelEn}:</Label>
         <div className="flex flex-col w-full">
           <Input
             {...register("enName")}
             className="w-[%]"
-            maxLength={maxLength}
+            // maxLength={maxLength}
             disabled={isEditing}
           />
           {errors.enName && (
@@ -29,12 +29,12 @@ export default function NameFields({
         </div>
       </div>
       <div className="col-span-2 flex flex-col lg:flex-row lg:items-start gap-2 mb-2">
-        <Label className="lg:min-w-[160px] pt-2">{labelAr}:</Label>
+        <Label className="lg:min-w-[160px] pt-2 capitalize">{labelAr}:</Label>
         <div className="flex flex-col w-full">
           <Input
             {...register("arName")}
             className="w-full"
-            maxLength={maxLength}
+            // maxLength={maxLength}
             disabled={isEditing}
           />
           {errors.arName && (

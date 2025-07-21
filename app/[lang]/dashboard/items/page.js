@@ -6,6 +6,7 @@ import { useSections } from "@/app/[lang]/dashboard/sections/apisSection";
 import { useSubdomin } from "@/provider/SubdomainContext";
 import { useToken } from "@/provider/TokenContext";
 import ItemsList from "@/app/[lang]/components/ItemsList";
+import { useState } from "react";
 const Items = ({ params: { lang } }) => {
   const token = localStorage.getItem("token") || Cookies.get("token");
   const { apiBaseUrl, subdomain } = useSubdomin();
@@ -29,6 +30,8 @@ const Items = ({ params: { lang } }) => {
       subSections={false}
       isInternalLoading={isInternalLoading}
       setIsInternalLoading={setIsInternalLoading}
+      navigate="item"
+      pageType="items"
     />
   );
 };

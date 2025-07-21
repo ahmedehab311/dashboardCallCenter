@@ -12,15 +12,7 @@ import "@/app/[lang]/dashboard/menus/index.css";
 import { useSelector, useDispatch } from "react-redux";
 // import { fetchSections, deleteSection } from "@/store/slices/sectionsSlice";
 // import { updateStatus, deleteItem } from "@/api/apiService";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+
 import TaskHeader from "@/app/[lang]/dashboard/menus/task-header.jsx";
 import { getDictionary } from "@/app/dictionaries.js";
 import "@/app/[lang]/dashboard/items/main.css";
@@ -37,9 +29,7 @@ import {
   restoreItem,
   saveArrangement,
 } from "@/app/[lang]/dashboard/sections/apisSection";
-import { useSubdomin } from "@/provider/SubdomainContext";
-import { useToken } from "@/provider/TokenContext";
-import { useSections } from "@/app/[lang]/dashboard/sections/apisSection";
+import PaginationAllItems from "./Pagination";
 import toast from "react-hot-toast";
 function SectionList({
   lang,
@@ -52,6 +42,9 @@ function SectionList({
   token,
   apiBaseUrl,
   navigate,
+  createTargetPath,
+  pageType,
+  createTargetName,
 }) {
   const router = useRouter();
   const [filteredSections, setFilteredSections] = useState([]);
@@ -130,7 +123,7 @@ function SectionList({
   const handleDelete = async (id) => {
     try {
       setIsSettingDefaultLoading(true);
-      const res = await deleteItem(token, apiBaseUrl, id, "section");
+      const res = await deleteItem(token, apiBaseUrl, id, navigate);
       if (res.messages?.[0]?.includes("so you can't delete")) {
         toast.error(res.messages[0]);
         return;
@@ -144,8 +137,8 @@ function SectionList({
         toast.success(res.messages[0]);
       }
     } catch (error) {
-      toast.error("An error occurred while deleting the section.");
-      console.error("Error default section:", error);
+      toast.error(`An error occurred while deleting the ${navigate}.`);
+      console.error("Error default item:", error);
     } finally {
       setIsSettingDefaultLoading(false);
     }
@@ -153,7 +146,7 @@ function SectionList({
   const handleRestore = async (id) => {
     try {
       setIsSettingDefaultLoading(true);
-      const res = await restoreItem(token, apiBaseUrl, id, "section");
+      const res = await restoreItem(token, apiBaseUrl, id, navigate);
 
       if (
         res?.responseStatus &&
@@ -173,7 +166,7 @@ function SectionList({
   const handlechangeStatus = async (id) => {
     try {
       setIsSettingDefaultLoading(true);
-      const res = await changeItemStatus(token, apiBaseUrl, id, "section");
+      const res = await changeItemStatus(token, apiBaseUrl, id, navigate);
       if (res.messages?.[0]?.includes("is deleted")) {
         toast.error(res.messages[0]);
         return;
@@ -187,8 +180,8 @@ function SectionList({
         toast.success(res.messages[0]);
       }
     } catch (error) {
-      toast.error("An error occurred while changing status the section.");
-      console.error("Error changing status section:", error);
+      toast.error("An error occurred while changing status the item.");
+      console.error("Error changing status item:", error);
     } finally {
       setIsSettingDefaultLoading(false);
     }
@@ -206,8 +199,8 @@ function SectionList({
     };
     try {
       setIsSettingDefaultLoading(true);
-      const res = await saveArrangement(token, apiBaseUrl, "sections", body);
-      // console.log("respone data :", result);
+      const res = await saveArrangement(token, apiBaseUrl, pageType, body);
+      console.log("respone data :", res);
       if (
         res?.responseStatus &&
         Array.isArray(res.messages) &&
@@ -225,42 +218,6 @@ function SectionList({
   const pageCount = Math.ceil(filteredSections?.length / itemsPerPage);
   const offset = currentPage * itemsPerPage;
   const currentItems = filteredSections?.slice(offset, offset + itemsPerPage);
-
-  const getVisiblePages = (currentPage, pageCount) => {
-    const pages = [];
-
-    if (pageCount <= 5) {
-      return Array.from({ length: pageCount }, (_, i) => i);
-    }
-
-    pages.push(0); // always show first page
-
-    if (currentPage > 2) {
-      pages.push("start-ellipsis"); // ...
-    }
-
-    if (currentPage > 1 && currentPage < pageCount - 2) {
-      pages.push(currentPage - 1);
-      pages.push(currentPage);
-      pages.push(currentPage + 1);
-    } else if (currentPage <= 1) {
-      pages.push(1);
-      pages.push(2);
-    } else if (currentPage >= pageCount - 2) {
-      pages.push(pageCount - 3);
-      pages.push(pageCount - 2);
-    }
-
-    if (currentPage < pageCount - 3) {
-      pages.push("end-ellipsis"); // ...
-    }
-
-    pages.push(pageCount - 1); // always show last page
-
-    return pages;
-  };
-
-  const visiblePages = getVisiblePages(currentPage, pageCount);
   if (!filteredSections) {
     return <div>Loading...</div>;
   }
@@ -275,9 +232,8 @@ function SectionList({
           pageSize={pageSize}
           createButtonText={trans?.button?.section}
           // searchPlaceholder={trans?.sectionsItems.searchSections}
-          pageType="sections"
-          createTargetName="Section"
-          createTargetPath="section"
+          pageType={pageType}
+          createTargetPath={navigate}
           filters={[
             { value: "active", label: trans?.sectionsItems?.active },
             { value: "inactive", label: trans?.sectionsItems?.inactive },
@@ -315,52 +271,17 @@ function SectionList({
         setDraggedIndex={setDraggedIndex}
         filteredSections={filteredSections}
         setFilteredSections={setFilteredSections}
+        navigate={navigate}
       />
 
-      {pageCount > 1 && currentItems && !isLoading && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setCurrentPage((prev) => Math.max(prev - 1, 0));
-                }}
-              />
-            </PaginationItem>
-
-            {visiblePages.map((page, index) => (
-              <PaginationItem key={index}>
-                {page === "start-ellipsis" || page === "end-ellipsis" ? (
-                  <PaginationEllipsis />
-                ) : (
-                  <PaginationLink
-                    href="#"
-                    isActive={page === currentPage}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setCurrentPage(page);
-                    }}
-                  >
-                    {page + 1}
-                  </PaginationLink>
-                )}
-              </PaginationItem>
-            ))}
-
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setCurrentPage((prev) => Math.min(prev + 1, pageCount - 1));
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+      <PaginationAllItems
+        currentItems={currentItems}
+        isLoading={isLoading}
+        pageCount={pageCount}
+        offset={offset}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+      />
     </Card>
   );
 }

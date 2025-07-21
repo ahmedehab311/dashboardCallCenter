@@ -17,9 +17,13 @@ export const fetchAllSections = async (token, apiBaseUrl, name, id) => {
 
 export const useSections = (token, apiBaseUrl, name, id) =>
   useQuery({
-    queryKey: ["SectionList", name],
+    queryKey: ["SectionList", name, id],
     queryFn: () => fetchAllSections(token, apiBaseUrl, name, id),
     enabled: !!token && !!name,
+    cacheTime: 0,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
 export const deleteItem = async (token, apiBaseUrl, id, name) => {
@@ -75,7 +79,7 @@ export const AssignItemToSection = async (token, apiBaseUrl, Itemid, body) => {
     throw error;
   }
 };
-export const saveArrangement = async (token, apiBaseUrl,name, body) => {
+export const saveArrangement = async (token, apiBaseUrl, name, body) => {
   try {
     // for problem cross origin
     const isDev = process.env.NODE_ENV === "development";
