@@ -5,7 +5,7 @@ import { useSubdomin } from "@/provider/SubdomainContext";
 
 function useRestaurantFetch() {
   const { apiBaseUrl } = useSubdomin();
-  const token = localStorage.getItem("token") || Cookies.get("token");
+  const token = localStorage.getItem("token") 
   const {
     data: dataRestaurants,
     isLoading,

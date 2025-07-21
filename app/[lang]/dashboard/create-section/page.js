@@ -13,7 +13,6 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { fetchRestaurantsList } from "../[orderType]/apICallCenter/ApisCallCenter";
 import { useQuery } from "@tanstack/react-query";
-import { useMenus } from "../menus/apisMenu";
 import {
   NameFields,
   DescriptionFields,
@@ -23,6 +22,7 @@ import {
   MenuField,
   ParentSectionSelect,
 } from "../../components/FormFields";
+import { useSections } from "../sections/apisSection";
 function CreateSection() {
   const animatedComponents = makeAnimated();
   const { apiBaseUrl } = useSubdomin();
@@ -32,7 +32,7 @@ function CreateSection() {
   const [trans, setTrans] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [restaurantsSelect, setRestaurantsSelect] = useState(null);
-  const token = localStorage.getItem("token") || Cookies.get("token");
+  const token = localStorage.getItem("token") 
   const {
     data: dataRestaurants,
     isLoading,
@@ -49,7 +49,7 @@ function CreateSection() {
     isLoadingMenus,
     errorMenus,
     refetch,
-  } = useMenus(token, apiBaseUrl);
+  } = useSections(token, apiBaseUrl);
   const restaurantOptions =
     Array.isArray(dataRestaurants) && dataRestaurants.length > 0
       ? dataRestaurants.map((restaurant) => ({

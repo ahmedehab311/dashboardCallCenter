@@ -25,7 +25,7 @@ import ItemForSizeSelect from "@/app/[lang]/components/FormFields/ItemForSizeSel
 import MenuItemId from "@/app/[lang]/components/FormFields/MenuItemId";
 export default function SiseForItem({ params: { lang } }) {
   const { id } = useParams();
-  const token = localStorage.getItem("token") || Cookies.get("token");
+  const token = localStorage.getItem("token") 
   const { menuId } = useParams();
   const { apiBaseUrl, subdomain } = useSubdomin();
   const {

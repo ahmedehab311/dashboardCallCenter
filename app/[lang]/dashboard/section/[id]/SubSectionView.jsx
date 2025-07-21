@@ -8,7 +8,7 @@ import { useSections } from "../../sections/apisSection";
 
 const SubSectionView = ({ lang, filteredSubSection }) => {
   const { id } = useParams();
-  const token = localStorage.getItem("token") || Cookies.get("token");
+  const token = localStorage.getItem("token") 
   const { apiBaseUrl, subdomain } = useSubdomin();
   const { trans } = useTranslate(lang);
   const {

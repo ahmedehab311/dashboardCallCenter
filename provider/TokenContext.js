@@ -7,7 +7,7 @@ export const TokenProvider = ({ children }) => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedToken = localStorage.getItem("token") || Cookies.get("token");
+      const savedToken = localStorage.getItem("token") 
       setToken(savedToken);
     }
   }, []);

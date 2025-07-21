@@ -147,7 +147,7 @@ const BreadcrumbContext = createContext();
 
 export const BreadcrumbHistoryProvider = ({ children }) => {
   const { apiBaseUrl } = useSubdomin();
-  const token = localStorage.getItem("token") || Cookies.get("token");
+  const token = localStorage.getItem("token") 
   const { data: Menus, isLoading } = useSections(
     token && apiBaseUrl ? token : null,
     apiBaseUrl,

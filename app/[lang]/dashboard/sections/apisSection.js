@@ -27,14 +27,16 @@ export const useSections = (token, apiBaseUrl, name, id) =>
   });
 
 export const deleteItem = async (token, apiBaseUrl, id, name) => {
+  // console.log("process.env.NODE_ENV", process.env.NODE_ENV); 
   try {
     // for problem cross origin
-    const isDev = process.env.NODE_ENV === "development";
 
-    const baseUrl = isDev ? `/api-proxy` : `${apiBaseUrl}`;
+    // const baseUrl = (process.env.NODE_ENV == "development") ? `/api-proxy` : `${apiBaseUrl}`;
+    // console.log("baseUrl", baseUrl);
+    // console.log("apiBaseUrl", apiBaseUrl);
 
     const response = await axios.delete(
-      `${baseUrl}/v1/call-center/${name}/${id}?api_token=${token}`
+      `${apiBaseUrl}/v1/call-center/${name}/${id}?api_token=${token}`
     );
 
     // console.log("response", response);
@@ -47,12 +49,12 @@ export const deleteItem = async (token, apiBaseUrl, id, name) => {
 
 export const restoreItem = async (token, apiBaseUrl, id, name) => {
   try {
-    // for problem cross origin
-    const isDev = process.env.NODE_ENV === "development";
+    // // for problem cross origin
+    // const isDev = process.env.NODE_ENV === "development";
 
-    const baseUrl = isDev ? `/api-proxy` : `${apiBaseUrl}`;
+    // const baseUrl = isDev ? `/api-proxy` : `${apiBaseUrl}`;
     const response = await axios.patch(
-      `${baseUrl}/v1//call-center/${name}/${id}/restore?api_token=${token}`
+      `${apiBaseUrl}/v1//call-center/${name}/${id}/restore?api_token=${token}`
     );
 
     // console.log("response", response);

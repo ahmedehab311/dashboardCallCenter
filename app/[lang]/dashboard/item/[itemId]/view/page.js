@@ -30,7 +30,7 @@ function ViewAndEditItem() {
   const { itemId } = useParams();
   const { apiBaseUrl, subdomain } = useSubdomin();
   // const { token } = useToken();
-  const token = localStorage.getItem("token") || Cookies.get("token");
+  const token = localStorage.getItem("token") 
 
   const {
     data: AllSections,

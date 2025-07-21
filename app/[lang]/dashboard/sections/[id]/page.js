@@ -9,7 +9,7 @@ import SectionList from "@/app/[lang]/components/SectionList";
 export default function SectionsForMenu({ params: { lang } }) {
   const { id } = useParams();
   // const { token } = useToken();
-  const token = localStorage.getItem("token") || Cookies.get("token");
+  const token = localStorage.getItem("token") 
   const { apiBaseUrl, subdomain } = useSubdomin();
   const { trans } = useTranslate(lang);
   const {

@@ -16,18 +16,30 @@ export const SubdominProvider = ({ children }) => {
     // get domin
     const detectedSubdomain = getSubdomain();
     setSubdomin(detectedSubdomain);
-  
   }, []);
 
+  // useEffect(() => {
+  //   if (subdomain) {
+  //     const baseUrl = BASE_URL();
+
+  //     let cleanedBaseUrl = baseUrl?.replace(/\/api\/?$/, "");
+
+  //     setApiBaseUrl(`${cleanedBaseUrl}/${subdomain}/api`);
+  //   }
+  // }, [subdomain]);
   useEffect(() => {
     if (subdomain) {
-      const baseUrl = BASE_URL();
-
-      let cleanedBaseUrl = baseUrl?.replace(/\/api\/?$/, "");
-
-      setApiBaseUrl(`${cleanedBaseUrl}/${subdomain}/api`);
+      if (process.env.NODE_ENV === "development") {
+        setApiBaseUrl(`/api-proxy`);
+        console.log("process.env.NODE_ENV from provider", process.env.NODE_ENV);
+      } else {
+        const baseUrl = BASE_URL();
+        let cleanedBaseUrl = baseUrl?.replace(/\/api\/?$/, "");
+        setApiBaseUrl(`${cleanedBaseUrl}/${subdomain}/api`);
+      }
     }
   }, [subdomain]);
+
   return (
     <subdomainContext.Provider value={{ subdomain, apiBaseUrl }}>
       {children}
